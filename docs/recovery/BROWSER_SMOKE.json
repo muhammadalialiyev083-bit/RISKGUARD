@@ -1,0 +1,64 @@
+{
+  "database": "Separate smoke.sqlite3; source database preserved",
+  "entrypoint": "Django-served updated frontend build",
+  "api_calls": [
+    {
+      "path": "/api/v1/auth/me",
+      "method": "GET",
+      "status": 403
+    },
+    {
+      "path": "/api/v1/auth/csrf",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/auth/login",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/assets/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/plans/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/processes/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/bia/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/risks/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/reports/organization",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/audit-logs/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/scenarios/",
+      "method": "GET",
+      "status": 200
+    }
+  ],
+  "javascript_errors": [],
+  "visible_text": "Farg'ona Davlat Texnika Universiteti\nOliy ta'lim\nFoydalanuvchi:\nMuhammadali Aliyev — ADMIN\nBCMS Menejeri — BCMS_MANAGER\nMamirjon Turdimatov — APPROVER\nBCMS_MANAGER\nBCMS Designer\nISO 22301 Platform\nASOSIY MODULLAR\nDashboard\nJarayonlar & Aktivlar\nBIA Baholash\n1\nXavf Reestri\n4\nHisoblash Yadrosi\nSsenariy Simulyatsiyasi\nBCP/DRP Rejalari\nAudit Jurnali\nSTANDARTLAR ASOSI\nISO 22301:2019\nISO/TS 22317:2021\nNIST SP 800-34\nOWASP ASVS v5.0\nTashkilot Uzluksizligi Holati\n\nFR-11: Asosiy KPI ko'rsatkichlar, kritik jarayonlar va RPO bo'shliqlari konsolidatsiyasi\n\nDiqqat: Zaxiralash Oralig'i Buzilishi!\n1 ta jarayonda zaxira nusxalash oralig'i ruxsat etilgan RPO chegarasidan katta. Nosozlik vaqtida ma'lumotlar yo'qolishi xavfi mavjud.\nJAMI JARAYONLAR\n4\n2 ta kritik jarayon\nYUQORI XAVFLAR\n4\nJami 4 ta xavfdan\nRPO BO'SHLIQLARI\n1\nZaxiralash intervali > RPO\nE'LON QILINGAN REJALAR\n1\n3 ta jarayonga reja kerak\nTASDIQLANGAN BIA\n4\n0 ta mashq o'tkazilgan\nJAMI AKTIVLAR\n3\nServer, Tizim, Xodim, Provayder\nKritik Biznes Jarayonlari\nFR-03 va FR-05 bo'yicha eng muhim jarayonlar va ularning BIA holati\nTashkilot Excel Hisoboti\nJARAYON NOMI\tKRITIKLIK\tXIZMAT\tBIA HOLATI\tRTO (MAQSAD)\nElektron kutubxona xizmati\tO'rta\tAxborot ta'lim platformasi (HEMIS & LMS)\tAPPROVED\t24.00h / MTPD: 72.00h\nShartnoma to'lovlari tizimi\tKritik\tAxborot ta'lim platformasi (HEMIS & LMS)\tAPPROVED\t2.00h / MTPD: 8.00h\nTalabalar akademik hisoboti\tYuqori\tAxborot ta'lim platformasi (HEMIS & LMS)\tAPPROVED\t8.00h / MTPD: 24.00h\nUniversitet elektron ta'lim xizmati\tKritik\tAxborot ta'lim platformasi (HEMIS & LMS)\tAPPROVED\t4.00h / MTPD: 12.00h",
+  "status": "passed"
+}

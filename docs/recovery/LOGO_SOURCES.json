@@ -1,0 +1,41 @@
+[
+  {
+    "file": "assets/riskguard-logo-1.png",
+    "source_chat": "https://chatgpt.com/s/cx_6af198dd25848191bfb31733765d3c74",
+    "shared_asset": "asset-4",
+    "width": 2172,
+    "height": 724,
+    "bytes": 444901,
+    "sha256": "aa3c39dd6c7f1684972365551ac2510528058df79085d3487809ba1d3c639148",
+    "alterations": 0,
+    "original_repository_path_unconfirmed": true,
+    "original_download_url": "https://chatgpt.com/backend-api/wham/shared_threads/cx_6af198dd25848191bfb31733765d3c74/assets/asset-4",
+    "storage": "Downloaded unchanged into recovery scratch workspace; original URL retained here; not installed into the application"
+  },
+  {
+    "file": "assets/riskguard-logo-2.png",
+    "source_chat": "https://chatgpt.com/s/cx_6af198dd25848191bfb31733765d3c74",
+    "shared_asset": "asset-5",
+    "width": 2172,
+    "height": 724,
+    "bytes": 466544,
+    "sha256": "69c0e8bf8ede34758bfec8a898187f4d93bb4e66a577a04bd71c4cba11710948",
+    "alterations": 0,
+    "original_repository_path_unconfirmed": true,
+    "original_download_url": "https://chatgpt.com/backend-api/wham/shared_threads/cx_6af198dd25848191bfb31733765d3c74/assets/asset-5",
+    "storage": "Downloaded unchanged into recovery scratch workspace; original URL retained here; not installed into the application"
+  },
+  {
+    "file": "assets/riskguard-logo-3.png",
+    "source_chat": "https://chatgpt.com/s/cx_6af198dd25848191bfb31733765d3c74",
+    "shared_asset": "asset-6",
+    "width": 2172,
+    "height": 724,
+    "bytes": 1209995,
+    "sha256": "dcf24364bb11d34acc89eacbca0bbf4d2da3c965a70d0a5e63c216cd576b53ca",
+    "alterations": 0,
+    "original_repository_path_unconfirmed": true,
+    "original_download_url": "https://chatgpt.com/backend-api/wham/shared_threads/cx_6af198dd25848191bfb31733765d3c74/assets/asset-6",
+    "storage": "Downloaded unchanged into recovery scratch workspace; original URL retained here; not installed into the application"
+  }
+]

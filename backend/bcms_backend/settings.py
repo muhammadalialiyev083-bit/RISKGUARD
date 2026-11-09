@@ -7,6 +7,15 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-bcms-designer-secure-
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+# Local Vite origins retained in the shared login-fix diff.
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS += ['http://localhost:5173', 'http://127.0.0.1:5173']
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

@@ -1,0 +1,95 @@
++"""Django API validation, tenant boundaries and production configuration."""
++import os
++import secrets
++import subprocess
++import sys
++import pytest
++from django.core.management import call_command
++from django.core.management.base import CommandError
++from rest_framework.test import APIClient
++from apps.organizations.models import Organization, Service
++from apps.authentication.models import User
++from apps.processes.models import BusinessProcess, Asset
++
++
++@pytest.fixture
++def api(db):
++    org = Organization.objects.create(name='API hardening org', sector='Test')
++    foreign = Organization.objects.create(name='Foreign org', sector='Test')
++    user = User.objects.create_user(username='hardening-manager', role='BCMS_MANAGER', organization=org)
++    service = Service.objects.create(organization=org, name='Local service')
++    p = BusinessProcess.objects.create(organization=org, service=service, name='Local process')
++    fs = Service.objects.create(organization=foreign, name='Foreign service')
++    fp = BusinessProcess.objects.create(organization=foreign, service=fs, name='Foreign process')
++    asset = Asset.objects.create(organization=foreign, name='Foreign asset', type='SERVER')
++    c = APIClient()
++    c.force_authenticate(user)
++    return c, org, p, asset, fp
++
++
++@pytest.mark.parametrize('field,value', [('likelihood', 0), ('impact', 6), ('likelihood', 'invalid'), ('rto_hours', -1), ('rpo_minutes', -1)])
++def test_invalid_risk_payload(api, field, value):
++    c, *_ = api
++    payload = dict(likelihood=4, impact=5, rto_hours=4, rpo_minutes=60, backup_interval_minutes=360)
++    payload[field] = value
++    assert c.post('/api/v1/analyses/evaluate-risk', payload, format='json').status_code == 400
++
++
++def test_strategy_api_and_missing_cost(api):
++    from bcms_domain.scientific import evaluate_strategies
++    c, *_ = api
++    rows = [dict(name='a', cost=10, estimated_rto_hours=2, estimated_rpo_minutes=30)]
++    payload = dict(target_rto_hours=4, target_rpo_minutes=60, strategies=rows)
++    response = c.post('/api/v1/analyses/evaluate-strategy', payload, format='json')
++    assert response.status_code == 200
++    assert response.data == evaluate_strategies(4, 60, rows)
++    del rows[0]['cost']
++    assert c.post('/api/v1/analyses/evaluate-strategy', payload, format='json').status_code == 400
++
++
++def test_foreign_references_rejected(api):
++    c, org, p, asset, fp = api
++    assert c.post('/api/v1/dependencies/', dict(from_type='PROCESS', from_id=p.id, to_type='ASSET', to_id=asset.id), format='json').status_code == 400
++    assert c.post('/api/v1/scenarios/', dict(title='Foreign failure', disrupted_asset_ids=[asset.id], estimated_outage_hours=8), format='json').status_code == 400
++    assert c.post('/api/v1/bia/', dict(process=fp.id, rto_hours=4, mtpd_hours=12), format='json').status_code == 400
++    assert c.post('/api/v1/risks/', dict(process=p.id, asset=asset.id, threat='Foreign reference', likelihood=4, impact=5), format='json').status_code == 400
++
++
++def test_scenario_api_deleted_and_invalid_assets(api):
++    from apps.simulation.models import Scenario
++    c, org, *_ = api
++    row = Scenario.objects.create(organization=org, title='Invalid input', disrupted_asset_ids=[987654], estimated_outage_hours=8)
++    assert c.post(f'/api/v1/scenarios/{row.id}/simulate/').status_code == 400
++    row.soft_delete()
++    assert c.post(f'/api/v1/scenarios/{row.id}/simulate/').status_code == 404
++
++
++def test_bia_targets(api):
++    c, _, p, *_ = api
++    for rto in (18, -1):
++        assert c.post('/api/v1/bia/', dict(process=p.id, rto_hours=rto, mtpd_hours=12), format='json').status_code == 400
++    assert c.post('/api/v1/bia/', dict(process=p.id, rto_hours=4, mtpd_hours=12), format='json').status_code == 201
++
++
++@pytest.mark.parametrize('command', ['seed_demo_data', 'provision_demo_users'])
++def test_production_demo_disabled_before_writes(db, settings, monkeypatch, command):
++    settings.DEBUG = False
++    monkeypatch.setenv('DEMO_USER_PASSWORD', secrets.token_urlsafe(24))
++    before = User.objects.count()
++    with pytest.raises(CommandError, match='restricted'):
++        call_command(command)
++    assert User.objects.count() == before
++
++
++@pytest.mark.parametrize('missing', ['DATABASE_URL', 'SECRET_KEY', 'DEBUG'])
++def test_django_production_fails_safely(missing):
++    secret = <SECRET>(48)
++    environment = dict(os.environ, ENVIRONMENT='production', DATABASE_URL='postgresql://localhost/bcms', SECRET_KEY=secret, DEBUG='false')
++    if missing == 'DEBUG':
++        environment['DEBUG'] = 'true'
++    else:
++        environment.pop(missing)
++    result = subprocess.run([sys.executable, '-c', 'import bcms_backend.settings'], env=environment, capture_output=True, text=True)
++    assert result.returncode != 0
++    assert secret not in result.stderr
++    assert missing in result.stderr

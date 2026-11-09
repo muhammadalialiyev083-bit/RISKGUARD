@@ -1,0 +1,6 @@
+@@ -56,3 +56,4 @@
+     const value = pair.slice(equals + 1);
+-    if (value) cookies.set(key, value); else cookies.delete(key);
++    if (!value || value === '""' || /max-age=0/i.test(cookie)) cookies.delete(key);
++    else cookies.set(key, value);
+     assert.ok(cookie.includes('SameSite=Lax'));

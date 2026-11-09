@@ -1,0 +1,919 @@
+{
+  "head": "a3c2b22885b30b9ad4cddb4f910eb6d718977dc2",
+  "tracked_file_count": 7450,
+  "node_modules_file_count": 6787,
+  "project_files": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 3353,
+      "sha256": "7841d2d1fb7ed74c0ead98cbfff2b6f27081aebb85eec38a8a0b846f17d8dbd4"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7888,
+      "sha256": "bf52bdec02e7cadb77d48713b808a71d19943fd715512889679f909e8c5dcf49"
+    },
+    {
+      "path": "backend/apps/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/authentication/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/authentication/apps.py",
+      "bytes": 164,
+      "sha256": "bfcdfd68125b747f58ba489ab4d058d263fc527d79de84a3a255c239a6412987"
+    },
+    {
+      "path": "backend/apps/authentication/migrations/0001_initial.py",
+      "bytes": 2667,
+      "sha256": "946751a299b0cdadcd3774f5fde2c484bc9b0067f2263e6b619386f873de582d"
+    },
+    {
+      "path": "backend/apps/authentication/migrations/0002_initial.py",
+      "bytes": 1667,
+      "sha256": "6b18a9a864d4fef8c6d740260e9ab9cde5038b42b07bc23e59d9013713592350"
+    },
+    {
+      "path": "backend/apps/authentication/migrations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/authentication/models.py",
+      "bytes": 2195,
+      "sha256": "fde460eb7bf127cb5679e46d3000f3417c163f1ade413f0de1d2eac3c3c860e9"
+    },
+    {
+      "path": "backend/apps/authentication/permissions.py",
+      "bytes": 2691,
+      "sha256": "05804c7f77a1c0cb87f7cd8c032d838dd03aa2ead13097943df6c93a709efa7b"
+    },
+    {
+      "path": "backend/apps/authentication/serializers.py",
+      "bytes": 2910,
+      "sha256": "9535fafd1888322d0bfbb46ed99fb845d25d3e5c53b3495c75f5c2c8b9daccf8"
+    },
+    {
+      "path": "backend/apps/authentication/views.py",
+      "bytes": 3845,
+      "sha256": "cd0e345dfaa1832eed90d779bc53a301c5baf5cfd8e2e5e6f90bca376485d79a"
+    },
+    {
+      "path": "backend/apps/bia/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/bia/apps.py",
+      "bytes": 142,
+      "sha256": "580d7f3c506dc8b5b99c95c1040a1b52f10aaacca28eb29245446969fad08650"
+    },
+    {
+      "path": "backend/apps/bia/migrations/0001_initial.py",
+      "bytes": 3109,
+      "sha256": "9fcc5dabf1116f9caa2dd498bf147b2e9f369917da561c197f1253bfe04d812c"
+    },
+    {
+      "path": "backend/apps/bia/migrations/0002_initial.py",
+      "bytes": 931,
+      "sha256": "155fc75c41d882e923d6618b3e825ddd7cae2f8d1d293c46aa8ef43c95b72f42"
+    },
+    {
+      "path": "backend/apps/bia/migrations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/bia/models.py",
+      "bytes": 3806,
+      "sha256": "70c1c596f9c7470d9fba94247d14e5d4e5ff115e3a720571ab0d99e7f8f3a55c"
+    },
+    {
+      "path": "backend/apps/bia/serializers.py",
+      "bytes": 1950,
+      "sha256": "f194c32e600c7fed294f6485f85cc2176b381c1740c222104bfc512ca8ea9fed"
+    },
+    {
+      "path": "backend/apps/bia/views.py",
+      "bytes": 3049,
+      "sha256": "c18d04c8230611a6efe927052fab269ed16a49b6c99e1fa4530ead6d3a347370"
+    },
+    {
+      "path": "backend/apps/core/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/core/apps.py",
+      "bytes": 144,
+      "sha256": "183150d2c623118ea31e472e68d01f1e51be73fe192e2404f54a1c57bc8bbf1c"
+    },
+    {
+      "path": "backend/apps/core/audit.py",
+      "bytes": 1167,
+      "sha256": "d81f1ed2993fce2a8b235d0874da508daec5c0a960903a7cf8ea77b170ca9170"
+    },
+    {
+      "path": "backend/apps/core/management/commands/seed_demo_data.py",
+      "bytes": 8191,
+      "sha256": "b33ed27b9558c7793fa69d96a8037256cdc5e55d53085d3b93ccc18c29809395"
+    },
+    {
+      "path": "backend/apps/core/migrations/0001_initial.py",
+      "bytes": 2016,
+      "sha256": "869c619814ebf69c848958a9f735ba6929bd8de72496bcc829a86fc25c1c08a7"
+    },
+    {
+      "path": "backend/apps/core/migrations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/core/models.py",
+      "bytes": 3576,
+      "sha256": "2ca119362c3670c74489c6b0bffdef622bb66469f1fa3acb9e48fa3941e377f7"
+    },
+    {
+      "path": "backend/apps/core/serializers.py",
+      "bytes": 600,
+      "sha256": "8c5d65af255be6cbfcd935d934302d1d5d18e05a282011ebfc1e070c6d37fe7f"
+    },
+    {
+      "path": "backend/apps/core/views.py",
+      "bytes": 719,
+      "sha256": "816ac1b5ddfba8e7800be0fcbf4b29f27cbc223cd0f8537c14d6239407cf09f7"
+    },
+    {
+      "path": "backend/apps/engine/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/engine/apps.py",
+      "bytes": 148,
+      "sha256": "b804beaf065893e7125775eae2a2875348fe2761ba7190112ccd27ffe912ec25"
+    },
+    {
+      "path": "backend/apps/engine/calculator.py",
+      "bytes": 9049,
+      "sha256": "73be7570aa85c18d83f17f0f9ebd60b1477d8b909b268a5baa67a36b30385cdd"
+    },
+    {
+      "path": "backend/apps/engine/sensitivity.py",
+      "bytes": 6291,
+      "sha256": "973b9474a3706bee0ee4472e1eb2bfb9f6d02c3b09c880e104fdef9619b13aab"
+    },
+    {
+      "path": "backend/apps/engine/views.py",
+      "bytes": 3525,
+      "sha256": "698ae7f3c46463afb677782bcedabe21b72cc5fcf76582af11aaeb2f5c890f13"
+    },
+    {
+      "path": "backend/apps/organizations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/organizations/apps.py",
+      "bytes": 162,
+      "sha256": "c4caea151c2faa5ddbb88fbd54b1fe95ff35ae79b5a368421bd8591d448a4295"
+    },
+    {
+      "path": "backend/apps/organizations/migrations/0001_initial.py",
+      "bytes": 3321,
+      "sha256": "c99168cfe870423a0ca07660d9af0e4d175bb738cd1346f19167f5509f7146f0"
+    },
+    {
+      "path": "backend/apps/organizations/migrations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/organizations/models.py",
+      "bytes": 2609,
+      "sha256": "60cafaa0c12435aea9fc4cd14847a64cd545bff3f19e201ea77cdcb89012bcce"
+    },
+    {
+      "path": "backend/apps/organizations/serializers.py",
+      "bytes": 1120,
+      "sha256": "aa527e6e83c045f57cfb0433f9dd76d42049e73eb6bcb639a33e4a7472e84181"
+    },
+    {
+      "path": "backend/apps/organizations/views.py",
+      "bytes": 3240,
+      "sha256": "05a6a2b39bc84a21cbacd6e499287e97ed52bab8614e34188da9f7f7c5772b70"
+    },
+    {
+      "path": "backend/apps/plans/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/plans/apps.py",
+      "bytes": 146,
+      "sha256": "515eb2f2633fe29682737b455220aa7f6664bf0f24a239c892a4cfe96f0f00ef"
+    },
+    {
+      "path": "backend/apps/plans/migrations/0001_initial.py",
+      "bytes": 4211,
+      "sha256": "29e13b5380ca0e9ef1a7ad6f1e29ebcc7d757a9d2012848c26f00e9a8305778b"
+    },
+    {
+      "path": "backend/apps/plans/migrations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/plans/models.py",
+      "bytes": 2890,
+      "sha256": "3500df4afa2826f4312725174be2c1c823488a4d04dddfd4a3701630b42e9b4a"
+    },
+    {
+      "path": "backend/apps/plans/serializers.py",
+      "bytes": 2017,
+      "sha256": "e928c09047cfe22e04b32836ec59d3943db2299ae6fe94de1b2599071a5e364c"
+    },
+    {
+      "path": "backend/apps/plans/views.py",
+      "bytes": 6107,
+      "sha256": "321b31333d9379fc4a2e9ce9263841db78f90b17b22ce87989f2204b453570d6"
+    },
+    {
+      "path": "backend/apps/processes/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/processes/apps.py",
+      "bytes": 154,
+      "sha256": "c1324efcd2524973544e367bb7471a86e51a889c3cfab10e8c51df87267c3694"
+    },
+    {
+      "path": "backend/apps/processes/migrations/0001_initial.py",
+      "bytes": 4771,
+      "sha256": "c3cfc5bad39f845c4e5263404fc574b3a291aba8a74070139bba1db6f9feeebb"
+    },
+    {
+      "path": "backend/apps/processes/migrations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/processes/models.py",
+      "bytes": 3395,
+      "sha256": "2e310db12fd3b72492edc1d101be249291e5fe4716be2c9bc22de9e813ef28d9"
+    },
+    {
+      "path": "backend/apps/processes/serializers.py",
+      "bytes": 1670,
+      "sha256": "c1b3939dd7e3e6d0016ed5fa2ca39bffc13f557f1834b7add52803e2790c5ead"
+    },
+    {
+      "path": "backend/apps/processes/views.py",
+      "bytes": 3064,
+      "sha256": "1f98a5b3107238d3afd2daa26de9405395e670bda8261108ba60f73a9d1bf5d2"
+    },
+    {
+      "path": "backend/apps/reports/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/reports/apps.py",
+      "bytes": 150,
+      "sha256": "90d435dc6e65b90238f257804ade8c6cedf22dc4e6ad164a30cc44f2e1230ad2"
+    },
+    {
+      "path": "backend/apps/reports/views.py",
+      "bytes": 2716,
+      "sha256": "96a9a1453dd22051a64cf793f49162e46f289bc519be9405d8c61be857bd70d4"
+    },
+    {
+      "path": "backend/apps/risks/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/risks/apps.py",
+      "bytes": 146,
+      "sha256": "a6a13cc7378ffce5d0f23a5d59080a1927af61d9ba40eda12b1512897523d24c"
+    },
+    {
+      "path": "backend/apps/risks/migrations/0001_initial.py",
+      "bytes": 3556,
+      "sha256": "7b3b79b2af542b9a5dfd169b9b475b35ef9fc0a3e1a767bd3d70e3cc7f1110f6"
+    },
+    {
+      "path": "backend/apps/risks/migrations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/risks/models.py",
+      "bytes": 4326,
+      "sha256": "aeb2b7dc130360eb3bf81ca48cc2be69b0c5a611dc50e49e6254bd91e8c4f670"
+    },
+    {
+      "path": "backend/apps/risks/serializers.py",
+      "bytes": 1714,
+      "sha256": "222c7e106048df318437113662362a9cac8eec20cf63b0635c20d81a6e9358fa"
+    },
+    {
+      "path": "backend/apps/risks/views.py",
+      "bytes": 2332,
+      "sha256": "372d00381da08bb07fae09b07fe5b4b9ca2ff7a8fd0b3bb1446af5e2b681ab56"
+    },
+    {
+      "path": "backend/apps/simulation/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/simulation/apps.py",
+      "bytes": 156,
+      "sha256": "6955752b36cd6e1732d89ee089f0930ef67d8ad36e6e1c0d1e1ae539897b1916"
+    },
+    {
+      "path": "backend/apps/simulation/migrations/0001_initial.py",
+      "bytes": 2828,
+      "sha256": "fa83082dfac45be969c2933436aadf274a3722e322cf6b80b1b017de3bd2d668"
+    },
+    {
+      "path": "backend/apps/simulation/migrations/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/apps/simulation/models.py",
+      "bytes": 1771,
+      "sha256": "0e8e12d4b2d18ed64b027a861307220065db84643527acd79e0d48ce9d340e66"
+    },
+    {
+      "path": "backend/apps/simulation/serializers.py",
+      "bytes": 985,
+      "sha256": "2fd02296d88af03aeaef4fb910bc7fe020d81a7edbeeb914675165864d0a2b5d"
+    },
+    {
+      "path": "backend/apps/simulation/simulator.py",
+      "bytes": 3613,
+      "sha256": "94ba5250cde44779b03b1b239ff6279d4126f329ede63996518623adb575b843"
+    },
+    {
+      "path": "backend/apps/simulation/views.py",
+      "bytes": 2594,
+      "sha256": "7faddbc5085d0aa7cdcb1a06a824e49d458dd88870694eea171f5f006cfdf985"
+    },
+    {
+      "path": "backend/bcms_backend/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "backend/bcms_backend/asgi.py",
+      "bytes": 401,
+      "sha256": "9ffeef8c95b4e2ffbda72559a355b6ccb20053d8a9b72d45bf34fffbad0ec0f4"
+    },
+    {
+      "path": "backend/bcms_backend/settings.py",
+      "bytes": 3007,
+      "sha256": "65d0135ff4f5e7d16fab1412e8dddb2d9ad226b65e99f3d866315c87ffdef3ef"
+    },
+    {
+      "path": "backend/bcms_backend/urls.py",
+      "bytes": 2983,
+      "sha256": "a911a06438f0ffc9bdbfef19456cc03bb0a7a3031ab17b9a3aa11a85d7603550"
+    },
+    {
+      "path": "backend/bcms_backend/wsgi.py",
+      "bytes": 401,
+      "sha256": "a1cf39817ccbb46e85ac3f72b903e113059e1632cb2617fd76152accff0ee4f0"
+    },
+    {
+      "path": "backend/db.sqlite3",
+      "bytes": 421888,
+      "sha256": "a81a27c5814d80bef1fe552684c59f4162ee43e9d3008e19fe2f09ed8a2ec598"
+    },
+    {
+      "path": "backend/manage.py",
+      "bytes": 668,
+      "sha256": "bdef559b9569fbe757960cc147e9ded58139acb91c14f2d20befdc5d02319fa7"
+    },
+    {
+      "path": "backend/pytest.ini",
+      "bytes": 125,
+      "sha256": "b305b04db857bd968dc9cdae801606abe525987b0167533d5ecd91c8d6016a08"
+    },
+    {
+      "path": "backend/tests/test_auth_rbac.py",
+      "bytes": 4846,
+      "sha256": "0abf332c2172ef39eed0a8df0894a5241cd52b8b9b807633a8e329316017e9f3"
+    },
+    {
+      "path": "backend/tests/test_f1_scientific.py",
+      "bytes": 7693,
+      "sha256": "416aa17dd569e240ca5db14b5887ba7c8d8b56903d31a75e9981ac0a343774e8"
+    },
+    {
+      "path": "backend/tests/test_phase2_bia_risks.py",
+      "bytes": 7751,
+      "sha256": "fff9a4baa650484fcd8f96c58575186ae71d76d50b999039e9eeec74431ee2a9"
+    },
+    {
+      "path": "backend/tests/test_phase3_phase4_engine_and_simulation.py",
+      "bytes": 9997,
+      "sha256": "b204e12f9fe62c152602c58f7be5ba4d4ace759d3f40e6270a9ca4965733ff45"
+    },
+    {
+      "path": "backend_fastapi/.env.example",
+      "bytes": 311,
+      "sha256": "b84c01750828dd2761ec931098f8fe5fc22c9102ac82555510d24167a1ea6c6a"
+    },
+    {
+      "path": "backend_fastapi/.gitignore",
+      "bytes": 424,
+      "sha256": "35c8d02d8b88b21bdc1288934ca15e4043be4013c177801d267381b50a538ced"
+    },
+    {
+      "path": "backend_fastapi/alembic.ini",
+      "bytes": 583,
+      "sha256": "1864dd9c4631c9d03490a4aa1b1a0e9ce18e696477d22bfbeb05ca9838cd6989"
+    },
+    {
+      "path": "backend_fastapi/alembic/env.py",
+      "bytes": 1203,
+      "sha256": "41641a843dea80b441cd8164c922277c47cc3ece4858d91b4fded7f18f2d6e4b"
+    },
+    {
+      "path": "backend_fastapi/alembic/script.py.mako",
+      "bytes": 615,
+      "sha256": "bb415a6fc1cda6cc165ac78fd6d641c2a38ed182bf2ee60fb25fac40391dabed"
+    },
+    {
+      "path": "backend_fastapi/alembic/versions/0001_initial_schema.py",
+      "bytes": 20579,
+      "sha256": "cb7f34ff0b314972f25f6a0e92ea1e0b409d2595634ed2765dd912f15e9a20ed"
+    },
+    {
+      "path": "backend_fastapi/alembic/versions/__init__.py",
+      "bytes": 19,
+      "sha256": "db0bd1abcf47909b25c8c8ff9cd3279eee046830c84a9b95eaae5c8f489d7b2a"
+    },
+    {
+      "path": "backend_fastapi/app/__init__.py",
+      "bytes": 32,
+      "sha256": "98edd0ca06f36daaa4b3882ee7c582b9c93ffcfcf5f5c3b863acdde2f08aa9c4"
+    },
+    {
+      "path": "backend_fastapi/app/config.py",
+      "bytes": 849,
+      "sha256": "d90df6349c643de45c4a7bba1bc0a5ffc3bb1929a8c46b380d9c09e484b148cc"
+    },
+    {
+      "path": "backend_fastapi/app/crud/__init__.py",
+      "bytes": 21,
+      "sha256": "96cefd0a028490780a684d02ebf5eb9475f3c66db59617dbafe8332978ba4ecb"
+    },
+    {
+      "path": "backend_fastapi/app/database.py",
+      "bytes": 941,
+      "sha256": "87b6fd596c9f02d6d7c3faff198734a203752a8284edc1729ce78f4b8c733251"
+    },
+    {
+      "path": "backend_fastapi/app/dependencies.py",
+      "bytes": 2158,
+      "sha256": "7c82d0c1578400c497fb68a2f68053e0832703ed309e293984462a6fa9cfef62"
+    },
+    {
+      "path": "backend_fastapi/app/main.py",
+      "bytes": 2097,
+      "sha256": "eacd9304ebf7c41dcc1803b976cd00902d67df094d988d6f70dd14dc605fdd91"
+    },
+    {
+      "path": "backend_fastapi/app/models/__init__.py",
+      "bytes": 763,
+      "sha256": "51665957042d6c395c27649113bcde4a4630566a1f7dcab43cecf93ac2057615"
+    },
+    {
+      "path": "backend_fastapi/app/models/audit.py",
+      "bytes": 1594,
+      "sha256": "0647850f218b46e26dc7c94fffd46e7e6b9d659014336f1e49830c0fae9785b9"
+    },
+    {
+      "path": "backend_fastapi/app/models/base.py",
+      "bytes": 992,
+      "sha256": "7e2b38e72bd9818e7f932494c6f561ec94ce7a98fb0e520f4469ffe136ae4d8e"
+    },
+    {
+      "path": "backend_fastapi/app/models/bia.py",
+      "bytes": 2422,
+      "sha256": "4c8de55aab644747998357292bf80764b6073981c650f204c8e0c74f707a5de1"
+    },
+    {
+      "path": "backend_fastapi/app/models/organization.py",
+      "bytes": 3462,
+      "sha256": "004a520faafb4c3c650092bd5f786cedc42983049d0e17ca106aa114707fc5a8"
+    },
+    {
+      "path": "backend_fastapi/app/models/plan.py",
+      "bytes": 2898,
+      "sha256": "1d5bad953137e06eddb02f328f533914bd3421f0b1b7c40018c6997f7730ae78"
+    },
+    {
+      "path": "backend_fastapi/app/models/process.py",
+      "bytes": 3617,
+      "sha256": "a4f69c23fb3c563a6073455af984a86a8da3e83b092fe9af27f92d993aed645c"
+    },
+    {
+      "path": "backend_fastapi/app/models/risk.py",
+      "bytes": 3073,
+      "sha256": "23944a59797615f12b25de0aead90a00fbbf8a48a0f7a1428463f311bf2f28e3"
+    },
+    {
+      "path": "backend_fastapi/app/models/simulation.py",
+      "bytes": 1605,
+      "sha256": "05265da96c0914a4a6e17fe2003ee15ab2455fa2656a7165ae470adcaa5715d7"
+    },
+    {
+      "path": "backend_fastapi/app/models/user.py",
+      "bytes": 2805,
+      "sha256": "117de86325acf430a74f39c90f97a006c4afeddb85499a4774d92751e70b1cb3"
+    },
+    {
+      "path": "backend_fastapi/app/routers/__init__.py",
+      "bytes": 28,
+      "sha256": "2a6b96cf93c86d38ffd8aa42add9e67c4eacd8cdcde00cfa363033b434cdb90b"
+    },
+    {
+      "path": "backend_fastapi/app/routers/audit.py",
+      "bytes": 1263,
+      "sha256": "88742cb5373f030205ec9471f63f39407d10b93adc05386e6774cfcf24d26ab6"
+    },
+    {
+      "path": "backend_fastapi/app/routers/auth.py",
+      "bytes": 2884,
+      "sha256": "e8930eec3cb2e8f37ad7694ce37aab81f5febe3fc7284da8631db163cadc79da"
+    },
+    {
+      "path": "backend_fastapi/app/routers/bia.py",
+      "bytes": 3849,
+      "sha256": "d6a7e02615652992e15e5ec1f14bdb9e4762e2efabd59a17e5883faec283b3fb"
+    },
+    {
+      "path": "backend_fastapi/app/routers/engine.py",
+      "bytes": 1358,
+      "sha256": "50efa9b236a3c8c853d7ec2026716f34b522e6ba12454d3d1cbb195765d9a6ef"
+    },
+    {
+      "path": "backend_fastapi/app/routers/organizations.py",
+      "bytes": 2255,
+      "sha256": "9478882784e34cd1074701e287183eddb917e9412b41d9631b1f5ef081563297"
+    },
+    {
+      "path": "backend_fastapi/app/routers/plans.py",
+      "bytes": 5496,
+      "sha256": "8264339ac63047bf56b913d5d5318e5ba931e307dcb3635a68a074ac157f8feb"
+    },
+    {
+      "path": "backend_fastapi/app/routers/processes.py",
+      "bytes": 4130,
+      "sha256": "ff146d038f3443d4f5c20ea05313e246aa3e77aa3de5ac724935d385ba6878b6"
+    },
+    {
+      "path": "backend_fastapi/app/routers/reports.py",
+      "bytes": 1489,
+      "sha256": "59ca2acfb42ad6c8db97061251bb407c514178e50a0939ca7eea9ea8eb2746ee"
+    },
+    {
+      "path": "backend_fastapi/app/routers/risks.py",
+      "bytes": 3500,
+      "sha256": "696212284d1307cf1959fbdf092971fc39f5942b5987ebf15273a8444791ccce"
+    },
+    {
+      "path": "backend_fastapi/app/routers/simulation.py",
+      "bytes": 2798,
+      "sha256": "ee8c29870e1b0b9540a9e0daf810b7d34578938e6e2d8929305ce9bc004af659"
+    },
+    {
+      "path": "backend_fastapi/app/routers/users.py",
+      "bytes": 999,
+      "sha256": "cf63d2965e25c896a8f89786f9f3d25e8297215a88cabe9c1da6fda67306e9c6"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/__init__.py",
+      "bytes": 37,
+      "sha256": "fd175e449a1de8e38e48458588cf8a4d97365d3b88f1cf0c86c5902a9e840a1d"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/audit.py",
+      "bytes": 359,
+      "sha256": "b61e5a4a5db4b7463745a38faa57682b6fe0a5d2b42dd29bcbb3566e0e3510de"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/auth.py",
+      "bytes": 766,
+      "sha256": "b1ba55e342babad16fac190c4443360a0a5133e3936c02ebb5922d52688ee6d8"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/bia.py",
+      "bytes": 572,
+      "sha256": "26a0742a7fd2577bbcc28fde20cd6593bc7cc0324763c5ac6c731e976272c6d4"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/common.py",
+      "bytes": 351,
+      "sha256": "515bd369cc6c4b6d23be3f7d1b22c4188fced7754c9520cee20208c42bb36166"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/engine.py",
+      "bytes": 854,
+      "sha256": "0f248b3b8a8723dbda0680e2ea01d2e8bbf87b3c78a12c9638e5fd47a2f86ca6"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/organization.py",
+      "bytes": 902,
+      "sha256": "eec285cb51f13149a2214b2b6ebfaeadd26fad54777eeea7dd4383d517e2f30e"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/plan.py",
+      "bytes": 826,
+      "sha256": "e35d362398cf4813233c4c5ef5f107ec1c7c0bfcca8a004df996f7b802e842a4"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/process.py",
+      "bytes": 947,
+      "sha256": "74d61530a0afb82f6dab5cf48f6fe54b6a4ede02a2e2cad5b0ce8978f909def5"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/report.py",
+      "bytes": 468,
+      "sha256": "1863cc8f0e000fd6dda36ef15f8c00a6cf423232cd56e9b4736da01423e92fcf"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/risk.py",
+      "bytes": 937,
+      "sha256": "f8a1bbdade4cbb7bc4ea4e56acb41cef72d1212838159ec2e6116bf4b496611b"
+    },
+    {
+      "path": "backend_fastapi/app/schemas/simulation.py",
+      "bytes": 923,
+      "sha256": "218d490e6dcc232825c22bbba67ba80bca4fb90d7fc4e3dc609f8e1e8448312e"
+    },
+    {
+      "path": "backend_fastapi/app/services/__init__.py",
+      "bytes": 25,
+      "sha256": "120688f5c497c5b8b7f2209e490403f6e45d6d4e35f4e6a3810ed848ff7bd281"
+    },
+    {
+      "path": "backend_fastapi/app/services/engine.py",
+      "bytes": 6310,
+      "sha256": "647e135c86d31dc3006fb444e7bcd8e9322891f654a0413f4e5cb408991fac8b"
+    },
+    {
+      "path": "backend_fastapi/app/services/export.py",
+      "bytes": 10567,
+      "sha256": "b774d390e5f16bfe540cf99e73608cd73d1cc1a5f38700012cc8e6d81d05c6fb"
+    },
+    {
+      "path": "backend_fastapi/app/services/reports.py",
+      "bytes": 3189,
+      "sha256": "cf5746ee9a8b67ec4bdb33aaddb8de7cbd0ce7c4f4314a5a3c3ff5103ebe9bac"
+    },
+    {
+      "path": "backend_fastapi/app/services/simulation.py",
+      "bytes": 3881,
+      "sha256": "6a63aaf5f06297ce8a7ba4208592dbe3b2c286abb12fef268742a75c59cb8ff3"
+    },
+    {
+      "path": "backend_fastapi/app/utils/__init__.py",
+      "bytes": 17,
+      "sha256": "9447a0634730e18da426af4d3e3669741001da98e6476a893db69103c499b070"
+    },
+    {
+      "path": "backend_fastapi/app/utils/audit.py",
+      "bytes": 890,
+      "sha256": "9f687aa3706921cd480e8eeb015d8bd5ce3b4bc46a52646bbb434561ec6a708b"
+    },
+    {
+      "path": "backend_fastapi/app/utils/security.py",
+      "bytes": 640,
+      "sha256": "90d566fb8a9ca294d77bb83111b20e8706814be72aa20e4ee5726e4c8b8dcf29"
+    },
+    {
+      "path": "backend_fastapi/requirements.txt",
+      "bytes": 473,
+      "sha256": "cb8a30499eafb9d2cb6eb8115cfe607283ecb8822cf26c46edb6892880402bdb"
+    },
+    {
+      "path": "backend_fastapi/seed_data.py",
+      "bytes": 13545,
+      "sha256": "d40dfb36b5c78dd0464aa383dc5aed0ed94911c837bf10f7a20c6772dbe0ecb5"
+    },
+    {
+      "path": "backend_fastapi/tests/conftest.py",
+      "bytes": 5862,
+      "sha256": "27e342def320d19184ef97bfb1b98e31d5e601f61c71c1993246e4fd1209faf1"
+    },
+    {
+      "path": "backend_fastapi/tests/test_auth.py",
+      "bytes": 1345,
+      "sha256": "a53373155a4bd3dd09e6678e6bdd24333d2fd6015cc1fcee98ea606c86e62e0f"
+    },
+    {
+      "path": "backend_fastapi/tests/test_bia.py",
+      "bytes": 1432,
+      "sha256": "0423dba7d9ab30b439540b888d295a8ddda80865e468e4829021171b58f49fc7"
+    },
+    {
+      "path": "backend_fastapi/tests/test_engine.py",
+      "bytes": 1530,
+      "sha256": "c20d009e964d9a71d6248550750ae0ea57f990e67e0573f8d34ee0946648b9cd"
+    },
+    {
+      "path": "backend_fastapi/tests/test_plans_simulation.py",
+      "bytes": 1839,
+      "sha256": "b37bff12a925560dc988b780b7d7cf940e7de878ce23831ebe865963a23e52b1"
+    },
+    {
+      "path": "backend_fastapi/tests/test_processes.py",
+      "bytes": 1209,
+      "sha256": "73baf9946de46c09713f2de2e69a3c3b74d57e886021610b0eda8867f039aff3"
+    },
+    {
+      "path": "backend_fastapi/tests/test_risks.py",
+      "bytes": 1106,
+      "sha256": "3b7b093a0539956cb85f9013e929675106c7b98e9e2d68648b305da1fb3d6790"
+    },
+    {
+      "path": "docs/BCMS_dasturiy_mahsulot_texnik_spetsifikatsiyasi.docx",
+      "bytes": 52139,
+      "sha256": "4a78cf608c595b0fecd9400fb3de3dbb46217e22c307cdc693266a653f8369b2"
+    },
+    {
+      "path": "docs/TEXNIK_TOPSHIRIQ.md",
+      "bytes": 24770,
+      "sha256": "73db8770abd8eb10c6814f07c438773386485dd7fd6d91c1a1ec3deee4f26255"
+    },
+    {
+      "path": "docs/extracted/[Content_Types].xml",
+      "bytes": 1994,
+      "sha256": "479ad1a2258771db93540fbde6ad43e861d8d39dd2559e3f6db17286b11cc6ab"
+    },
+    {
+      "path": "docs/extracted/_rels/.rels",
+      "bytes": 734,
+      "sha256": "a9ae57efe9186f07d48303bcac5d54c7e359bf3f503939c03ad2954e5c59a5c4"
+    },
+    {
+      "path": "docs/extracted/customXml/_rels/item1.xml.rels",
+      "bytes": 295,
+      "sha256": "1ca6c9a64edcebe24ee703a54403611b322d96da33371779e742d2d3f7ed7a6c"
+    },
+    {
+      "path": "docs/extracted/customXml/item1.xml",
+      "bytes": 262,
+      "sha256": "a86086ffc5d8e83ebd6c71a55d1d2efaa31b137977f5f3a752366e1023612144"
+    },
+    {
+      "path": "docs/extracted/customXml/itemProps1.xml",
+      "bytes": 354,
+      "sha256": "c542307b13ec29a8b546217bb37936ab4822e044b265d2952985ec3d6afed24e"
+    },
+    {
+      "path": "docs/extracted/docProps/app.xml",
+      "bytes": 1132,
+      "sha256": "be664981c3141cddfc59362beb287ebf20d0773660e2dd6faac5968a5930a081"
+    },
+    {
+      "path": "docs/extracted/docProps/core.xml",
+      "bytes": 893,
+      "sha256": "d0ac60dc69e6ff56d12c7e3a0886baa2708a2e6716cf9c6e44aae3194cfa2386"
+    },
+    {
+      "path": "docs/extracted/docProps/thumbnail.jpeg",
+      "bytes": 8324,
+      "sha256": "96367138dc44ce09bf2c8f0f8e49348a1478d2c5c0af69bbc2bbc38b63cdcead"
+    },
+    {
+      "path": "docs/extracted/word/_rels/document.xml.rels",
+      "bytes": 1484,
+      "sha256": "157ed86827865b095c9c6b39e7c3451315a4b0d6127daa8636026684d8b9df89"
+    },
+    {
+      "path": "docs/extracted/word/document.xml",
+      "bytes": 146984,
+      "sha256": "2c5177b2d57a01c3a59b992965da7f5f240b4ab89a787a10b522282254798f27"
+    },
+    {
+      "path": "docs/extracted/word/fontTable.xml",
+      "bytes": 2811,
+      "sha256": "79385fb7f60247507ecaffc292e9ebd52ea0657b8634f629ba6fccc54011d6bb"
+    },
+    {
+      "path": "docs/extracted/word/footer1.xml",
+      "bytes": 1470,
+      "sha256": "229cab6d845c4d08019c1efdc463387c9d8389c81102d71e88ce5a83a55deb65"
+    },
+    {
+      "path": "docs/extracted/word/header1.xml",
+      "bytes": 1496,
+      "sha256": "e79abdc9c344cb1c198ecd44814b32de6219a6fe7b7d39b2b15cbca58d61430b"
+    },
+    {
+      "path": "docs/extracted/word/numbering.xml",
+      "bytes": 5513,
+      "sha256": "70976f19cbcd896e51890859fe6ecb3467a5a7ad0c040160fedc5a1993cb09ce"
+    },
+    {
+      "path": "docs/extracted/word/settings.xml",
+      "bytes": 2535,
+      "sha256": "51a0d348fe85965c66e4748a03c3c0d055d78455514f03cb121c334af7d73689"
+    },
+    {
+      "path": "docs/extracted/word/styles.xml",
+      "bytes": 350176,
+      "sha256": "9ad4f83a089883f54f17701cd99c934e4d8e671996e3a39e8abd1fa189578fdb"
+    },
+    {
+      "path": "docs/extracted/word/stylesWithEffects.xml",
+      "bytes": 438131,
+      "sha256": "463ae0928cf0d84775dbf8cf18d6c3029f6707c81bf590f6d6dd8757a5e93f15"
+    },
+    {
+      "path": "docs/extracted/word/theme/theme1.xml",
+      "bytes": 10939,
+      "sha256": "e3a8ab7db9ca7afca56f5f2820a56e8b660016c647773555b060b0a02ac76941"
+    },
+    {
+      "path": "docs/extracted/word/webSettings.xml",
+      "bytes": 438,
+      "sha256": "349d36de7434d09f86987ff671d8814964a0588c1e630c06e562cda7e75e9f95"
+    },
+    {
+      "path": "frontend/index.html",
+      "bytes": 642,
+      "sha256": "82022bcbbac9884434fac0852c560d6599cec38d870a7a7bda87c25477c2a50f"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "bytes": 63385,
+      "sha256": "b2d609d7a989bc351eb0cdaab69429c40f847f7477ed141ccd263d27adb43a45"
+    },
+    {
+      "path": "frontend/package.json",
+      "bytes": 492,
+      "sha256": "ef772f42393ad172248c0c666397cb3e068fa8b8641a9c9cb6f248566edd157c"
+    },
+    {
+      "path": "frontend/src/App.tsx",
+      "bytes": 66777,
+      "sha256": "067b782a8cc5732fd5cdd6a7bd2a03b18c8ea74ff6466cf7cb43728a03c0b22e"
+    },
+    {
+      "path": "frontend/src/api/client.ts",
+      "bytes": 3233,
+      "sha256": "ce40d994c0858b01934074ff810de0b96c459c0ba16688b45cf9b9776b0f90e8"
+    },
+    {
+      "path": "frontend/src/index.css",
+      "bytes": 22879,
+      "sha256": "b7892e6434f2369588a70bfb66420ab0bc5c51c92a898d3e4d2c6c06915aa6e5"
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "bytes": 240,
+      "sha256": "79faf095f462c11b5dc445dac9043c06809247d25c47f6693fccd656d1a1d35a"
+    },
+    {
+      "path": "frontend/src/types/index.ts",
+      "bytes": 2407,
+      "sha256": "664a837d14f4aaa2b4fd5d956c473357ee0ce6854932af92a2d305c4747e6694"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "bytes": 510,
+      "sha256": "83672d2660de080f79e2f9db04811760bc2b1ae475c3c6da33662e6b0de5a94c"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "bytes": 283,
+      "sha256": "148275c4d0d8ea89bef5ee685d032f0970155a29d431f66b31a6e977838aea22"
+    }
+  ],
+  "python_syntax_errors": [],
+  "missing_recovery_paths": [
+    "backend/requirements.txt",
+    "bcms_domain",
+    "backend/apps/authentication/migrations/0003_bootstrap_initial_admin.py",
+    "docs/LOGIN_TUZATISH.md",
+    "docs/PULL_REQUEST.md",
+    "docs/TEST_RESULTS.md",
+    "docs/SECURITY_HARDENING.md",
+    "docs/DISSERTATION_TECHNICAL_SUMMARY_UZ.md",
+    "frontend/tests/client.test.mjs"
+  ]
+}

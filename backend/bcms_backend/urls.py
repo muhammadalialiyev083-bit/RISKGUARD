@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from apps.authentication.views import LoginView, LogoutView, MeView, UserViewSet
+from apps.authentication.views import LoginView, LogoutView, MeView, UserViewSet, CSRFTokenView
 from apps.organizations.views import OrganizationViewSet, DepartmentViewSet, ServiceViewSet
 from apps.core.views import AuditLogViewSet
 from apps.processes.views import BusinessProcessViewSet, AssetViewSet, DependencyViewSet
@@ -41,6 +41,7 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='frontend-home'),
     path('admin/', admin.site.urls),
     # Autentifikatsiya (FR-01)
+    path('api/v1/auth/csrf', CSRFTokenView.as_view(), name='auth-csrf'),
     path('api/v1/auth/login', LoginView.as_view(), name='auth-login'),
     path('api/v1/auth/logout', LogoutView.as_view(), name='auth-logout'),
     path('api/v1/auth/me', MeView.as_view(), name='auth-me'),

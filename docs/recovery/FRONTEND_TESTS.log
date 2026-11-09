@@ -1,0 +1,22 @@
+
+> bcms-designer-frontend@1.0.0 test
+> node --test tests/*.test.mjs
+
+✔ login, logout and relogin use rotated tokens and preserve the password (88.126861ms)
+✔ older login responses invalidate the cached token before logout (10.397868ms)
+✔ a stale CSRF rejection refreshes once and retries the same action (11.548323ms)
+✔ a repeated CSRF failure stops after one retry (8.751666ms)
+✔ permission errors and invalid credentials are never retried (3.421549ms)
+✔ concurrent actions share the CSRF bootstrap request (2.179386ms)
+✔ HTML from a static host cannot masquerade as a successful login (2.318646ms)
+✔ a failed CSRF bootstrap can be retried without reloading the page (2.136882ms)
+✔ network and upstream errors provide readable messages (1.572421ms)
+✔ profile loading retains authentication failures for session handling (1.471619ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1575.811753

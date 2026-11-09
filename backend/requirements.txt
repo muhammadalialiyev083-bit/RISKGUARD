@@ -1,0 +1,8 @@
+# Reconstructed dependency manifest, not the lost historical requirements.txt.
+# Django version is retained in the existing migration headers; other versions
+# are the dependency set verified in the recovery report.
+Django==6.1.2
+djangorestframework==3.18.3
+django-cors-headers==4.9.0
+networkx==3.4.2
+reportlab==4.2.5

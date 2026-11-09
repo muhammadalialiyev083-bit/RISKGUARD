@@ -1,0 +1,247 @@
+@@ -10,3 +10,3 @@
+ } from 'lucide-react';
+-import { api } from './api/client';
++import { api, ApiError } from './api/client';
+ import type {
+@@ -224,5 +224,6 @@
+ ──────────────────────────────────────────────── */
+-function Header({ currentUser, onSwitchUser, onRefresh, loading, theme, onThemeToggle }: {
++function Header({ currentUser, onSwitchUser, onLogout, onRefresh, loading, theme, onThemeToggle }: {
+   currentUser: any;
+   onSwitchUser: (u: string) => void;
++  onLogout: () => void;
+   onRefresh: () => void;
+@@ -268,5 +269,9 @@
+             style={{ padding: '5px 28px 5px 10px', fontSize: 12, width: 'auto', minWidth: 190, borderRadius: 8 }}
+-            value={currentUser?.username || 'bcms_manager'}
++            value={currentUser?.username || ''}
+             onChange={e => onSwitchUser(e.target.value)}
++            disabled={loading}
+           >
++            {!['admin', 'bcms_manager', 'director'].includes(currentUser?.username) && (
++              <option value={currentUser?.username}>{currentUser?.username}</option>
++            )}
+             <option value="admin">Muhammadali Aliyev — ADMIN</option>
+@@ -303,2 +308,5 @@
+         </button>
++        <button className="theme-toggle" onClick={onLogout} disabled={loading} title="Tizimdan chiqish" aria-label="Tizimdan chiqish">
++          <LogOut size={15} />
++        </button>
+       </div>
+@@ -1329,4 +1337,6 @@
+ ────────────────────────────────────────────────── */
+-function LoginForm({ onLogin }: { onLogin: (user: any) => void }) {
+-  const [username, setUsername] = useState('');
++function LoginForm({ onLogin, initialUsername, notice }: {
++  onLogin: (user: any) => void; initialUsername: string; notice: string;
++}) {
++  const [username, setUsername] = useState(initialUsername);
+   const [password, setPassword] = <SECRET>('');
+@@ -1339,2 +1349,3 @@
+     e.preventDefault();
++    if (loggingIn || !username.trim() || !password) return;
+     setLoggingIn(true);
+@@ -1342,3 +1353,3 @@
+     try {
+-      const res = await api.login({ username, password });
++      const res = await api.login({ username: username.trim(), password });
+       setLoginSuccess(true);
+@@ -1375,2 +1386,3 @@
+         </div>
++        {notice && <p role="status" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{notice}</p>}
+         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+@@ -1382,5 +1394,12 @@
+             <div className="form-group">
+-              <label className="form-label">Foydalanuvchi nomi</label>
++              <label className="form-label" htmlFor="login-username">Foydalanuvchi nomi</label>
+               <input
++                id="login-username"
++                name="username"
+                 type="text"
++                autoComplete="username"
++                autoCapitalize="none"
++                spellCheck={false}
++                required
++                disabled={loggingIn}
+                 className="input-field"
+@@ -1398,5 +1417,10 @@
+           >
+-            <label className="form-label">Parol</label>
++            <label className="form-label" htmlFor="login-password">Parol</label>
+             <div className="input-wrapper">
+               <input
++                id="login-password"
++                name="password"
++                autoComplete="current-password"
++                required
++                disabled={loggingIn}
+                 type={showPassword ? 'text' : 'password'}
+@@ -1419,2 +1443,3 @@
+             <motion.div
++              role="alert"
+               initial={{ opacity: 0, height: 0 }}
+@@ -1436,3 +1461,3 @@
+             type="submit"
+-            disabled={loggingIn}
++            disabled={loggingIn || !username.trim() || !password}
+           >
+@@ -1474,2 +1499,3 @@
+   const toastIdRef = useRef(0);
++  const dataRequestIdRef = useRef(0);
+ 
+@@ -1499,8 +1525,34 @@
+   // Login state
+-  const [loginLoading, setLoginLoading] = useState(false);
++  const [loginLoading, setLoginLoading] = useState(true);
++  const [loginUsername, setLoginUsername] = useState('');
++  const [loginNotice, setLoginNotice] = useState('');
++
++  const clearUserData = useCallback(() => {
++    // Ignore pending responses belonging to the previous session.
++    dataRequestIdRef.current += 1;
++    setDashboard(null);
++    setProcesses([]);
++    setServices([]);
++    setAssets([]);
++    setBias([]);
++    setRisks([]);
++    setPlans([]);
++    setScenarios([]);
++    setAuditLogs([]);
++    setAlgoOutput(null);
++    setPriorityResults(null);
++    setSimOutput(null);
++    setShowNewProcessModal(false);
++    setNewProcName('');
++    setNewProcService(null);
++    setActiveTab('dashboard');
++    setToasts([]);
++  }, []);
+ 
+   const handleLogin = useCallback((user: any) => {
++    clearUserData();
+     setCurrentUser(user);
++    setLoginNotice('');
+     setLoginLoading(false);
+-  }, []);
++  }, [clearUserData]);
+ 
+@@ -1519,13 +1571,16 @@
+   useEffect(() => {
++    let active = true;
+     (async () => {
+-      setLoginLoading(true);
+       try {
+         const user = await api.getMe();
+-        setCurrentUser(user);
+-      } catch {
+-        // Sessiya yo'q — qo'lda kirish kutiladi (avtomatik demo login yo'q)
++        if (active) setCurrentUser(user);
++      } catch (err) {
++        if (active && !(err instanceof ApiError && [401, 403].includes(err.status))) {
++          setLoginNotice(err instanceof Error ? err.message : 'Sessiyani tekshirib bo‘lmadi. Qayta urinib ko‘ring.');
++        }
+       } finally {
+-        setLoginLoading(false);
++        if (active) setLoginLoading(false);
+       }
+     })();
++    return () => { active = false; };
+   }, []);
+@@ -1535,2 +1590,3 @@
+     if (!currentUser) return;
++    const requestId = ++dataRequestIdRef.current;
+     setLoading(true);
+@@ -1538,12 +1594,13 @@
+       const [dRes, pRes, sRes, aRes, bRes, rRes, plRes, scRes, audRes] = await Promise.all([
+-        api.getDashboard().catch(() => ({ summary: null })),
+-        api.getProcesses().catch(() => ({ results: [] })),
+-        api.getServices().catch(() => ({ results: [] })),
+-        api.getAssets().catch(() => ({ results: [] })),
+-        api.getBIA().catch(() => ({ results: [] })),
+-        api.getRisks().catch(() => ({ results: [] })),
+-        api.getPlans().catch(() => ({ results: [] })),
+-        api.getScenarios().catch(() => ({ results: [] })),
+-        api.getAuditLogs().catch(() => ({ results: [] })),
++        api.getDashboard(),
++        api.getProcesses(),
++        api.getServices(),
++        api.getAssets(),
++        api.getBIA(),
++        api.getRisks(),
++        api.getPlans(),
++        api.getScenarios(),
++        api.getAuditLogs(),
+       ]);
++      if (requestId !== dataRequestIdRef.current) return;
+       setDashboard((dRes as any).summary);
+@@ -1557,18 +1614,42 @@
+       setAuditLogs((audRes as any).results || []);
+-    } catch {
+-      showToast("Ma'lumotlarni yuklashda xatolik yuz berdi.", 'error');
++    } catch (err) {
++      if (requestId !== dataRequestIdRef.current) return;
++      if (err instanceof ApiError && [401, 403].includes(err.status)) {
++        const signedOut = await api.getMe().then(() => false,
++          error => error instanceof ApiError && [401, 403].includes(error.status));
++        if (requestId !== dataRequestIdRef.current) return;
++        if (signedOut) {
++          clearUserData();
++          setCurrentUser(null);
++          setLoginNotice('Sessiya tugagan. Iltimos, tizimga qayta kiring.');
++          setLoading(false);
++          return;
++        }
++      }
++      showToast(err instanceof Error ? err.message : "Ma'lumotlarni yuklashda xatolik yuz berdi.", 'error');
+     } finally {
+-      setLoading(false);
++      if (requestId === dataRequestIdRef.current) setLoading(false);
+     }
+-  }, [currentUser, showToast]);
++  }, [currentUser, showToast, clearUserData]);
+ 
+-  useEffect(() => { if (currentUser) loadData(); }, [currentUser]);
++  useEffect(() => { if (currentUser) loadData(); }, [currentUser, loadData]);
+ 
+   /* Actions */
+-  const handleSwitchUser = async (username: string) => {
++  const handleSwitchUser = async (username = '') => {
+     setLoading(true);
+     try {
+-      await api.logout().catch(() => {});
+-      setCurrentUser(null); // Parolsiz hisob almashish taqiqlanadi — qo'lda kirish
+-      showToast(`Hisobni almashtirish uchun "${username}" bilan tizimga qayta kiring.`);
++      try {
++        await api.logout();
++      } catch (err) {
++        const signedOut = err instanceof ApiError && [401, 403].includes(err.status) &&
++          await api.getMe().then(() => false,
++            error => error instanceof ApiError && [401, 403].includes(error.status));
++        if (!signedOut) throw err;
++      }
++      clearUserData();
++      setLoginUsername(username);
++      setLoginNotice(username ? `Hisobni almashtirish uchun "${username}" parolini kiriting.` : 'Tizimdan muvaffaqiyatli chiqdingiz.');
++      setCurrentUser(null);
++    } catch (err) {
++      showToast(err instanceof Error ? err.message : 'Tizimdan chiqib bo‘lmadi. Qayta urinib ko‘ring.', 'error');
+     } finally {
+@@ -1647,4 +1728,12 @@
+ 
++  if (loginLoading) {
++    return (
++      <div className="app-shell" role="status" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
++        Sessiya tekshirilmoqda...
++      </div>
++    );
++  }
++
+   if (!currentUser) {
+-    return <LoginForm onLogin={handleLogin} />;
++    return <LoginForm onLogin={handleLogin} initialUsername={loginUsername} notice={loginNotice} />;
+   }
+@@ -1660,2 +1749,3 @@
+         onSwitchUser={handleSwitchUser}
++        onLogout={() => handleSwitchUser()}
+         onRefresh={loadData}

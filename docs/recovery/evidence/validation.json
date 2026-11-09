@@ -1,0 +1,25 @@
+{
+  "source_diffs_hashes_verified": 18,
+  "source_diffs_total": 18,
+  "extracted_snapshot_hashes_verified": 7,
+  "extracted_snapshot_total": 7,
+  "python_syntax_passed": [
+    "work/login-fix/http_check.py",
+    "work/verify_created_admin.py"
+  ],
+  "python_syntax_blocked_by_source_redaction": [
+    "test_api_hardening.py",
+    "adolat/backend/apps/authentication/migrations/0003_bootstrap_initial_admin.py",
+    "adolat/backend/tests/test_initial_admin.py"
+  ],
+  "frontend_test_syntax": "failed at exported <SECRET> placeholder; no code guessed",
+  "deployed_compiled_javascript_syntax": "passed",
+  "unapplied_document_update": "Original header declares old=4/new=22 lines; exported body has old=3/new=21 lines. Preserved without applying.",
+  "application_test_suites_run": false,
+  "application_build_run": false,
+  "database_migrations_run": false,
+  "application_source_mutations": 0,
+  "git_history_mutations": 0,
+  "github_writes": 0,
+  "production_deploys": 0
+}

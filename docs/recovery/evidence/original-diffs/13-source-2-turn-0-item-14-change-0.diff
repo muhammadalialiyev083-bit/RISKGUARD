@@ -1,0 +1,90 @@
++import os
++import subprocess
++import threading
++from wsgiref.simple_server import WSGIRequestHandler, make_server
++
++os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bcms_backend.settings')
++import django
++from django.conf import settings
++
++settings.DATABASES['default']['NAME'] = '/workspace/work/login-fix/http-test.sqlite3'
++settings.ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
++django.setup()
++
++from django.core.management import call_command
++from django.core.wsgi import get_wsgi_application
++from apps.authentication.models import User
++from apps.organizations.models import Organization
++
++call_command('migrate', verbosity=0)
++for number in (1, 2):
++    org, _ = Organization.objects.get_or_create(
++        name=f'Login HTTP org {number}',
++        defaults={'sector': 'test', 'max_acceptable_loss': 1000},
++    )
++    user, _ = User.objects.get_or_create(username=f'http-test-{number}')
++    user.organization = org
++    user.role = 'ADMIN'
++    user.set_password('  HttpTestPassword!  ')
++    user.save()
++
++
++class QuietHandler(WSGIRequestHandler):
++    def log_message(self, *args):
++        pass
++
++
++server = make_server('127.0.0.1', 0, get_wsgi_application(), handler_class=QuietHandler)
++threading.Thread(target=server.serve_forever, daemon=True).start()
++
++script = r'''
++import assert from 'node:assert/strict';
++import { readFileSync } from 'node:fs';
++import ts from 'typescript';
++const realFetch = globalThis.fetch;
++const cookies = new Map();
++const base = process.argv[2];
++globalThis.fetch = async (url, options = {}) => {
++  const headers = new Headers(options.headers);
++  headers.set('Origin', 'http://localhost:5173');
++  headers.set('Cookie', [...cookies].map(([key, value]) => `${key}=${value}`).join('; '));
++  const response = await realFetch(base + url, { ...options, headers });
++  for (const cookie of response.headers.getSetCookie()) {
++    const [pair] = cookie.split(';');
++    const equals = pair.indexOf('=');
++    const key = pair.slice(0, equals);
++    const value = pair.slice(equals + 1);
++    if (value) cookies.set(key, value); else cookies.delete(key);
++    assert.ok(cookie.includes('SameSite=Lax'));
++  }
++  return response;
++};
++const code = ts.transpileModule(readFileSync('src/api/client.ts', 'utf8'), {
++  compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext },
++}).outputText;
++const { api, ApiError } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
++const credentials = { username: 'http-test-1', password: '  HttpTestPassword!  ' };
++const login = await api.login(credentials);
++assert.equal(login.user.username, credentials.username);
++assert.equal((await api.getMe()).username, credentials.username);
++assert.equal((await api.getDashboard()).organization, 'Login HTTP org 1');
++await api.getPriorityAnalysis();
++await api.logout();
++assert.ok(!cookies.has('sessionid'));
++await assert.rejects(api.getMe(), error => error instanceof ApiError && error.status === 403);
++const second = await api.login({ ...credentials, username: 'http-test-2' });
++assert.equal(second.user.username, 'http-test-2');
++assert.equal((await api.getMe()).username, 'http-test-2');
++assert.equal((await api.getDashboard()).organization, 'Login HTTP org 2');
++await api.logout();
++console.log('Real frontend client + Django HTTP: login, profile, protected POST, logout, expired session, account switch and tenant-specific dashboard all passed.');
++'''
++
++try:
++    subprocess.run(
++        ['node', '--input-type=module', '-', f'http://127.0.0.1:{server.server_port}'],
++        input=script, text=True, cwd='/workspace/adolat/frontend', check=True,
++    )
++finally:
++    server.shutdown()
++    server.server_close()

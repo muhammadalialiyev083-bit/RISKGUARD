@@ -1,0 +1,56 @@
+[
+  {
+    "sequence": 2,
+    "path": "backend/tests/test_auth_rbac.py",
+    "contains_redaction": true,
+    "exact_base_application": "matches"
+  },
+  {
+    "sequence": 3,
+    "path": "backend/apps/authentication/serializers.py",
+    "contains_redaction": true,
+    "exact_base_application": "does not match supplied historical base",
+    "reason": "Hunk context does not match exactly; no fuzz allowed"
+  },
+  {
+    "sequence": 4,
+    "path": "backend/apps/authentication/views.py",
+    "contains_redaction": false,
+    "exact_base_application": "does not match supplied historical base",
+    "reason": "Hunk context does not match exactly; no fuzz allowed"
+  },
+  {
+    "sequence": 5,
+    "path": "backend/bcms_backend/settings.py",
+    "contains_redaction": false,
+    "exact_base_application": "does not match supplied historical base",
+    "reason": "Hunk context does not match exactly; no fuzz allowed"
+  },
+  {
+    "sequence": 6,
+    "path": "frontend/src/api/client.ts",
+    "contains_redaction": true,
+    "exact_base_application": "does not match supplied historical base",
+    "reason": "Hunk context does not match exactly; no fuzz allowed"
+  },
+  {
+    "sequence": 7,
+    "path": "frontend/src/App.tsx",
+    "contains_redaction": true,
+    "exact_base_application": "does not match supplied historical base",
+    "reason": "Hunk context does not match exactly; no fuzz allowed"
+  },
+  {
+    "sequence": 8,
+    "path": "frontend/package.json",
+    "contains_redaction": false,
+    "exact_base_application": "matches"
+  },
+  {
+    "sequence": 12,
+    "path": "frontend/package.json",
+    "contains_redaction": false,
+    "exact_base_application": "does not match supplied historical base",
+    "reason": "Hunk context does not match exactly; no fuzz allowed"
+  }
+]
