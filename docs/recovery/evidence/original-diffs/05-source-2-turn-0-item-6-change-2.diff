@@ -1,0 +1,27 @@
+@@ -25,5 +25,11 @@
+ CSRF_TRUSTED_ORIGINS = [
+-    "https://adolat-99us.onrender.com",
+-    "https://safeguardity.netlify.app",
++    origin.strip()
++    for origin in os.environ.get(
++        "CSRF_TRUSTED_ORIGINS",
++        "https://adolat-99us.onrender.com,https://safeguardity.netlify.app"
++    ).split(",")
++    if origin.strip()
+ ]
++if DEBUG:
++    CSRF_TRUSTED_ORIGINS += ["http://localhost:5173", "http://127.0.0.1:5173"]
+ 
+@@ -33,4 +39,5 @@
+ CSRF_COOKIE_SECURE = not DEBUG
+-SESSION_COOKIE_SAMESITE = 'None'
+-CSRF_COOKIE_SAMESITE = 'None'
++# Browsers reject SameSite=None cookies without Secure on local HTTP.
++SESSION_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
++CSRF_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
+ 
+@@ -193,2 +200,2 @@
+ 
+-CORS_ALLOW_CREDENTIALS = True
+\ No newline at end of file
++CORS_ALLOW_CREDENTIALS = True

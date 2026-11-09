@@ -1,0 +1,9 @@
+@@ -34,3 +34,3 @@
+ class UserCreateUpdateSerializer(serializers.ModelSerializer):
+-    password = <SECRET>(write_only=True, required=False)
++    password = <SECRET>(write_only=True, required=False, trim_whitespace=False)
+ 
+@@ -62,3 +62,3 @@
+     username = serializers.CharField(required=True)
+-    password = <SECRET>(required=True, write_only=True)
++    password = <SECRET>(required=True, write_only=True, trim_whitespace=False)

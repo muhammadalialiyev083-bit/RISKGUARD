@@ -1,0 +1,76 @@
++"""Opt-in first account setup for deployments that run migrate on startup."""
++
++import os
++
++from django.contrib.auth.hashers import make_password
++from django.contrib.auth.password_validation import validate_password
++from django.db import migrations, transaction
++
++
++def create_initial_admin(apps, schema_editor):
++    connection = schema_editor.connection
++    alias = connection.alias
++    User = apps.get_model('authentication', 'User')
++    password = os.environ.get('BCMS_INITIAL_ADMIN_PASSWORD', '')
++    username = os.environ.get('BCMS_INITIAL_ADMIN_USERNAME', 'admin').strip()
++
++    with transaction.atomic(using=alias):
++        user_count = User.objects.using(alias).count()
++        print(
++            f'LOGIN_SETUP database_vendor={connection.vendor} '
++            f'database_name={str(connection.settings_dict["NAME"]).rsplit("/", 1)[-1]} '
++            f'users={user_count}'
++        )
++        # Existing accounts, passwords and tenant memberships are preserved.
++        if user_count or not password:
++            print('LOGIN_SETUP initial_admin_created=false')
++            return
++
++        if not username:
++            raise ValueError('BCMS_INITIAL_ADMIN_USERNAME must not be blank.')
++        User._meta.get_field('username').run_validators(username)
++        validate_password(password)
++
++        Organization = apps.get_model('organizations', 'Organization')
++        Department = apps.get_model('organizations', 'Department')
++        AuditLog = apps.get_model('core', 'AuditLog')
++        organization, _ = Organization.objects.using(alias).get_or_create(
++            name='Pilot Tashkilot',
++            defaults={
++                'sector': 'Test',
++                'timezone': 'Asia/Tashkent',
++                'max_acceptable_loss': 500000000,
++            },
++        )
++        department, _ = Department.objects.using(alias).get_or_create(
++            organization=organization, name='Boshqarish',
++        )
++        user = User.objects.using(alias).create(
++            username=username,
++            password=<SECRET>(password),
++            role='ADMIN',
++            is_active=True,
++            organization=organization,
++            department=department,
++        )
++        AuditLog.objects.using(alias).create(
++            organization=organization,
++            actor=user,
++            action='CREATE',
++            entity='User',
++            entity_id=str(user.pk),
++            after_state={'username': username, 'role': 'ADMIN', 'source': 'initial_setup'},
++        )
++        print('LOGIN_SETUP initial_admin_created=true')
++
++
++class Migration(migrations.Migration):
++    dependencies = [
++        ('authentication', '0002_initial'),
++        ('core', '0001_initial'),
++    ]
++
++    operations = [
++        # Rolling back deployment code must never remove a user's account.
++        migrations.RunPython(create_initial_admin, migrations.RunPython.noop),
++    ]

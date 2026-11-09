@@ -7,6 +7,89 @@ from apps.authentication.models import User
 from apps.core.models import AuditLog
 
 
+# New recovery regressions. These are not presented as recovered historical tests.
+@pytest.mark.django_db
+class TestRecoveredCSRFSession:
+    def test_anonymous_login_without_csrf_has_no_session_or_login_audit(self, admin_a):
+        client = APIClient(enforce_csrf_checks=True)
+        response = client.post(reverse('auth-login'), {
+            'username': admin_a.username, 'password': 'SecurePassword123!',
+        }, format='json')
+        assert response.status_code == 403
+        assert client.get(reverse('auth-me')).status_code == 403
+        assert not AuditLog.objects.filter(action='LOGIN').exists()
+
+    def test_csrf_bootstrap_and_profile_are_not_cached(self, admin_a):
+        client = APIClient(enforce_csrf_checks=True)
+        bootstrap = client.get(reverse('auth-csrf'))
+        assert bootstrap.status_code == 200
+        assert bootstrap.data['csrfToken']
+        assert 'csrftoken' in client.cookies
+        assert 'no-store' in bootstrap['Cache-Control']
+        response = client.post(reverse('auth-login'), {
+            'username': admin_a.username, 'password': 'SecurePassword123!',
+        }, format='json', HTTP_X_CSRFTOKEN=bootstrap.data['csrfToken'])
+        assert response.status_code == 200
+        profile = client.get(reverse('auth-me'))
+        assert profile.status_code == 200
+        assert 'no-store' in profile['Cache-Control']
+
+    def test_token_rotation_logout_relogin_and_whitespace_password(self, admin_a):
+        password = '  RecoveryPassword123!  '
+        admin_a.set_password(password)
+        admin_a.save(update_fields=['password'])
+        client = APIClient(enforce_csrf_checks=True)
+        before = client.get(reverse('auth-csrf')).data['csrfToken']
+        credentials = {'username': admin_a.username, 'password': password}
+        login = client.post(reverse('auth-login'), credentials, format='json', HTTP_X_CSRFTOKEN=before)
+        assert login.status_code == 200
+        assert 'no-store' in login['Cache-Control']
+        assert client.post(reverse('auth-logout'), HTTP_X_CSRFTOKEN=before).status_code == 403
+        assert client.get(reverse('auth-me')).status_code == 200
+        logout = client.post(reverse('auth-logout'), HTTP_X_CSRFTOKEN=login.data['csrfToken'])
+        assert logout.status_code == 200
+        assert 'no-store' in logout['Cache-Control']
+        assert client.get(reverse('auth-me')).status_code == 403
+        relogin = client.post(reverse('auth-login'), credentials, format='json',
+                              HTTP_X_CSRFTOKEN=logout.data['csrfToken'])
+        assert relogin.status_code == 200
+        assert AuditLog.objects.filter(actor=admin_a, action='LOGIN').count() == 2
+        assert AuditLog.objects.filter(actor=admin_a, action='LOGOUT').count() == 1
+
+    def test_wrong_password_is_not_authenticated_even_with_valid_csrf(self, admin_a):
+        client = APIClient(enforce_csrf_checks=True)
+        token = client.get(reverse('auth-csrf')).data['csrfToken']
+        response = client.post(reverse('auth-login'), {
+            'username': admin_a.username, 'password': 'WrongPassword!',
+        }, format='json', HTTP_X_CSRFTOKEN=token)
+        assert response.status_code == 400
+        assert client.get(reverse('auth-me')).status_code == 403
+        assert not AuditLog.objects.filter(action='LOGIN').exists()
+
+    def test_vite_origin_is_allowed_and_untrusted_origin_is_rejected(self, admin_a):
+        client = APIClient(enforce_csrf_checks=True)
+        token = client.get(reverse('auth-csrf')).data['csrfToken']
+        credentials = {'username': admin_a.username, 'password': 'SecurePassword123!'}
+        response = client.post(reverse('auth-login'), credentials, format='json',
+                               HTTP_X_CSRFTOKEN=token, HTTP_ORIGIN='https://untrusted.invalid')
+        assert response.status_code == 403
+        assert not AuditLog.objects.filter(action='LOGIN').exists()
+        response = client.post(reverse('auth-login'), credentials, format='json',
+                               HTTP_X_CSRFTOKEN=token, HTTP_ORIGIN='http://localhost:5173')
+        assert response.status_code == 200
+
+    def test_user_creation_keeps_password_whitespace(self, api_client, admin_a):
+        password = '  NewAccountPassword123!  '
+        api_client.force_authenticate(user=admin_a)
+        response = api_client.post(reverse('user-list'), {
+            'username': 'recovery-created-user', 'password': password, 'role': 'BCMS_MANAGER',
+        }, format='json')
+        assert response.status_code == 201
+        created = User.objects.get(username='recovery-created-user')
+        assert created.check_password(password)
+        assert not created.check_password(password.strip())
+
+
 @pytest.fixture
 def api_client():
     return APIClient()

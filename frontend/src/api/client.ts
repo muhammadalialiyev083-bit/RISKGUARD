@@ -1,49 +1,121 @@
-const API_BASE = '/api/v1';
+import type { User } from '../types';
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+const API_BASE = '/api/v1';
+let csrfToken: string | null = null;
+let csrfRequest: Promise<string> | null = null;
+
+export class ApiError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+function errorMessage(data: unknown, status: number): string {
+  if (data && typeof data === 'object') {
+    const messages = Object.entries(data).map(([key, value]) => {
+      const message = Array.isArray(value) ? value.join(', ') : String(value);
+      return ['detail', 'non_field_errors'].includes(key) ? message : `${key}: ${message}`;
+    });
+    if (messages.length) return messages.join('\n');
+  }
+  return status >= 500
+    ? 'Server vaqtincha ishlamayapti. Birozdan keyin qayta urinib ko‘ring.'
+    : `Server xatosi: ${status}`;
+}
+
+async function fetchResponse(url: string, options: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, options);
+  } catch {
+    throw new Error('Server bilan bog‘lanib bo‘lmadi. Internet aloqasini tekshirib, qayta urinib ko‘ring.');
+  }
+}
+
+async function readJSON(response: Response): Promise<any> {
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new ApiError(errorMessage(data, response.status), response.status);
+  if (!data || typeof data !== 'object') {
+    throw new Error('Serverdan kutilmagan javob olindi. Iltimos, keyinroq qayta urinib ko‘ring.');
+  }
+  return data;
+}
+
+async function getCSRFToken(): Promise<string> {
+  if (csrfToken) return csrfToken;
+  if (!csrfRequest) {
+    csrfRequest = (async () => {
+      const response = await fetchResponse(`${API_BASE}/auth/csrf`, {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      const data = await readJSON(response);
+      if (typeof data.csrfToken !== 'string' || !data.csrfToken) {
+        throw new Error('Kirish uchun xavfsizlik tokeni olinmadi. Qayta urinib ko‘ring.');
+      }
+      csrfToken = data.csrfToken;
+      return csrfToken!;
+    })().finally(() => { csrfRequest = null; });
+  }
+  return csrfRequest;
+}
+
+async function request<T>(endpoint: string, options: RequestInit = {}, retryCSRF = true): Promise<T> {
   const headers = new Headers(options.headers || {});
   headers.set('Content-Type', 'application/json');
+  const method = (options.method || 'GET').toUpperCase();
+  const mutating = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+
+  if (mutating) {
+    headers.set('X-CSRFToken', await getCSRFToken());
+  }
 
   const config: RequestInit = {
     ...options,
     headers,
     credentials: 'include',
+    cache: 'no-store',
   };
 
-  const response = await fetch(`${API_BASE}${endpoint}`, config);
-  
+  const response = await fetchResponse(`${API_BASE}${endpoint}`, config);
+
   if (!response.ok) {
-    let errorMsg = `Server xatosi: ${response.status}`;
-    try {
-      const errData = await response.json();
-      if (typeof errData === 'object' && errData !== null) {
-        errorMsg = Object.entries(errData)
-          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
-          .join('\n');
-      }
-    } catch {
-      // ignore json parse error
+    const data = await response.json().catch(() => null);
+    // A CSRF rejection happens before the action runs, so one retry is safe.
+    // This also recovers when another tab rotated the session's token.
+    if (mutating && retryCSRF && response.status === 403 &&
+        typeof data?.detail === 'string' && data.detail.startsWith('CSRF Failed:')) {
+      csrfToken = null;
+      return request<T>(endpoint, options, false);
     }
-    throw new Error(errorMsg);
+    throw new ApiError(errorMessage(data, response.status), response.status);
   }
 
-  // Handle empty or file responses
+  if (response.status === 204) return undefined as T;
   const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
-    return response.json();
+    return readJSON(response);
   }
-  return response as unknown as T;
+  throw new Error('Serverdan kutilmagan javob olindi. Iltimos, keyinroq qayta urinib ko‘ring.');
 }
 
 export const api = {
-  // Auth
-  login: (credentials: { username: string; password: string }) =>
-    request<{ message: string; user: any }>('/auth/login', {
+  // Auth: token fields verified against the retained deployed JS bundle.
+  login: async (credentials: { username: string; password: string }) => {
+    const result = await request<{ message: string; user: User; csrfToken?: string }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
-    }),
-  logout: () => request<{ message: string }>('/auth/logout', { method: 'POST' }),
-  getMe: () => request<any>('/auth/me'),
+    });
+    // Django rotates CSRF on login. Older servers may omit the new token.
+    csrfToken = result.csrfToken || null;
+    return result;
+  },
+  logout: async () => {
+    const result = await request<{ message: string; csrfToken?: string }>('/auth/logout', { method: 'POST' });
+    csrfToken = result.csrfToken || null;
+    return result;
+  },
+  getMe: () => request<User>('/auth/me'),
 
   // Dashboard
   getDashboard: () => request<{ organization: string; summary: any }>('/reports/organization'),

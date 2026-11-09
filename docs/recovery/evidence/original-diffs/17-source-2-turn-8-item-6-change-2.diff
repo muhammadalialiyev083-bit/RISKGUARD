@@ -1,0 +1,24 @@
+@@ -55,4 +55,22 @@
+ 
+-Production’da `Secure=True; SameSite=None` sozlamalari saqlanadi. Yangi
+-ma’lumotlar bazasi migratsiyasi talab qilinmaydi.
++Production’da `Secure=True; SameSite=None` sozlamalari saqlanadi.
++
++## Bo‘sh bazada boshlang‘ich administrator
++
++Render hisobi va saytning foydalanuvchi hisobi alohida yaratiladi.
++`0003_bootstrap_initial_admin` migratsiyasidan oldin Render Environment’da
++`BCMS_INITIAL_ADMIN_PASSWORD` ni kuchli, shaxsiy parolga belgilang.
++`BCMS_INITIAL_ADMIN_USERNAME` kiritilmasa, login `admin` bo‘ladi.
++Bu qiymatlarni Git’ga yoki loglarga yozmang.
++
++Mavjud start command’dagi `python manage.py migrate --noinput` migratsiyani
++bajaradi. U faqat foydalanuvchilar bo‘lmagan bazada administrator, tashkilot
++va audit yozuvini yaratadi. Mavjud hisob va parollar o‘zgartirilmaydi.
++`LOGIN_SETUP` logida amaldagi baza turi, nomi va hisob yaratilgani ko‘rsatiladi;
++parol va ulanish rekvizitlari chiqarilmaydi. Sozlanmagan parol bilan hisob
++yaratilmaydi. Dastlabki sozlashdan keyin ushbu parol o‘zgaruvchisini olib tashlang.
++
++Migratsiya oldin bajarilgan bo‘lsa, keyin env qo‘shish uni takrorlamaydi;
++bunday bazada mavjud boshqaruv buyruqlari orqali hisob yarating. Ushbu
++migratsiyani orqaga qaytarish hisoblarni o‘chirmaydi.

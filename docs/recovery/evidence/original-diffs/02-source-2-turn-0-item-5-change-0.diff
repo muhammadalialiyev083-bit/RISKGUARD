@@ -1,0 +1,66 @@
+@@ -97,2 +97,65 @@
+ 
++    def test_login_preserves_password_whitespace(self, api_client, admin_a):
++        admin_a.set_password('  SecurePassword123!  ')
++        admin_a.save()
++        response = api_client.post(reverse('auth-login'), {
++            'username': admin_a.username,
++            'password': '  SecurePassword123!  ',
++        }, format='json')
++        assert response.status_code == 200
++
++    def test_login_requires_csrf_even_without_a_session(self, admin_a):
++        client = APIClient(enforce_csrf_checks=True)
++        response = client.post(reverse('auth-login'), {
++            'username': admin_a.username,
++            'password': '<SECRET>',
++        }, format='json')
++        assert response.status_code == 403
++        assert not AuditLog.objects.filter(action='LOGIN').exists()
++
++    def test_csrf_rotation_logout_and_relogin(self, admin_a):
++        client = APIClient(enforce_csrf_checks=True)
++        csrf_response = client.get(reverse('auth-csrf'))
++        assert 'no-store' in csrf_response['Cache-Control']
++        old_token = <SECRET>['csrfToken']
++        response = client.post(reverse('auth-login'), {
++            'username': admin_a.username,
++            'password': '<SECRET>',
++        }, format='json', HTTP_X_CSRFTOKEN=old_token)
++        assert response.status_code == 200
++        token = response.data['csrfToken']
++        assert token != old_token
++        assert client.get(reverse('auth-me')).data['username'] == admin_a.username
++
++        # A stale token must still be rejected, without logging the user out.
++        assert client.post(reverse('auth-logout'), HTTP_X_CSRFTOKEN=old_token).status_code == 403
++        assert client.get(reverse('auth-me')).status_code == 200
++        response = client.post(reverse('auth-logout'), HTTP_X_CSRFTOKEN=token)
++        assert response.status_code == 200
++        assert client.get(reverse('auth-me')).status_code == 403
++        response = client.post(reverse('auth-login'), {
++            'username': admin_a.username,
++            'password': '<SECRET>',
++        }, format='json', HTTP_X_CSRFTOKEN=response.data['csrfToken'])
++        assert response.status_code == 200
++        assert AuditLog.objects.filter(actor=admin_a, action='LOGIN').count() == 2
++        assert AuditLog.objects.filter(actor=admin_a, action='LOGOUT').count() == 1
++
++    def test_csrf_refresh_after_rotation_in_another_tab(self, admin_a):
++        client = APIClient(enforce_csrf_checks=True)
++        token = client.get(reverse('auth-csrf')).data['csrfToken']
++        credentials = {'username': admin_a.username, 'password': '<SECRET>'}
++        assert client.post(reverse('auth-login'), credentials, format='json', HTTP_X_CSRFTOKEN=token).status_code == 200
++        fresh_token = client.get(reverse('auth-csrf')).data['csrfToken']
++        assert client.post(reverse('auth-logout'), HTTP_X_CSRFTOKEN=fresh_token).status_code == 200
++
++    def test_inactive_user_cannot_login(self, api_client, admin_a):
++        admin_a.is_active = False
++        admin_a.save()
++        response = api_client.post(reverse('auth-login'), {
++            'username': admin_a.username, 'password': '<SECRET>',
++        }, format='json')
++        assert response.status_code == 400
++        assert not AuditLog.objects.filter(action='LOGIN').exists()
++
+     def test_audit_log_immutability(self, db, org_a, admin_a):

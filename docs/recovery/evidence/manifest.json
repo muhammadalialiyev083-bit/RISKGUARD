@@ -1,0 +1,470 @@
+{
+  "created_date": "2026-11-09",
+  "project_name_in_sources": "adolat / RiskGuard",
+  "sources": [
+    {
+      "source": 1,
+      "url": "https://chatgpt.com/s/cx_6af198dd25848191bfb31733765d3c74",
+      "title": "Set up adolat",
+      "raw_response_sha256": "8f073ecfcb810d121a149d2e5f0ab3beb09a51bae2b921e994db74dc2ff8b140",
+      "turns": 6,
+      "raw_response_not_distributed": "Historical conversations include account credentials"
+    },
+    {
+      "source": 2,
+      "url": "https://chatgpt.com/s/cx_6af198a97d0c81918f414f2e8fb2220e",
+      "title": "SAYTDA LOGIN QISMIDA MUAMMO CHIQYAPTI VA TO'LIQ BARTARAF ET",
+      "raw_response_sha256": "5ee692f4a609dc3e5faab16e0fe93fffd5a9cf6176ef5a722d95f526b82e81f5",
+      "turns": 9,
+      "raw_response_not_distributed": "Historical conversations include account credentials"
+    }
+  ],
+  "source_change_count": 18,
+  "unique_historical_paths": 14,
+  "extracted_files": [
+    {
+      "original_path": "test_api_hardening.py",
+      "saved_as": "incomplete-export/path-unresolved/source-1/test_api_hardening.py.txt",
+      "content_sha256": "590abd50cccd8d731733153ca13252709debcddedaf113837359156be080ab29",
+      "lines": 95,
+      "source_change_sequences": [
+        1
+      ],
+      "path_status": "Only basename present in source; repository directory is unconfirmed",
+      "status": "Extracted from source diffs; not installed into a project",
+      "line_endings": "LF with one terminal newline",
+      "later_unapplied_source_changes": [],
+      "redacted_source_line_numbers": [
+        86
+      ],
+      "python_syntax": "failed; source preserved as text, no repair guessed",
+      "syntax_error": {
+        "line": 86,
+        "message": "invalid syntax"
+      }
+    },
+    {
+      "original_path": "adolat/frontend/tests/client.test.mjs",
+      "saved_as": "incomplete-export/recovered-files/adolat/frontend/tests/client.test.mjs.txt",
+      "content_sha256": "50045e976900e67c869954a88643c8b1cf5e698ca5ff9656459dd94e4a3479af",
+      "lines": 138,
+      "source_change_sequences": [
+        9,
+        10
+      ],
+      "path_status": "Original shared-chat path preserved",
+      "status": "Extracted from source diffs; not installed into a project",
+      "line_endings": "LF with one terminal newline",
+      "later_unapplied_source_changes": [],
+      "redacted_source_line_numbers": [
+        32
+      ]
+    },
+    {
+      "original_path": "adolat/docs/LOGIN_TUZATISH.md",
+      "saved_as": "recovered-files/adolat/docs/LOGIN_TUZATISH.md",
+      "content_sha256": "a4b597d177e26c4dd41935baae35a2fe7cf1ee85455f8fc0ce6dfcf3bed5bb4d",
+      "lines": 72,
+      "source_change_sequences": [
+        11
+      ],
+      "path_status": "Original shared-chat path preserved",
+      "status": "Extracted from source diffs; not installed into a project",
+      "line_endings": "LF with one terminal newline",
+      "later_unapplied_source_changes": [
+        17
+      ],
+      "redacted_source_line_numbers": []
+    },
+    {
+      "original_path": "work/login-fix/http_check.py",
+      "saved_as": "historical-work/work/login-fix/http_check.py",
+      "content_sha256": "800fcf4fd54058d8bf5d05f73ad8a69a96d9d5a8414a9129735b643add5e3ec9",
+      "lines": 91,
+      "source_change_sequences": [
+        13,
+        14
+      ],
+      "path_status": "Historical verification helper; not an application component",
+      "status": "Extracted from source diffs; not installed into a project",
+      "line_endings": "LF with one terminal newline",
+      "later_unapplied_source_changes": [],
+      "redacted_source_line_numbers": [],
+      "python_syntax": "passed ast.parse; application imports were not executed",
+      "import_from_modules": [
+        "apps.authentication.models",
+        "apps.organizations.models",
+        "django.conf",
+        "django.core.management",
+        "django.core.wsgi",
+        "wsgiref.simple_server"
+      ]
+    },
+    {
+      "original_path": "adolat/backend/apps/authentication/migrations/0003_bootstrap_initial_admin.py",
+      "saved_as": "incomplete-export/recovered-files/adolat/backend/apps/authentication/migrations/0003_bootstrap_initial_admin.py.txt",
+      "content_sha256": "7ca5ecc7020263fe2c242264a0512a676106ccb70ce6f4fc1ef8ce5a10bed524",
+      "lines": 76,
+      "source_change_sequences": [
+        15
+      ],
+      "path_status": "Original shared-chat path preserved",
+      "status": "Extracted from source diffs; not installed into a project",
+      "line_endings": "LF with one terminal newline",
+      "later_unapplied_source_changes": [],
+      "redacted_source_line_numbers": [
+        50
+      ],
+      "python_syntax": "failed; source preserved as text, no repair guessed",
+      "syntax_error": {
+        "line": 50,
+        "message": "invalid syntax"
+      }
+    },
+    {
+      "original_path": "adolat/backend/tests/test_initial_admin.py",
+      "saved_as": "incomplete-export/recovered-files/adolat/backend/tests/test_initial_admin.py.txt",
+      "content_sha256": "bdf29a608d5aec1cc993ac28c1053046a65c537ce3cad48123965de7aa1a7200",
+      "lines": 112,
+      "source_change_sequences": [
+        16
+      ],
+      "path_status": "Original shared-chat path preserved",
+      "status": "Extracted from source diffs; not installed into a project",
+      "line_endings": "LF with one terminal newline",
+      "later_unapplied_source_changes": [],
+      "redacted_source_line_numbers": [
+        20,
+        44,
+        47,
+        55,
+        64,
+        71,
+        77
+      ],
+      "python_syntax": "failed; source preserved as text, no repair guessed",
+      "syntax_error": {
+        "line": 44,
+        "message": "invalid syntax"
+      }
+    },
+    {
+      "original_path": "work/verify_created_admin.py",
+      "saved_as": "historical-work/work/verify_created_admin.py",
+      "content_sha256": "febecc1a9ff5cde691d8eabe1035db0390d56a0dc01e7390bc97ff6954aa5294",
+      "lines": 18,
+      "source_change_sequences": [
+        18
+      ],
+      "path_status": "Historical verification helper; not an application component",
+      "status": "Extracted from source diffs; not installed into a project",
+      "line_endings": "LF with one terminal newline",
+      "later_unapplied_source_changes": [],
+      "redacted_source_line_numbers": [],
+      "python_syntax": "passed ast.parse; application imports were not executed",
+      "import_from_modules": [
+        "django.contrib.auth.hashers"
+      ]
+    }
+  ],
+  "partial_paths": [
+    "adolat/backend/apps/authentication/serializers.py",
+    "adolat/backend/apps/authentication/views.py",
+    "adolat/backend/bcms_backend/settings.py",
+    "adolat/backend/tests/test_auth_rbac.py",
+    "adolat/frontend/package.json",
+    "adolat/frontend/src/App.tsx",
+    "adolat/frontend/src/api/client.ts"
+  ],
+  "unapplied_updates": {
+    "adolat/docs/LOGIN_TUZATISH.md": [
+      17
+    ]
+  },
+  "changes_in_source_order": [
+    {
+      "sequence": 1,
+      "source": 1,
+      "turn_index_zero_based": 3,
+      "item_index_zero_based": 6,
+      "change_index_zero_based": 0,
+      "original_path": "test_api_hardening.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/01-source-1-turn-3-item-6-change-0.diff",
+      "diff_sha256": "177346181105f2cd1c3cef75c2461eb9ad36d3447106de1a6f745e4569fa9a08",
+      "diff_is_addition_only": true,
+      "added_lines": 95,
+      "removed_lines": 0,
+      "extraction": "all-added-lines; terminal LF explicitly normalized"
+    },
+    {
+      "sequence": 2,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 5,
+      "change_index_zero_based": 0,
+      "original_path": "adolat/backend/tests/test_auth_rbac.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/02-source-2-turn-0-item-5-change-0.diff",
+      "diff_sha256": "523fffdba26921fdf1cfdcdf7cbf13306028c24654b1f99f5676583e1cb70985",
+      "diff_is_addition_only": false,
+      "added_lines": 63,
+      "removed_lines": 0,
+      "extraction": "partial diff only; no base file invented"
+    },
+    {
+      "sequence": 3,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 6,
+      "change_index_zero_based": 0,
+      "original_path": "adolat/backend/apps/authentication/serializers.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/03-source-2-turn-0-item-6-change-0.diff",
+      "diff_sha256": "0355cc5dce4a4f02f9e022f85277f1483e765c8f42a9bdc1ef4e6332b1166968",
+      "diff_is_addition_only": false,
+      "added_lines": 2,
+      "removed_lines": 2,
+      "extraction": "partial diff only; no base file invented"
+    },
+    {
+      "sequence": 4,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 6,
+      "change_index_zero_based": 1,
+      "original_path": "adolat/backend/apps/authentication/views.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/04-source-2-turn-0-item-6-change-1.diff",
+      "diff_sha256": "8d3087ab507d4ae24dc73c7fa974fbb139ad9b5c21acf97f932e2391971149e4",
+      "diff_is_addition_only": false,
+      "added_lines": 19,
+      "removed_lines": 3,
+      "extraction": "partial diff only; no base file invented"
+    },
+    {
+      "sequence": 5,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 6,
+      "change_index_zero_based": 2,
+      "original_path": "adolat/backend/bcms_backend/settings.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/05-source-2-turn-0-item-6-change-2.diff",
+      "diff_sha256": "babd603b70bdea73768ff627e64cca46fd34cd25065de179a40ec277d89318f2",
+      "diff_is_addition_only": false,
+      "added_lines": 12,
+      "removed_lines": 5,
+      "extraction": "partial diff only; no base file invented"
+    },
+    {
+      "sequence": 6,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 7,
+      "change_index_zero_based": 0,
+      "original_path": "adolat/frontend/src/api/client.ts",
+      "source_status": "completed",
+      "original_diff": "original-diffs/06-source-2-turn-0-item-7-change-0.diff",
+      "diff_sha256": "3ab9e1d9a048d763031110445a4db2cf2020424f9e07ec95a0406c56a700f9df",
+      "diff_is_addition_only": false,
+      "added_lines": 85,
+      "removed_lines": 36,
+      "extraction": "partial diff only; no base file invented"
+    },
+    {
+      "sequence": 7,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 8,
+      "change_index_zero_based": 0,
+      "original_path": "adolat/frontend/src/App.tsx",
+      "source_status": "completed",
+      "original_diff": "original-diffs/07-source-2-turn-0-item-8-change-0.diff",
+      "diff_sha256": "173dd7df54a062558d2e024be1260808b6332bd8922136c1b9bc5bec9b3c2d13",
+      "diff_is_addition_only": false,
+      "added_lines": 125,
+      "removed_lines": 35,
+      "extraction": "partial diff only; no base file invented"
+    },
+    {
+      "sequence": 8,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 10,
+      "change_index_zero_based": 0,
+      "original_path": "adolat/frontend/package.json",
+      "source_status": "completed",
+      "original_diff": "original-diffs/08-source-2-turn-0-item-10-change-0.diff",
+      "diff_sha256": "1caf8edd91a0e45e8c86bb8d3e0c917852cc2caca26c81066f2ea1902bd085ce",
+      "diff_is_addition_only": false,
+      "added_lines": 1,
+      "removed_lines": 0,
+      "extraction": "partial diff only; no base file invented"
+    },
+    {
+      "sequence": 9,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 10,
+      "change_index_zero_based": 1,
+      "original_path": "adolat/frontend/tests/client.test.mjs",
+      "source_status": "completed",
+      "original_diff": "original-diffs/09-source-2-turn-0-item-10-change-1.diff",
+      "diff_sha256": "447f0313a280264e65cfc2f492c500ae9d93ca5d5c761a309d2c56f0d0e4f94d",
+      "diff_is_addition_only": true,
+      "added_lines": 138,
+      "removed_lines": 0,
+      "extraction": "all-added-lines; terminal LF explicitly normalized"
+    },
+    {
+      "sequence": 10,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 11,
+      "change_index_zero_based": 0,
+      "original_path": "adolat/frontend/tests/client.test.mjs",
+      "source_status": "completed",
+      "original_diff": "original-diffs/10-source-2-turn-0-item-11-change-0.diff",
+      "diff_sha256": "30f2714358ad98386055b7f215cd0945b117209f1e7b9be2cddb57236ee5df27",
+      "diff_is_addition_only": false,
+      "added_lines": 2,
+      "removed_lines": 2,
+      "extraction": "exact-context update to previously recovered content"
+    },
+    {
+      "sequence": 11,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 13,
+      "change_index_zero_based": 0,
+      "original_path": "adolat/docs/LOGIN_TUZATISH.md",
+      "source_status": "completed",
+      "original_diff": "original-diffs/11-source-2-turn-0-item-13-change-0.diff",
+      "diff_sha256": "97311c34f30f456035e4e8851d83d3bdbf86e8fe10152aeef141ff0a92ac0391",
+      "diff_is_addition_only": true,
+      "added_lines": 72,
+      "removed_lines": 0,
+      "extraction": "all-added-lines; terminal LF explicitly normalized"
+    },
+    {
+      "sequence": 12,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 13,
+      "change_index_zero_based": 1,
+      "original_path": "adolat/frontend/package.json",
+      "source_status": "completed",
+      "original_diff": "original-diffs/12-source-2-turn-0-item-13-change-1.diff",
+      "diff_sha256": "34d04c2bb725acd97e048f189301d7845c3bc366b43782920fd3e748ce08e5b8",
+      "diff_is_addition_only": false,
+      "added_lines": 1,
+      "removed_lines": 1,
+      "extraction": "partial diff only; no base file invented"
+    },
+    {
+      "sequence": 13,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 14,
+      "change_index_zero_based": 0,
+      "original_path": "work/login-fix/http_check.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/13-source-2-turn-0-item-14-change-0.diff",
+      "diff_sha256": "cc4367214807c7447fa9cc5773d01c403b6ba177428622795f8b8f68521217f9",
+      "diff_is_addition_only": true,
+      "added_lines": 90,
+      "removed_lines": 0,
+      "extraction": "all-added-lines; terminal LF explicitly normalized"
+    },
+    {
+      "sequence": 14,
+      "source": 2,
+      "turn_index_zero_based": 0,
+      "item_index_zero_based": 15,
+      "change_index_zero_based": 0,
+      "original_path": "work/login-fix/http_check.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/14-source-2-turn-0-item-15-change-0.diff",
+      "diff_sha256": "587f891ad97772b5c2462fa95d0cc881a0effb56b6656485c0f4da82c8469b21",
+      "diff_is_addition_only": false,
+      "added_lines": 2,
+      "removed_lines": 1,
+      "extraction": "exact-context update to previously recovered content"
+    },
+    {
+      "sequence": 15,
+      "source": 2,
+      "turn_index_zero_based": 8,
+      "item_index_zero_based": 6,
+      "change_index_zero_based": 0,
+      "original_path": "adolat/backend/apps/authentication/migrations/0003_bootstrap_initial_admin.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/15-source-2-turn-8-item-6-change-0.diff",
+      "diff_sha256": "0fdfcb330105db826aeae5b87aeed4e2a1e7d65a8f21e69f9305fb9b08a953cf",
+      "diff_is_addition_only": true,
+      "added_lines": 76,
+      "removed_lines": 0,
+      "extraction": "all-added-lines; terminal LF explicitly normalized"
+    },
+    {
+      "sequence": 16,
+      "source": 2,
+      "turn_index_zero_based": 8,
+      "item_index_zero_based": 6,
+      "change_index_zero_based": 1,
+      "original_path": "adolat/backend/tests/test_initial_admin.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/16-source-2-turn-8-item-6-change-1.diff",
+      "diff_sha256": "51303b237ff85591d082d8c71fda27afc270e005679a0dd4ef26b8e12e7f0a67",
+      "diff_is_addition_only": true,
+      "added_lines": 112,
+      "removed_lines": 0,
+      "extraction": "all-added-lines; terminal LF explicitly normalized"
+    },
+    {
+      "sequence": 17,
+      "source": 2,
+      "turn_index_zero_based": 8,
+      "item_index_zero_based": 6,
+      "change_index_zero_based": 2,
+      "original_path": "adolat/docs/LOGIN_TUZATISH.md",
+      "source_status": "completed",
+      "original_diff": "original-diffs/17-source-2-turn-8-item-6-change-2.diff",
+      "diff_sha256": "2ca0092758fd1e024c80cd68ade1f8fef01dbe11c4a4195a6afc09850b3371c3",
+      "diff_is_addition_only": false,
+      "added_lines": 20,
+      "removed_lines": 2,
+      "extraction": "update preserved but not applied; source diff validation failed",
+      "validation_error": "Hunk line counts disagree with their header"
+    },
+    {
+      "sequence": 18,
+      "source": 2,
+      "turn_index_zero_based": 8,
+      "item_index_zero_based": 13,
+      "change_index_zero_based": 0,
+      "original_path": "work/verify_created_admin.py",
+      "source_status": "completed",
+      "original_diff": "original-diffs/18-source-2-turn-8-item-13-change-0.diff",
+      "diff_sha256": "d93eae910fb5b6ebdbdf1a3f49dd494a0dbf406c9b8f12779689bfd7de2a8338",
+      "diff_is_addition_only": true,
+      "added_lines": 18,
+      "removed_lines": 0,
+      "extraction": "all-added-lines; terminal LF explicitly normalized"
+    }
+  ],
+  "application_directory_available": false,
+  "git_directory_available": false,
+  "application_files_modified": 0,
+  "git_mutations": 0,
+  "github_writes": 0,
+  "application_tests_run": false,
+  "limitations": [
+    "These shared chats are evidence of edits and reports, not a full repository backup",
+    "Historical test counts are not fresh verification results",
+    "No bcms_domain production implementation is present among the shared diffs",
+    "Source 1 reports rebasing/integrating newer main changes into the feature branch",
+    "No speculative business logic or missing base file content was generated"
+  ]
+}

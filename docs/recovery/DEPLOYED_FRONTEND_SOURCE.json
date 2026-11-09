@@ -1,0 +1,41 @@
+{
+  "source": "https://safeguardity.netlify.app",
+  "index_sha256": "a2ff4960cb098f3b80499c2d2d5cf55a6daa69e88af6026f70253fec70e47d5f",
+  "files": [
+    {
+      "url": "https://safeguardity.netlify.app/favicon.svg",
+      "status": 200,
+      "content_type": "image/svg+xml",
+      "saved_as": "deployed-frontend/favicon.svg",
+      "bytes": 321,
+      "sha256": "e0edb2a1738e2fe87ae3ae4e500e21e09ccb1e1c1d73345a2c25ac2a6409cc77",
+      "source_map_header": null
+    },
+    {
+      "url": "https://safeguardity.netlify.app/assets/index-DqxS2FE0.js",
+      "status": 200,
+      "content_type": "application/javascript; charset=UTF-8",
+      "saved_as": "deployed-frontend/assets/index-DqxS2FE0.js",
+      "bytes": 395273,
+      "sha256": "08dd462f70b2871f00b74507033700dc471bbd7038891cacaf9d4a1b914d1ce0",
+      "source_map_header": null,
+      "source_mapping_comments": []
+    },
+    {
+      "url": "https://safeguardity.netlify.app/assets/index-DeyYvibP.css",
+      "status": 200,
+      "content_type": "text/css; charset=UTF-8",
+      "saved_as": "deployed-frontend/assets/index-DeyYvibP.css",
+      "bytes": 53620,
+      "sha256": "4635fb4bc5939d295a2e1277beac93bb711428916c47492b5343c29e38f9bbb8",
+      "source_map_header": null,
+      "source_mapping_comments": []
+    }
+  ],
+  "status": "Read-only copy of publicly deployed compiled frontend; original TS/TSX sources and Git commit are unconfirmed",
+  "external_dependencies_preserved_in_index": [
+    "Google Fonts",
+    "Netlify public HUD"
+  ],
+  "application_build_and_runtime_not_verified": true
+}

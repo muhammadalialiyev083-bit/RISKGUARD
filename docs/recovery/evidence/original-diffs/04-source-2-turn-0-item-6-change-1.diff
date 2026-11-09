@@ -1,0 +1,48 @@
+@@ -1,2 +1,5 @@
+ from django.middleware.csrf import get_token
++from django.utils.decorators import method_decorator
++from django.views.decorators.cache import never_cache
++from rest_framework.authentication import SessionAuthentication
+ from rest_framework import views, viewsets, status, permissions
+@@ -10,2 +13,3 @@
+ 
++@method_decorator(never_cache, name='dispatch')
+ class LoginView(views.APIView):
+@@ -18,2 +22,5 @@
+     def post(self, request):
++        # DRF's session authentication only checks CSRF for authenticated users.
++        # Login must also validate it before creating an anonymous user's session.
++        SessionAuthentication().enforce_csrf(request)
+         serializer = LoginSerializer(data=request.data)
+@@ -37,3 +44,4 @@
+             'message': 'Muvaffaqiyatli kirildi.',
+-            'user': user_data
++            'user': user_data,
++            'csrfToken': get_token(request),
+         }, status=status.HTTP_200_OK)
+@@ -41,2 +49,3 @@
+ 
++@method_decorator(never_cache, name='dispatch')
+ class LogoutView(views.APIView):
+@@ -58,5 +67,9 @@
+         logout(request)
+-        return Response({'message': 'Tizimdan muvaffaqiyatli chiqildi.'}, status=status.HTTP_200_OK)
++        return Response({
++            'message': 'Tizimdan muvaffaqiyatli chiqildi.',
++            'csrfToken': get_token(request),
++        }, status=status.HTTP_200_OK)
+ 
+ 
++@method_decorator(never_cache, name='dispatch')
+ class MeView(views.APIView):
+@@ -123,2 +136,5 @@
+         instance.delete()
++
++
++@method_decorator(never_cache, name='dispatch')
+ class CSRFTokenView(views.APIView):
+@@ -129,2 +145,2 @@
+             "csrfToken": get_token(request)
+-        })
+\ No newline at end of file
++        })

@@ -1,0 +1,11 @@
+# Future generated files; already tracked files are retained for preservation.
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.env.*
+!.env.example
+!.env.sample

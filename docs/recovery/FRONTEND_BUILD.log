@@ -1,0 +1,13 @@
+
+> bcms-designer-frontend@1.0.0 build
+> tsc && vite build
+
+vite v6.4.4 building for production...
+transforming...
+✓ 1911 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.74 kB │ gzip:  0.42 kB
+dist/assets/index-CvnCoS8k.css   17.53 kB │ gzip:  4.12 kB
+dist/assets/index-DUvLOgfi.js   205.05 kB │ gzip: 61.79 kB
+✓ built in 9.94s

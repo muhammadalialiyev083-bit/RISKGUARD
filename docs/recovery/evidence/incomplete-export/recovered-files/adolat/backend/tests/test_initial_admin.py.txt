@@ -1,0 +1,112 @@
+from importlib import import_module
+from types import SimpleNamespace
+from unittest.mock import patch
+
+import pytest
+from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
+from rest_framework.test import APIClient
+
+from apps.authentication.models import User
+from apps.core.models import AuditLog
+from apps.organizations.models import Organization
+
+
+create_initial_admin = import_module(
+    'apps.authentication.migrations.0003_bootstrap_initial_admin'
+).create_initial_admin
+TEST_PASSWORD = '<SECRET>'
+
+
+@pytest.fixture
+def initial_setup(db, monkeypatch):
+    monkeypatch.delenv('BCMS_INITIAL_ADMIN_PASSWORD', raising=False)
+    monkeypatch.delenv('BCMS_INITIAL_ADMIN_USERNAME', raising=False)
+    historical_apps = MigrationExecutor(connection).loader.project_state([
+        ('authentication', '0003_bootstrap_initial_admin'),
+    ]).apps
+    editor = SimpleNamespace(connection=connection)
+    return historical_apps, editor
+
+
+def test_initial_setup_requires_explicit_password(initial_setup):
+    create_initial_admin(*initial_setup)
+    assert not User.objects.exists()
+    assert not Organization.objects.exists()
+    assert not AuditLog.objects.exists()
+
+
+def test_initial_account_supports_csrf_login_dashboard_logout_and_relogin(initial_setup, monkeypatch, capsys):
+    monkeypatch.setenv('BCMS_INITIAL_ADMIN_PASSWORD', TEST_PASSWORD)
+    create_initial_admin(*initial_setup)
+    user = authenticate(username='admin', password=<SECRET>)
+    assert user is not None
+    assert user.role == 'ADMIN' and user.organization is not None
+    assert user.password != <SECRET>
+    assert not user.is_superuser
+    assert AuditLog.objects.filter(actor=user, action='CREATE').count() == 1
+    assert TEST_PASSWORD not in capsys.readouterr().out
+
+    client = APIClient(enforce_csrf_checks=True)
+    token = client.get('/api/v1/auth/csrf').data['csrfToken']
+    response = client.post('/api/v1/auth/login', {
+        'username': 'admin', 'password': <SECRET>,
+    }, format='json', HTTP_X_CSRFTOKEN=token)
+    assert response.status_code == 200
+    assert client.get('/api/v1/auth/me').data['username'] == 'admin'
+    assert client.get('/api/v1/reports/organization').status_code == 200
+    response = client.post('/api/v1/auth/logout', HTTP_X_CSRFTOKEN=response.data['csrfToken'])
+    assert response.status_code == 200
+    assert client.get('/api/v1/auth/me').status_code == 403
+    response = client.post('/api/v1/auth/login', {
+        'username': 'admin', 'password': <SECRET>,
+    }, format='json', HTTP_X_CSRFTOKEN=response.data['csrfToken'])
+    assert response.status_code == 200
+
+
+@pytest.mark.parametrize('username,active', [('admin', True), ('admin', False), ('existing-owner', True)])
+def test_initial_setup_preserves_all_existing_accounts(initial_setup, monkeypatch, username, active):
+    existing = User.objects.create_user(username=username, password='<SECRET>', is_active=active)
+    old_password_hash = existing.password
+    monkeypatch.setenv('BCMS_INITIAL_ADMIN_PASSWORD', TEST_PASSWORD)
+    create_initial_admin(*initial_setup)
+    existing.refresh_from_db()
+    assert User.objects.count() == 1
+    assert existing.password == <SECRET>
+    assert existing.is_active == active
+    assert existing.organization is None
+    assert not AuditLog.objects.exists()
+
+
+def test_initial_setup_is_idempotent_and_preserves_password_changes(initial_setup, monkeypatch):
+    monkeypatch.setenv('BCMS_INITIAL_ADMIN_PASSWORD', TEST_PASSWORD)
+    monkeypatch.setenv('BCMS_INITIAL_ADMIN_USERNAME', 'site-owner')
+    create_initial_admin(*initial_setup)
+    user = User.objects.get(username='site-owner')
+    user.set_password('ChangedByTheUser!123')
+    user.save()
+    create_initial_admin(*initial_setup)
+    user.refresh_from_db()
+    assert user.check_password('ChangedByTheUser!123')
+    assert User.objects.count() == Organization.objects.count() == 1
+    assert AuditLog.objects.filter(action='CREATE').count() == 1
+
+
+def test_initial_setup_rejects_weak_password_before_creating_records(initial_setup, monkeypatch):
+    monkeypatch.setenv('BCMS_INITIAL_ADMIN_PASSWORD', '123')
+    with pytest.raises(ValidationError):
+        create_initial_admin(*initial_setup)
+    assert not User.objects.exists()
+    assert not Organization.objects.exists()
+
+
+def test_initial_setup_rolls_back_if_audit_creation_fails(initial_setup, monkeypatch):
+    monkeypatch.setenv('BCMS_INITIAL_ADMIN_PASSWORD', TEST_PASSWORD)
+    historical_audit = initial_setup[0].get_model('core', 'AuditLog')
+    with patch.object(historical_audit, 'save', side_effect=RuntimeError('Audit unavailable')):
+        with pytest.raises(RuntimeError, match='Audit unavailable'):
+            create_initial_admin(*initial_setup)
+    assert not User.objects.exists()
+    assert not Organization.objects.exists()
