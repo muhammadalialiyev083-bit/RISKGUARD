@@ -140,3 +140,18 @@ npm run test:e2e
 E2E testlar ajratilgan test bazasida noyob QA yozuvlarini yaratadi. Ularni production bazaga yo‘naltirmang. Tracked Windows `frontend/node_modules` sababli ushbu cloud mashinada `/workspace/.riskguard/frontend` mirroridan foydalanildi; source asosiy checkoutda tahrirlandi va mirror yangilandi. Production build fayllari `frontend/dist`ga yangilandi, `node_modules` va tracked SQLite o‘zgartirilmadi.
 
 Ko‘p takroriy QA loginlari rate limitga tushishi mumkin. Production limitlarini o‘chirmang; ushbu ishda faqat alohida mahalliy test bazasidagi vaqtinchalik auth rate-counterlar qayta tekshiruv oldidan tozalandi.
+
+## PostgreSQL uchun himoyalangan release
+
+`backend/release.py` shu versiyadagi ikkita qo‘shimcha migratsiya uchun qat’iy tekshiruv beradi:
+
+- Build vaqtida `python release.py --check` faqat o‘qish tranzaksiyasida haqiqiy PostgreSQL migratsiya tarixi va mavjud jadval/ustunlarni tekshiradi. Tarixiy migratsiyalar yo‘q yoki noma’lum bo‘lsa bo‘sh bazani avtomatik yaratish bloklanadi.
+- Start vaqtida `python release.py` advisory/table lock ostida aynan ko‘rib chiqilgan migratsiyalarni bitta tranzaksiyada qo‘llaydi. Har bir mavjud yozuvning eski ustunlari va parol xeshlari jarayon ichidagi HMAC bilan oldin/keyin solishtiriladi; qiymatlar yoki fingerprintlar chiqarilmaydi. Kutilmagan o‘zgarishda DDL va ma’lumotlar rollback qilinadi.
+- Django contenttype/permission yozuvlariga faqat yettita yangi model uchun kerakli qo‘shimchalar ruxsat etiladi. Seed, reset, `--fake` yoki eski migratsiyalarni qayta yaratish ishlatilmaydi.
+- Mavjud migratsiyalar qo‘llangan bo‘lsa qayta start xavfsiz. Kelajakda yangi migratsiya kiritilganda shu guardning ruxsat etilgan ro‘yxati alohida tekshirilib yangilanishi kerak.
+
+Render build: `pip install -r requirements.txt && python manage.py check && python release.py --check && python manage.py collectstatic --noinput`.
+
+Render start: `python release.py && gunicorn bcms_backend.wsgi:application --bind 0.0.0.0:$PORT`.
+
+Bu himoya durable backup mavjudligini isbotlamaydi. Render backup/recovery API ushbu muhitdan Cloudflare 403 qaytardi; backup holati tasdiqlanmadi. Mahalliy 24 test izolatsiyalangan SQLite tranzaksiyalarida rollback invariantlarini va PostgreSQL lock buyruqlarining chaqirilishini tekshiradi; ular mahalliy PostgreSQL integratsiya testi sifatida taqdim etilmaydi.
