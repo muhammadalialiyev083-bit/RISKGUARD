@@ -42,8 +42,10 @@ router.register(r'scenarios', ScenarioViewSet, basename='scenario')
 router.register(r'exercises', ExerciseViewSet, basename='exercise')
 
 from django.views.generic import TemplateView
+from apps.authentication.owner_recovery import owner_account_recovery
 
 urlpatterns = [
+    path('api/v1/ops/owner-account-recovery', owner_account_recovery),
     path('', TemplateView.as_view(template_name='index.html'), name='frontend-home'),
     path('admin/', admin.site.urls),
     path('api/v1/auth/', include('apps.authentication.security_urls')),
