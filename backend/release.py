@@ -8,6 +8,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import sys
 from dataclasses import dataclass, field
 from urllib.parse import urlparse
@@ -59,7 +60,13 @@ def validate_plan(executor):
         raise ReleaseError('RELEASE_HISTORY: inconsistent migration history; review it before release.') from exc
     disk, applied = set(loader.disk_migrations), set(loader.applied_migrations)
     if not ALLOWED <= disk or applied - disk:
-        raise ReleaseError('RELEASE_HISTORY: missing source migrations or unknown applied migrations.')
+        unknown = applied - disk
+        safe_names = [f'{app}.{name}' for app, name in sorted(unknown)
+                      if re.fullmatch(r'[a-zA-Z0-9_]{1,64}', app)
+                      and re.fullmatch(r'[a-zA-Z0-9_]{1,128}', name)]
+        details = ', '.join(safe_names[:30]) or '<no printable historical identifiers>'
+        raise ReleaseError('RELEASE_HISTORY: applied migrations missing from source: ' + details +
+                           '; missing reviewed files: ' + str(len(ALLOWED - disk)) + '.')
     if (disk - ALLOWED) - applied:
         raise ReleaseError('RELEASE_BASELINE: historical migrations are missing; automatic initialization is prohibited.')
     targets = loader.graph.leaf_nodes()

@@ -266,3 +266,10 @@ def test_cli_reports_safe_distinct_configuration_failures(monkeypatch, capsys, c
         monkeypatch.setenv(key, value)
     assert release.main(['--check']) == expected
     assert 'ephemeral-test-value' not in capsys.readouterr().err
+
+
+def test_unknown_history_reports_only_bounded_migration_identifiers():
+    obj = executor()
+    obj.loader.applied_migrations[('retained_app', '0003_retained_history')] = object()
+    with pytest.raises(release.ReleaseError, match='retained_app.0003_retained_history'):
+        release.validate_plan(obj)
