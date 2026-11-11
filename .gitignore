@@ -9,3 +9,6 @@ __pycache__/
 .env.*
 !.env.example
 !.env.sample
+
+# Generated Django static output
+backend/staticfiles/

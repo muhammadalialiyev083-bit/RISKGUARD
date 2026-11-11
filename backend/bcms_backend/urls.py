@@ -13,7 +13,13 @@ from apps.simulation.views import ScenarioViewSet, ExerciseViewSet
 from apps.engine.views import PriorityAnalysisView, EvaluateRiskAlgorithmView, EvaluateStrategyView
 from apps.reports.views import OrganizationDashboardReportView
 
+from apps.operations.views import ProviderViewSet, IncidentViewSet, ImprovementTaskViewSet, SimulationRunViewSet
+
 router = DefaultRouter()
+router.register(r'providers', ProviderViewSet, basename='provider')
+router.register(r'incidents', IncidentViewSet, basename='incident')
+router.register(r'improvement-tasks', ImprovementTaskViewSet, basename='improvement-task')
+router.register(r'simulation-runs', SimulationRunViewSet, basename='simulation-run')
 # Core & Auth
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'organizations', OrganizationViewSet, basename='organization')
@@ -40,6 +46,7 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='frontend-home'),
     path('admin/', admin.site.urls),
+    path('api/v1/auth/', include('apps.authentication.security_urls')),
     # Autentifikatsiya (FR-01)
     path('api/v1/auth/csrf', CSRFTokenView.as_view(), name='auth-csrf'),
     path('api/v1/auth/login', LoginView.as_view(), name='auth-login'),

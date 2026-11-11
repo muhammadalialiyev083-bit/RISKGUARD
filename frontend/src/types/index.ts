@@ -4,7 +4,13 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'ADMIN' | 'BCMS_MANAGER' | 'PROCESS_OWNER' | 'RISK_ANALYST' | 'APPROVER' | 'AUDITOR';
+  role:
+    | "ADMIN"
+    | "BCMS_MANAGER"
+    | "PROCESS_OWNER"
+    | "RISK_ANALYST"
+    | "APPROVER"
+    | "AUDITOR";
   role_display: string;
   organization: number;
   organization_detail?: {
@@ -21,15 +27,15 @@ export interface BusinessProcess {
   name: string;
   service_name?: string;
   owner_name?: string;
-  criticality: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  criticality: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   criticality_display: string;
-  status: 'ACTIVE' | 'UNDER_REVIEW' | 'INACTIVE';
+  status: "ACTIVE" | "UNDER_REVIEW" | "INACTIVE";
 }
 
 export interface Asset {
   id: number;
   name: string;
-  type: 'SYSTEM' | 'SERVER' | 'PERSONNEL' | 'VENDOR' | 'FACILITY';
+  type: "SYSTEM" | "SERVER" | "PERSONNEL" | "VENDOR" | "FACILITY";
   type_display: string;
   owner_name?: string;
 }
@@ -44,7 +50,7 @@ export interface BIAAssessment {
   rpo_minutes: number;
   backup_interval_minutes: number;
   has_rpo_gap: boolean;
-  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+  status: "DRAFT" | "SUBMITTED" | "APPROVED" | "REJECTED";
   approved_by_name?: string;
 }
 
@@ -60,7 +66,7 @@ export interface Risk {
   risk_score: number;
   residual_risk_score?: number;
   risk_reduction: number;
-  risk_class: 'low' | 'medium' | 'high';
+  risk_class: "low" | "medium" | "high";
   status: string;
 }
 
@@ -69,7 +75,7 @@ export interface ContinuityPlan {
   process_name: string;
   title: string;
   version: string;
-  status: 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'ARCHIVED';
+  status: "DRAFT" | "IN_REVIEW" | "APPROVED" | "PUBLISHED" | "ARCHIVED";
   status_display: string;
   approved_by_name?: string;
   steps?: {

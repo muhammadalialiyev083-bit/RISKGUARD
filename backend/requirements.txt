@@ -12,3 +12,7 @@ dj-database-url>=2,<4
 psycopg2-binary>=2.9,<3
 gunicorn>=23,<27
 whitenoise>=6,<7
+
+# Server-side Google OIDC (Authorization Code + PKCE)
+Authlib>=1.6,<2
+requests>=2.32,<3
