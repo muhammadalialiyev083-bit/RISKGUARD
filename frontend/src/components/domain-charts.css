@@ -1,0 +1,267 @@
+.chart-panel {
+  padding: 24px;
+  min-width: 0;
+}
+.chart-panel h3 {
+  font-size: 16px;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+.chart-panel p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.chart-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chart-heading p {
+  margin: 0 0 20px;
+}
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.risk-matrix-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.axis-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  color: var(--muted);
+}
+.risk-matrix {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  flex: 1;
+}
+.risk-cell {
+  position: relative;
+  min-height: 50px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  text-align: left;
+  padding: 10px;
+  color: var(--text);
+  transition:
+    transform 0.15s,
+    filter 0.15s;
+}
+.risk-cell:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.15);
+}
+.risk-cell:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+.risk-cell > span {
+  font-size: 11px;
+  opacity: 0.8;
+}
+.risk-cell strong {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-size: 17px;
+}
+.risk-low {
+  background: color-mix(in srgb, #10b981 18%, var(--panel));
+}
+.risk-medium {
+  background: color-mix(in srgb, #eab308 22%, var(--panel));
+}
+.risk-high {
+  background: color-mix(in srgb, #f43f5e 25%, var(--panel));
+}
+.axis-bottom {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  padding: 8px;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+.chart-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  border-radius: 50%;
+}
+.dot.low {
+  background: #10b981;
+}
+.dot.medium {
+  background: #eab308;
+}
+.dot.high {
+  background: #f43f5e;
+}
+.chart-panel details {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.chart-panel summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+}
+.dependency-scroll {
+  overflow-x: auto;
+}
+.dependency-svg {
+  min-width: 540px;
+  width: 100%;
+  color: var(--accent);
+  max-height: 650px;
+}
+.map-node {
+  stroke: var(--border);
+  fill: var(--panel);
+}
+.map-process {
+  stroke: color-mix(in srgb, var(--accent) 60%, var(--border));
+}
+.map-asset {
+  stroke: color-mix(in srgb, #a78bfa 60%, var(--border));
+}
+.map-label {
+  fill: var(--text);
+  font-size: 12px;
+}
+.dependency-svg g[role="button"] {
+  cursor: pointer;
+}
+.dependency-svg g[role="button"]:focus {
+  outline: none;
+}
+.dependency-svg g[role="button"]:focus .map-node {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+.distribution-bars {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.distribution-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 28px;
+  gap: 12px;
+  align-items: center;
+  background: transparent;
+  border: 0;
+  width: 100%;
+  color: var(--text);
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+.distribution-row:focus-visible {
+  outline: 2px solid var(--accent);
+}
+.bar-track {
+  height: 9px;
+  border-radius: 10px;
+  background: var(--border);
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  display: block;
+  border-radius: 10px;
+  transition: width 0.3s;
+}
+.level-critical {
+  background: #fb7185;
+}
+.level-high {
+  background: #fbbf24;
+}
+.level-medium {
+  background: #38bdf8;
+}
+.level-low {
+  background: #34d399;
+}
+.readiness-value {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 64px;
+  font-weight: 750;
+  letter-spacing: -0.05em;
+  padding: 0;
+  cursor: pointer;
+}
+.readiness-value small {
+  font-size: 25px;
+}
+.readiness-notes {
+  display: flex;
+  gap: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+.readiness-notes button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.readiness-notes strong {
+  color: var(--text);
+  font-size: 17px;
+}
+@media (max-width: 760px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+  .chart-panel {
+    padding: 18px;
+  }
+  .risk-cell {
+    min-height: 43px;
+    padding: 7px;
+  }
+  .readiness-notes {
+    gap: 10px;
+  }
+  .readiness-notes button {
+    gap: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill,
+  .risk-cell {
+    transition: none;
+  }
+}

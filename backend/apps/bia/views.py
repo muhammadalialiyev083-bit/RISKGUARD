@@ -1,3 +1,4 @@
+from apps.core.viewsets import AuditedModelViewSet
 from django.utils import timezone
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
@@ -8,7 +9,7 @@ from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, I
 from apps.core.audit import record_audit
 
 
-class BIAAssessmentViewSet(viewsets.ModelViewSet):
+class BIAAssessmentViewSet(AuditedModelViewSet):
     """
     FR-05: BIA so'rovnomasi va baholash.
     RTO <= MTPD validatsiyasi va Tasdiqlash (/approve) amalini o'z ichiga oladi.
@@ -43,6 +44,17 @@ class BIAAssessmentViewSet(viewsets.ModelViewSet):
             before_state=before,
             after_state={'status': bia.status, 'rto': str(bia.rto_hours)}
         )
+
+    @action(detail=True, methods=['post'])
+    def submit(self, request, pk=None):
+        bia = self.get_object()
+        if bia.status not in ('DRAFT', 'REJECTED'):
+            return Response({'detail': 'Faqat qoralama yoki rad etilgan baholash yuboriladi.'}, status=400)
+        bia.status = 'SUBMITTED'
+        bia.save()
+        record_audit(request=request, action='UPDATE', entity='BIAAssessment',
+                     entity_id=bia.id, after_state={'status': bia.status})
+        return Response(self.get_serializer(bia).data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsTenantMember, IsApproverRole])
     def approve(self, request, pk=None):

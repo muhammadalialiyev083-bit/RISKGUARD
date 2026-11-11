@@ -4,11 +4,13 @@ from django.views.decorators.cache import never_cache
 from rest_framework.authentication import SessionAuthentication
 from rest_framework import views, viewsets, status, permissions
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.contrib.auth import login, logout
 from apps.authentication.models import User
 from apps.authentication.serializers import UserSerializer, UserCreateUpdateSerializer, LoginSerializer
 from apps.authentication.permissions import IsTenantMember, IsAdminRole, IsAuditorReadOnly
 from apps.core.audit import record_audit
+from apps.authentication.security import rate_limit
 
 
 @method_decorator(never_cache, name='dispatch')
@@ -22,6 +24,7 @@ class LoginView(views.APIView):
     def post(self, request):
         # Recovered from the shared login-fix diff: anonymous login needs CSRF too.
         SessionAuthentication().enforce_csrf(request)
+        rate_limit(request, 'login', limit=20, seconds=900)
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
@@ -81,6 +84,15 @@ class MeView(views.APIView):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
+    def patch(self, request):
+        from apps.authentication.security_views import ProfileSerializer
+        serializer = ProfileSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        record_audit(request=request, action='UPDATE', entity='Profile', entity_id=request.user.id,
+                     after_state={'fields': list(serializer.validated_data)})
+        return Response(UserSerializer(request.user).data)
+
 
 @method_decorator(never_cache, name='dispatch')
 class CSRFTokenView(views.APIView):
@@ -103,6 +115,12 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsTenantMember, IsAuditorReadOnly]
 
+    def get_permissions(self):
+        permissions_list = super().get_permissions()
+        if self.request.method not in permissions.SAFE_METHODS:
+            permissions_list.append(IsAdminRole())
+        return permissions_list
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return UserCreateUpdateSerializer
@@ -110,9 +128,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser:
-            return User.objects.all()
         return User.objects.filter(organization=user.organization)
+
+    @action(detail=False, methods=['post'])
+    def invite(self, request):
+        from apps.authentication.security_views import invite_user
+        return invite_user(request)
 
     def perform_create(self, serializer):
         user = serializer.save(organization=self.request.user.organization)

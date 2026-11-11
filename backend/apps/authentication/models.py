@@ -46,6 +46,7 @@ class User(AbstractUser):
         help_text="RBAC ruxsatlar modeli bo'yicha rol"
     )
     phone = models.CharField(max_length=30, blank=True)
+    preferences = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ['username']
@@ -69,3 +70,17 @@ class User(AbstractUser):
     @property
     def is_auditor(self):
         return self.role == self.ROLE_AUDITOR
+
+
+class GoogleIdentity(models.Model):
+    """A verified Google subject explicitly linked by its signed-in owner."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='google_identity')
+    subject = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class AuthRateLimit(models.Model):
+    """Shared, short-lived counters; neither email addresses nor tokens are stored."""
+    key = models.CharField(max_length=64, primary_key=True)
+    attempts = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField(db_index=True)

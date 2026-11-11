@@ -1,6 +1,8 @@
+from apps.core.viewsets import AuditedModelViewSet
 import io
 from django.http import HttpResponse
 from django.utils import timezone
+from django.utils.text import slugify
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,7 +14,7 @@ from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, I
 from apps.core.audit import record_audit
 
 
-class StrategyViewSet(viewsets.ModelViewSet):
+class StrategyViewSet(AuditedModelViewSet):
     """
     FR-08: Tiklash strategiyalari CRUD.
     """
@@ -36,7 +38,7 @@ class StrategyViewSet(viewsets.ModelViewSet):
         )
 
 
-class ContinuityPlanViewSet(viewsets.ModelViewSet):
+class ContinuityPlanViewSet(AuditedModelViewSet):
     """
     FR-09: BCP/DRP rejalari, tasdiqlash, e'lon qilish va PDF eksport.
     """
@@ -70,6 +72,17 @@ class ContinuityPlanViewSet(viewsets.ModelViewSet):
             before_state=before,
             after_state={'title': plan.title, 'version': plan.version, 'status': plan.status}
         )
+
+    @action(detail=True, methods=['post'])
+    def submit(self, request, pk=None):
+        plan = self.get_object()
+        if plan.status != 'DRAFT':
+            return Response({'detail': 'Faqat qoralama reja yuboriladi.'}, status=400)
+        plan.status = 'IN_REVIEW'
+        plan.save()
+        record_audit(request=request, action='UPDATE', entity='ContinuityPlan',
+                     entity_id=plan.id, after_state={'status': plan.status})
+        return Response(self.get_serializer(plan).data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsTenantMember, IsApproverRole])
     def publish(self, request, pk=None):
@@ -109,39 +122,39 @@ class ContinuityPlanViewSet(viewsets.ModelViewSet):
         FR-09 va T-10: BCP/DRP rejasini PDF shaklida eksport qilish (NFR-07).
         """
         plan = self.get_object()
+        from pathlib import Path
+        from xml.sax.saxutils import escape
+        import reportlab
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+
+        font_path = Path(reportlab.__file__).parent / 'fonts' / 'Vera.ttf'
+        if 'UzHiUnicode' not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont('UzHiUnicode', str(font_path)))
+        styles = getSampleStyleSheet()
+        for name in ('Title', 'Heading2', 'Normal'):
+            styles[name].fontName = 'UzHiUnicode'
         buffer = io.BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
-        
-        # PDF chizish
-        p.setFont("Helvetica-Bold", 16)
-        p.drawString(50, 750, f"BCMS Designer: Biznes Uzluksizlik Rejasi (BCP)")
-        
-        p.setFont("Helvetica", 12)
-        p.drawString(50, 720, f"Reja nomi: {plan.title}")
-        p.drawString(50, 700, f"Jarayon: {plan.process.name}")
-        p.drawString(50, 680, f"Versiya: {plan.version} | Holati: {plan.get_status_display()}")
-        p.drawString(50, 660, f"Tashkilot: {plan.organization.name}")
-        p.drawString(50, 640, f"Tasdiqlovchi: {plan.approved_by.username if plan.approved_by else 'Tasdiqlanmagan'}")
-        
-        p.setFont("Helvetica-Bold", 13)
-        p.drawString(50, 600, "Tiklash Qadamlari va Bosqichlari:")
-
-        p.setFont("Helvetica", 10)
-        y = 575
-        steps = plan.steps.all().order_by('sequence')
-        if steps.exists():
-            for step in steps:
-                assigned = step.assigned_to.username if step.assigned_to else "Belgilanmagan"
-                line = f"{step.sequence}. {step.title} (Mas'ul: {assigned}, Muddat: {step.expected_duration_minutes} min)"
-                p.drawString(60, y, line)
-                y -= 20
-        else:
-            p.drawString(60, y, "Rejaga qadamlar kiritilmagan.")
-            y -= 20
-
-        p.showPage()
-        p.save()
-
+        document = SimpleDocTemplate(buffer, pagesize=letter, title=plan.title)
+        story = [Paragraph('Uzluksiz Himoya — BCP / DRP', styles['Title'])]
+        def paragraph(text, style='Normal'):
+            story.append(Paragraph(escape(str(text)), styles[style]))
+            story.append(Spacer(1, 10))
+        paragraph(plan.title, 'Heading2')
+        paragraph(f'Jarayon: {plan.process.name}')
+        paragraph(f'Versiya: {plan.version} | Holat: {plan.get_status_display()}')
+        paragraph(f'Tashkilot: {plan.organization.name}')
+        paragraph(f"Tasdiqlovchi: {plan.approved_by.username if plan.approved_by else 'Tasdiqlanmagan'}")
+        paragraph(plan.scope)
+        paragraph('Tiklash qadamlari', 'Heading2')
+        for step in plan.steps.all().order_by('sequence'):
+            assigned = step.assigned_to.username if step.assigned_to else 'Belgilanmagan'
+            paragraph(f"{step.sequence}. {step.title} — {assigned}; {step.expected_duration_minutes} daqiqa")
+            if step.description:
+                paragraph(step.description)
+        document.build(story)
         buffer.seek(0)
         record_audit(
             request=request,
@@ -152,5 +165,5 @@ class ContinuityPlanViewSet(viewsets.ModelViewSet):
         )
 
         response = HttpResponse(buffer, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="BCP_Plan_{plan.id}_v{plan.version}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="BCP_Plan_{plan.id}_v{slugify(plan.version)}.pdf"'
         return response

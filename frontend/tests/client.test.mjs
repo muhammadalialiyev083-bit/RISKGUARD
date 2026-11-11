@@ -136,3 +136,25 @@ test('profile loading retains authentication failures for session handling', asy
   const { api, ApiError } = await clientFor(t, () => json({ detail: 'Authentication credentials were not provided.' }, 403));
   await assert.rejects(api.getMe(), error => error instanceof ApiError && error.status === 403);
 });
+
+test('an old body cannot resolve into a new session', async t => {
+  let resolveBody;
+  const bodyReady = new Promise(resolve => { resolveBody = resolve; });
+  const {api, clearSessionRequests} = await clientFor(t, () => ({ok:true,status:200,headers:new Headers({'content-type':'application/json'}),json:()=>bodyReady}));
+  const old = api.getMe();
+  await new Promise(resolve=>setTimeout(resolve,0));
+  clearSessionRequests();
+  resolveBody(user);
+  await assert.rejects(old, /Hisob o‘zgardi/);
+});
+
+test('a mutation awaiting old CSRF never runs under the next account', async t => {
+  let resolveToken;
+  const token = new Promise(resolve=>{resolveToken=resolve});
+  const {api, clearSessionRequests, calls} = await clientFor(t, url=>url.endsWith('/csrf') ? token : json({ok:true}));
+  const old = api.publishPlan(1);
+  clearSessionRequests();
+  resolveToken(json({csrfToken:'old-token'}));
+  await assert.rejects(old, /Hisob o‘zgardi/);
+  assert.equal(calls.filter(c=>c.method==='POST').length,0);
+});
