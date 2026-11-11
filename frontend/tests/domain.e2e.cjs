@@ -56,7 +56,7 @@ const artifactDir =
     if (response.url().includes("/api/") && response.status() >= 500)
       failures.push(`${response.status()} ${response.url()}`);
   });
-  page.on("dialog", (dialog) => dialog.accept());
+  page.on("dialog", (dialog) => dialog.accept(dialog.type() === "prompt" ? "2.0" : undefined));
   async function visit(module, title) {
     await page.goto(`${base}/${module}`);
     await page.getByRole("heading", { name: title, exact: true }).waitFor();
@@ -274,6 +274,17 @@ const artifactDir =
       "%PDF-",
     );
     completed.push("plan with step, submit, publish and PDF");
+    assert.equal(await row(names.plan).getByRole('button', { name: /tahrirlash/ }).count(), 0);
+    assert.equal(await row(names.plan).getByRole('button', { name: 'Qoralamaga qaytarish' }).count(), 0);
+    await row(names.plan).getByRole('button', { name: 'Yangi versiya', exact: true }).click();
+    await page.getByText('Yangi qoralama versiya yaratildi.', { exact: true }).waitFor();
+    const draftRow = page.locator('.domain-registry tbody tr')
+      .filter({ has: page.getByRole('cell', { name: '2.0', exact: true }) })
+      .filter({ hasText: names.plan });
+    await draftRow.getByRole('button', { name: /tahrirlash/ }).waitFor();
+    await page.reload();
+    await draftRow.getByRole('button', { name: /tahrirlash/ }).waitFor();
+    completed.push('frozen plan preserved and editable new version persists after reload');
 
     await visit("simulation", "Ssenariy sinovlari");
     await create(async (d) => {

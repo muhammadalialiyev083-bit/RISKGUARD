@@ -1055,7 +1055,7 @@ export function DomainPage({
                                     ) &&
                                     !(
                                       current === "plans" &&
-                                      row.status === "PUBLISHED"
+                                      row.is_frozen
                                     ) && (
                                       <button
                                         className="btn icon-button"
@@ -1066,10 +1066,8 @@ export function DomainPage({
                                       </button>
                                     )}
                                   {canEdit &&
-                                    ((current === "bia" &&
-                                      row.status === "APPROVED") ||
-                                      (current === "plans" &&
-                                        row.status === "PUBLISHED")) && (
+                                    current === "bia" &&
+                                    row.status === "APPROVED" && (
                                       <button
                                         className="btn"
                                         disabled={busy}
@@ -1093,8 +1091,25 @@ export function DomainPage({
                                         Qoralamaga qaytarish
                                       </button>
                                     )}
+                                  {canEdit && current === "plans" && row.is_frozen && (
+                                    <button
+                                      className="btn"
+                                      disabled={busy}
+                                      onClick={() => {
+                                        const version = window.prompt("Yangi reja versiyasi:");
+                                        if (version?.trim())
+                                          mutate(
+                                            () => api.action("plans", row.id, "clone_version", { version: version.trim() }),
+                                            "Yangi qoralama versiya yaratildi.",
+                                          );
+                                      }}
+                                    >
+                                      Yangi versiya
+                                    </button>
+                                  )}
                                   {current === "plans" &&
                                     row.status === "DRAFT" &&
+                                    !row.is_frozen &&
                                     canEdit && (
                                       <button
                                         className="btn"

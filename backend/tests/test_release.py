@@ -28,7 +28,7 @@ def test_plan_accepts_only_reviewed_forward_additions_and_restarts():
     assert release.validate_plan(executor())[1] == release.ALLOWED
     assert release.validate_plan(executor(BASELINE | release.ALLOWED))[1] == set()
     partly_applied = BASELINE | {next(iter(release.ALLOWED))}
-    assert len(release.validate_plan(executor(partly_applied))[1]) == 1
+    assert release.validate_plan(executor(partly_applied))[1] == release.ALLOWED - partly_applied
 
 
 @pytest.mark.parametrize('fault', ['historical_gap', 'unknown_applied', 'missing_source', 'inconsistent', 'reverse', 'unexpected', 'duplicate'])

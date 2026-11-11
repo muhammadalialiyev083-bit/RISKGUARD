@@ -30,6 +30,7 @@ class ContinuityPlanSerializer(TenantModelSerializer):
     process_name = serializers.CharField(source='process.name', read_only=True)
     approved_by_name = serializers.CharField(source='approved_by.get_full_name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    is_frozen = serializers.BooleanField(read_only=True)
     steps = PlanStepSerializer(many=True, required=False)
 
     class Meta:
@@ -37,16 +38,16 @@ class ContinuityPlanSerializer(TenantModelSerializer):
         fields = [
             'id', 'organization', 'process', 'process_name', 'title', 'version',
             'scope', 'status', 'status_display', 'approved_by', 'approved_by_name',
-            'approved_at', 'steps', 'created_at', 'updated_at'
+            'approved_at', 'steps', 'is_frozen', 'previous_version', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'organization', 'approved_by', 'approved_at', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'organization', 'approved_by', 'approved_at', 'previous_version', 'created_at', 'updated_at']
 
     def validate(self, attrs):
         status = attrs.get('status')
         if status and status != 'DRAFT' and status != getattr(self.instance, 'status', None):
             raise serializers.ValidationError({'status': 'Holatni yuborish yoki e’lon qilish amali orqali o‘zgartiring.'})
-        if self.instance and self.instance.status in ('APPROVED', 'PUBLISHED') and status != 'DRAFT':
-            raise serializers.ValidationError({'status': 'Tahrirlashdan oldin qoralama holatiga qaytaring.'})
+        if self.instance and self.instance.is_frozen:
+            raise serializers.ValidationError({'status': 'Tasdiqlangan versiya saqlanadi. Tahrirlash uchun yangi versiya yarating.'})
         steps = attrs.get('steps', [])
         sequences = [s.get('sequence', 1) for s in steps]
         if len(sequences) != len(set(sequences)):

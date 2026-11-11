@@ -85,6 +85,30 @@ def test_plan_nested_steps_tenant_approval_and_pdf(domain):
 
 
 @pytest.mark.django_db
+def test_legacy_frozen_plan_preserves_snapshot_and_clones_editable_version(domain):
+    original = ContinuityPlan.objects.create(organization=domain['org'], process=domain['process'],
+        title='Retained approved plan', version='1.0', status='APPROVED',
+        snapshot={'retained': 'original frozen content'})
+    original.steps.create(sequence=1, title='Retained step', assigned_to=domain['admin'])
+    client = domain['client']
+    url = f'/api/v1/plans/{original.pk}/'
+    assert client.patch(url, {'status': 'DRAFT', 'title': 'Overwrite'}, format='json').status_code == 400
+    assert client.delete(url).status_code == 400
+    response = client.post(url + 'clone_version/', {'version': '2.0'}, format='json')
+    assert response.status_code == 201, response.data
+    draft = ContinuityPlan.objects.get(pk=response.data['id'])
+    assert draft.previous_version_id == original.pk and draft.status == 'DRAFT'
+    assert draft.snapshot == {} and not draft.is_frozen
+    assert draft.steps.get().title == 'Retained step'
+    assert client.patch(f'/api/v1/plans/{draft.pk}/', {'scope': 'Updated draft'}, format='json').status_code == 200
+    assert client.post(url + 'clone_version/', {'version': '2.0'}, format='json').status_code == 400
+    original.refresh_from_db()
+    assert original.snapshot == {'retained': 'original frozen content'} and original.status == 'APPROVED'
+    outsider = ContinuityPlan.objects.create(organization=domain['foreign'], process=domain['other_process'], title='Private')
+    assert client.post(f'/api/v1/plans/{outsider.pk}/clone_version/', {'version': '2.0'}, format='json').status_code == 404
+
+
+@pytest.mark.django_db
 def test_controls_safe_update_delete_audited(domain):
     c = domain['client']
     risk = c.post('/api/v1/risks/', {'process': domain['process'].pk, 'threat': 'Uzilish', 'likelihood': 4, 'impact': 5}, format='json')

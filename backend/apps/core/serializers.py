@@ -4,12 +4,17 @@ from apps.core.models import AuditLog
 
 class AuditLogSerializer(serializers.ModelSerializer):
     actor_username = serializers.CharField(source='actor.username', read_only=True)
-    actor_role = serializers.CharField(source='actor.get_role_display', read_only=True)
+    actor_role = serializers.SerializerMethodField()
+
+    def get_actor_role(self, obj):
+        from django.contrib.auth import get_user_model
+        snapshot = obj.actor_role_snapshot or (obj.actor.role if obj.actor else '')
+        return dict(get_user_model().ROLE_CHOICES).get(snapshot, snapshot)
 
     class Meta:
         model = AuditLog
         fields = [
-            'id', 'organization', 'actor', 'actor_username', 'actor_role',
+            'id', 'organization', 'actor', 'actor_username', 'actor_role', 'actor_role_snapshot',
             'action', 'entity', 'entity_id', 'before_state', 'after_state',
             'timestamp', 'ip_address'
         ]

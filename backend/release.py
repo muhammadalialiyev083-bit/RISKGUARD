@@ -1,4 +1,4 @@
-"""Fail-closed PostgreSQL release gate for the two additive UzHi migrations.
+"""Fail-closed PostgreSQL release gate for reviewed UzHi additions and legacy schema adoption.
 
 Run ``python release.py --check`` during build and ``python release.py`` before
 Gunicorn starts. No seed, reset, fake migration, data dump, or fingerprint logging.
@@ -13,14 +13,15 @@ import sys
 from dataclasses import dataclass, field
 from urllib.parse import urlparse
 
-ALLOWED = {
+from apps.core.migration_compat import SchemaAdoptionError
+from apps.core.legacy_schema import ADOPTION_MIGRATIONS, RETAINED_HISTORY
+
+ALLOWED = ADOPTION_MIGRATIONS | {
     ('authentication', '0003_authratelimit_user_preferences_googleidentity'),
     ('operations', '0001_initial'),
 }
-# Recovery evidence preserves this historical data-migration identifier, but its
-# complete source was intentionally not restored. Retain an existing record as
-# immutable history; never reconstruct, execute, fake, reverse, or delete it.
-RETAINED_ONLY_HISTORY = {('authentication', '0003_bootstrap_initial_admin')}
+# Retain only observed history whose source was lost. Never replay or delete it.
+RETAINED_ONLY_HISTORY = RETAINED_HISTORY
 NEW_MODELS = {
     ('authentication', 'authratelimit'), ('authentication', 'googleidentity'),
     ('operations', 'provider'), ('operations', 'incident'),
@@ -37,7 +38,7 @@ EXIT_CODES = {
     'RELEASE_DEBUG': 51, 'RELEASE_SECRET': 52, 'RELEASE_DATABASE': 53,
     'RELEASE_ENGINE': 54, 'RELEASE_HISTORY': 55, 'RELEASE_BASELINE': 56,
     'RELEASE_PLAN': 57, 'RELEASE_SCHEMA': 58, 'RELEASE_SNAPSHOT': 59,
-    'RELEASE_PRESERVATION': 60, 'RELEASE_METADATA': 61, 'RELEASE_POSTCHECK': 62,
+    'RELEASE_PRESERVATION': 60, 'RELEASE_METADATA': 61, 'RELEASE_POSTCHECK': 62, 'SCHEMA_ADOPTION': 63,
 }
 
 
@@ -268,7 +269,7 @@ def main(argv=None):
         print('UzHi release gate ' + mode + '. Pending/applied reviewed additions: ' +
               (', '.join(f'{app}.{name}' for app, name in sorted(pending)) or 'none'))
         return 0
-    except ReleaseError as exc:
+    except (ReleaseError, SchemaAdoptionError) as exc:
         print(str(exc), file=sys.stderr)
         return EXIT_CODES.get(str(exc).partition(':')[0], 1)
     except Exception:

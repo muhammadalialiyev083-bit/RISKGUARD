@@ -1,4 +1,5 @@
 from django.db import models
+from apps.core.duration_fields import synchronize_seconds
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from apps.core.models import BaseTenantModel
@@ -36,7 +37,20 @@ class BIAAssessment(BaseTenantModel):
     approved_at = models.DateTimeField(null=True, blank=True)
     comments = models.TextField(blank=True)
 
+    data_source = models.TextField(blank=True, default='')
+    rationale = models.TextField(blank=True, default='')
+    impact_weights = models.JSONField(default=dict, blank=True)
+    recommended_values = models.JSONField(default=dict, blank=True)
+    mtpd_seconds = models.PositiveBigIntegerField(default=0, editable=False)
+    rto_seconds = models.PositiveBigIntegerField(default=0, editable=False)
+    rpo_seconds = models.PositiveBigIntegerField(default=0, editable=False)
+    backup_interval_seconds = models.PositiveBigIntegerField(default=0, editable=False)
+
     class Meta:
+        constraints = [
+            models.CheckConstraint(condition=models.Q(rto_hours__gt=0, mtpd_hours__gte=models.F('rto_hours')), name='bia_rto_before_mtpd'),
+            models.UniqueConstraint(fields=['process', 'revision'], name='bia_unique_process_revision'),
+        ]
         ordering = ['-revision', '-created_at']
 
     def clean(self):
@@ -48,6 +62,10 @@ class BIAAssessment(BaseTenantModel):
                 })
 
     def save(self, *args, **kwargs):
+        synchronize_seconds(self, kwargs, [('mtpd_hours', 'mtpd_seconds', 3600),
+                                          ('rto_hours', 'rto_seconds', 3600),
+                                          ('rpo_minutes', 'rpo_seconds', 60),
+                                          ('backup_interval_minutes', 'backup_interval_seconds', 60)])
         self.full_clean()
         super().save(*args, **kwargs)
 
@@ -72,6 +90,9 @@ class BIAImpact(models.Model):
     reputational_score = models.PositiveSmallIntegerField(default=1, help_text="Obro'ga ta'sir (1-5)")
 
     class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(financial_loss__gte=0, horizon_hours__gte=0,
+                      operational_score__gte=1, operational_score__lte=5, legal_score__gte=1,
+                      legal_score__lte=5, reputational_score__gte=1, reputational_score__lte=5), name='bia_valid_impact')]
         ordering = ['horizon_hours']
         unique_together = ('bia', 'horizon_hours')
 

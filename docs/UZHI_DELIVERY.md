@@ -58,12 +58,13 @@ Mahalliy muhit: Python 3.12, Django, alohida `/workspace/.riskguard` virtual muh
 |---|---|
 | Avvalgi onboarding bazaviy tekshiruvi | O‘zgarishlardan oldin 39 backend, 10 frontend testi, build va login/API smoke o‘tgan; bu yangi o‘zgarishlarning yakuniy natijasi emas. |
 | Yangi operations oqimlari | `python -m pytest tests/test_operations.py -q`: 7 passed. Provayder → simulyatsiya → vazifa; hodisa → vazifa → yopish; snapshot saqlanishi; eskalatsiya; RBAC va tenant salbiy testlari. |
-| To‘liq Django backend | `cd backend && python -m pytest -q`: **72 passed**, 83 warnings (Django email sozlamalari deprecation va ReportLab deprecation). Yangi auth 17, domen 9 va operations 7 testni o‘z ichiga oladi. |
+| To‘liq Django backend | `cd backend && python -m pytest -q`: **106 passed**, 29 warnings (Django email sozlamalari deprecation va ReportLab deprecation). Auth, domen, operations, eski reja snapshoti va release rollback tekshiruvlarini o‘z ichiga oladi. |
 | Frontend | Toza `npm ci`, `npm test`: **12 passed**. `npm run build` ichidagi TypeScript va Vite production build o‘tdi. Yangilangan `frontend/dist` Django tomonidan ham tekshirildi. |
 | Playwright / Chromium | Auth, 13 domen oqimi va 12 operations tekshiruv guruhi alohida o‘tdi. Desktop va 390 px mobil, PDF/CSV fayllari, real API yozuvlari, reload, RBAC xatolari, qidiruv va keyboard tekshirildi. Kutilgan anonim 403, noto‘g‘ri login/reset 400 va ochiq vazifali hodisani yopish 400 alohida hisobga olingan; kutilmagan 5xx yoki brauzer exception topilmadi. |
-| Migratsiya va static | Mahalliy qo‘shimcha migratsiyalar qo‘llandi; `makemigrations --check --dry-run`: No changes detected; `manage.py check`: no issues; `collectstatic`: 159 fayl. Production PostgreSQL tarixiga kirish yo‘q. |
+| Migratsiya va static | Mahalliy qo‘shimcha migratsiyalar qo‘llandi; `makemigrations --check --dry-run`: No changes detected; `manage.py check`: no issues; `collectstatic`: 159 fayl. Production’dan faqat 29 jadval/287 ustun tavsifi va 53 migratsiya nomi olindi; amaliy yozuvlar eksport qilinmadi. |
 | Google va email production yetkazilishi | Kalitlar/provider va SMTP yo‘q; haqiqiy OAuth, reset/taklif emaili yetib borishi tasdiqlanmagan. |
-| Production/deploy preview | Tarmoq va deploy boshqaruvi bloklangan. Deploy terminal holati hamda jonli commit tasdiqlanmagan. |
+| Hosting kirishi | Netlify va Render API autentifikatsiyasi ishlaydi. Netlify Git preview buildidagi `tsc: Permission denied` toza `npm ci` bilan tuzatildi. Yakuniy jonli holat deployning terminal natijasi bilan tekshiriladi. |
+| Production sxemasiga moslik | Haqiqiy sxema tavsifidan mahalliy PostgreSQL 17 da ajratilgan baza yaratilib, faqat sun’iy yozuvlar bilan sinovdan o‘tdi. Read-only preflight, 9 ta forward migratsiya, eski yozuv/parol/tarix saqlanishi, qayta start, sessiya/CSRF login, legacy CRUD va logout tekshirildi. Ustun tipi mos kelmaganda oldin bajarilgan DDL ham rollback qilindi. |
 
 ## Hostingda kerakli sozlamalar
 
@@ -93,10 +94,10 @@ Google callbackni Netlify domeni orqali berish OAuth holati va sessiya cookielar
 ## Ma’lumotlarni saqlagan holda deploy tartibi
 
 1. Mavjud Render service va Netlify site ishlatilsin. Boshqa hosting yoki yangi bo‘sh baza ochilmang. Avval Render backup/snapshot mavjudligi, xizmatning branch/commit identifikatori va `DATABASE_URL` mavjud **shu** production bazaga tegishli ekanini hosting boshqaruvida tasdiqlang. Sir qiymatini terminalga chiqarmang.
-2. Production Django migratsiya tarixini faqat o‘qish buyrug‘i bilan oling: `python manage.py showmigrations --plan`. Uni checkoutdagi migratsiyalar bilan solishtiring. Kutilmagan historical farq bo‘lsa, deployni shu nuqtada to‘xtatib, bazani biladigan administrator bilan tekshiring. `--fake`, `flush`, `reset` yoki migratsiya tarixini o‘chirishni qo‘llamang.
-3. Yangi qo‘shimchalar: `authentication/0003_authratelimit_user_preferences_googleidentity.py` rate limit, user preferences va Google identity uchun; `operations/0001_initial.py` yangi provayder/hodisa/vazifa/snapshot/timeline jadvallari uchun. Ular mavjud user parollarini va tashkilot ma’lumotlarini qayta yozish uchun tuzilmagan. `python manage.py migrate --plan` natijasida aynan kutilgan qo‘shimchalar borligini tekshiring.
+2. `python release.py --check` orqali haqiqiy tarix va sxemani faqat o‘qish rejimida tekshiring. `apps/core/legacy_schema.py` ro‘yxatidagi kuzatilgan eski migratsiyalar bajarilmasdan saqlanadi; ro‘yxatdan tashqari farqlar bloklanadi. `--fake`, `flush`, `reset` yoki migratsiya tarixini o‘chirishni qo‘llamang.
+3. Yangi qo‘shimchalar: `authentication/0003_authratelimit_user_preferences_googleidentity.py` rate limit, user preferences va Google identity uchun; `operations/0001_initial.py` yangi provayder/hodisa/vazifa/snapshot/timeline jadvallari uchun. Yetti `adopt_deployed_schema` forward migratsiyasi mavjud eski ustunlarni tipi/nullability bilan tekshirib Django state’iga qo‘shadi; ustun bo‘lsa qayta yaratmaydi. Faqat BIA chekidagi qat’iy RTO<MTPD talabi kerakli RTO≤MTPD ga moslanadi. Mavjud parollar va tashkilot ma’lumotlari qayta yozilmaydi.
 4. Tasdiqlangan commitdan build qiling. Backend root `backend`: `pip install -r requirements.txt`, keyin `python manage.py check` va `python manage.py collectstatic --noinput`. Test muhitida `requirements-dev.txt` va `python -m pytest` ishlatilsin. Frontend root `frontend`: Linux’da toza dependency install va `npm run build`; Netlify base/build/publish qiymatlari yuqoridagi konfiguratsiyaga mos.
-5. Mavjud production DB ga `python manage.py migrate --noinput` faqat taqqoslangan reja va backupdan keyin bajarilsin; startup `gunicorn bcms_backend.wsgi:application`. Bir nechta worker parallel migratsiya bajarmasligi uchun uni deployning yagona migration/release bosqichida bajaring.
+5. Start: `python release.py && gunicorn bcms_backend.wsgi:application --bind 0.0.0.0:$PORT`. Guard PostgreSQL advisory/table lock bilan migratsiya va saqlanish tekshiruvini bitta tranzaksiyada bajaradi. Alohida himoyasiz `migrate` bilan uni chetlab o‘tmang.
 6. **Production’da `seed_demo_data`, avtomatik parol reseti, `createsuperuser` yoki mavjud userlarni qayta yaratish ishlatilmaydi.** Lokal demo bazadagi credentiallar production kirishi sifatida qabul qilinmaydi. Mavjud login/parollar saqlanadi.
 7. Netlify deploy terminal natijasi va Render deploy terminal natijasi muvaffaqiyatli bo‘lganini ko‘ring; har ikkisi tasdiqlangan commit/buildga tegishli bo‘lsin. Faqat deploy so‘rovi qabul bo‘lishi tayyorlik isboti emas.
 8. Jonli `/api/v1/auth/csrf` JSON va `csrfToken` qaytarsin; SPA HTML bo‘lmasin. Sessiyasiz login sahifasi, noto‘g‘ri parol, login → refresh → logout → qayta login, cookie/CSRF, tashkilot izolatsiyasi va AUDITOR yozish blokini tekshiring. Yozuv yaratish → reload → yangi deploydan keyin saqlanishini alohida sinang; production test yozuvlarini administrator bilan belgilang.
@@ -105,9 +106,9 @@ Google callbackni Netlify domeni orqali berish OAuth holati va sessiya cookielar
 
 ## Hali tasdiqlanmagan yoki cheklangan qismlar
 
-- Ishlayotgan production commit, deploy preview, PR va deployment yakuniy natijasi tashqi kirishsiz tekshirilmagan.
+- Deployning muvaffaqiyatli terminal natijasi va jonli `/api` javoblari mos commit bilan alohida tekshirilishi kerak; so‘rov yuborishning o‘zi deploy tayyorligini isbotlamaydi.
 - Google OAuth va SMTP kodi mavjud; haqiqiy provider credentiallari, Google consent konfiguratsiyasi, SMTP sender/DNS talablari va email yetkazilishi tashqarida sozlanishi/tekshirilishi kerak.
-- Production PostgreSQL tarixini tekshirish mahalliy SQLite testlari bilan almashtirilmaydi. Productionga moslik yangi deploy oldidan tasdiqlanadi.
+- Schema fixture production’dan olingan, barcha sinov yozuvlari sun’iy. U production ma’lumotlari yoki eski yo‘qolgan kodning nusxasi emas. Eski engine scheduler va simulation run jadvallari hamda FK bog‘lanishlari tegilmasdan saqlanadi; ularning yo‘qolgan implementatsiyasi tiklandi deb ko‘rsatilmaydi.
 - Tarixiy KPI/trend saqlash tizimi va mustaqil filial modeli kiritilmagan. Mavjud bo‘limlar, real KPI/taqsimot va hodisa/simulyatsiya tarixlari ularning o‘rnida tarixiy trend deb ko‘rsatilmaydi.
 - Fusion rasmiy sahifalari bu muhitdan ochilmagan; foydalanilgan tamoyillar foydalanuvchi topshirig‘idagi tavsifga asoslangan. Fusion brendi yoki marketing raqamlari UzHi nomidan ko‘chirilmagan.
 
@@ -143,7 +144,7 @@ Ko‘p takroriy QA loginlari rate limitga tushishi mumkin. Production limitlarin
 
 ## PostgreSQL uchun himoyalangan release
 
-`backend/release.py` shu versiyadagi ikkita qo‘shimcha migratsiya uchun qat’iy tekshiruv beradi:
+`backend/release.py` ikkita yangi funksiya va yettita sxemani moslash migratsiyasi uchun qat’iy tekshiruv beradi:
 
 - Build vaqtida `python release.py --check` faqat o‘qish tranzaksiyasida haqiqiy PostgreSQL migratsiya tarixi va mavjud jadval/ustunlarni tekshiradi. Tarixiy migratsiyalar yo‘q yoki noma’lum bo‘lsa bo‘sh bazani avtomatik yaratish bloklanadi.
 - Start vaqtida `python release.py` advisory/table lock ostida aynan ko‘rib chiqilgan migratsiyalarni bitta tranzaksiyada qo‘llaydi. Har bir mavjud yozuvning eski ustunlari va parol xeshlari jarayon ichidagi HMAC bilan oldin/keyin solishtiriladi; qiymatlar yoki fingerprintlar chiqarilmaydi. Kutilmagan o‘zgarishda DDL va ma’lumotlar rollback qilinadi.
@@ -154,12 +155,16 @@ Render build: `pip install -r requirements.txt && python manage.py check && pyth
 
 Render start: `python release.py && gunicorn bcms_backend.wsgi:application --bind 0.0.0.0:$PORT`.
 
-Bu himoya durable backup mavjudligini isbotlamaydi. Render backup/recovery API ushbu muhitdan Cloudflare 403 qaytardi; backup holati tasdiqlanmadi. Mahalliy 33 test izolatsiyalangan SQLite tranzaksiyalarida rollback invariantlarini va PostgreSQL lock buyruqlarining chaqirilishini tekshiradi; ular mahalliy PostgreSQL integratsiya testi sifatida taqdim etilmaydi.
+Bu himoya durable backup mavjudligini isbotlamaydi. Render backup/recovery API ushbu muhitdan Cloudflare 403 qaytardi; backup holati tasdiqlanmadi. 33 ta release unit testi qo‘shimcha ravishda rollback invariantlarini tekshiradi. Haqiqiy PostgreSQL integratsiya sinovi `python tests/validate_deployed_schema.py postgresql://USER@127.0.0.1:PORT/postgres` bilan bajariladi: faqat lokal server qabul qilinadi, o‘zining tasodifiy nomli bazasini yaratib, oxirida faqat shu bazani olib tashlaydi.
 
-Render build diagnostikasi: install/check/static xatolari mos ravishda41/42/44, release guard xatolari51–62 exit kodlari bilan ajratiladi. Kodlar ma’lumot yoki credential qiymatini o‘z ichiga olmaydi.
+Render build diagnostikasi: install/check/static xatolari mos ravishda41/42/44, release guard xatolari51–63 exit kodlari bilan ajratiladi. Kodlar ma’lumot yoki credential qiymatini o‘z ichiga olmaydi.
 
 Netlify Git build tuzatishi: tracked Windows node_modules sabab tsc executable ruxsati xatosi toza npm ci bilan bartaraf etiladi. netlify.toml build command: npm ci --no-audit --no-fund && npm run build. Alohida Git archive ichidagi Windows dependency daraxtida aynan shu buyruq tekshirildi; lockfile va asl node_modules o‘zgartirilmadi.
 
-### Saqlanadigan tarixiy qayd
+### Yo‘qolgan manba o‘rniga forward moslash
 
-Tiklash dalillarida nomi mavjud `authentication.0003_bootstrap_initial_admin` migratsiyasining to‘liq manbasi tiklanmagan. Agar uning qaydi bazada avvaldan mavjud bo‘lsa, release guard faqat shu qaydni o‘zgarmas tarix sifatida saqlashga ruxsat beradi. Uning kodi qayta tuzilmaydi, bajarilmaydi, fake qilinmaydi yoki qaydi o‘chirilmaydi. Boshqa manbasi yo‘q migratsiyalar hanuz bloklanadi. Barcha eski yozuvlar, shu tarixiy qaydning id/vaqti va parol xeshlari oldin/keyin tekshiriladi. Yangi DB avtomatik initialize qilinmaydi; faqat ikki ko‘rib chiqilgan yangi migratsiya qo‘llanishi mumkin. Bu eski migratsiyaning asl implementatsiyasi isbotlandi degani emas.
+Eski repo foydalanuvchi tomonidan o‘chirilgan. `apps/core/legacy_schema.py` faqat kuzatilgan 21 ta eski app migratsiyasini va endi ishlatilmaydigan authtoken appining 4 ta rasmiy migratsiya qaydini o‘zgarmas tarix sifatida saqlaydi. Qaydlar qayta bajarilmaydi, fake qilinmaydi yoki o‘chirilmaydi. Tizim sessiya/CSRF bilan ishlaydi; production’da jadvali yo‘q, ishlatilmaydigan token appi `INSTALLED_APPS`dan chiqarilgan. Mavjud token jadvali bo‘lsa ham release unga tegmaydi.
+
+`AdoptField` mavjud ustunlarni faqat tekshiradi; yangi o‘rnatishda ustunni odatiy yaratadi. Legacy ustunlarni o‘chiradigan reverse migratsiya bloklangan. Eski seconds qiymatlari o‘zga maydon tahririda saqlanadi; public soat/daqiqa qiymati yangilangandagina seconds mos yangilanadi. Auditda rol snapshoti saqlanadi. Snapshotli yoki tasdiqlangan/e’lon qilingan/arxivlangan rejani to‘g‘ridan-to‘g‘ri tahrirlash va o‘chirish bloklanadi; “Yangi versiya” amali o‘z tashkiloti ichida yangi draft nusxa yaratadi, avvalgi snapshotga tegmaydi.
+
+Vaqtinchalik schema tekshiruvining kalitlari o‘chirildi. Endpoint faqat alohida diagnostika branchida edi; asosiy feature kodida bunday endpoint yo‘q. Fixture (`tests/fixtures/deployed_schema.json`) faqat jadval/ustun/cheklov tavsifi va migratsiya nomlarini saqlaydi, amaliy yozuvlar va sirlarni saqlamaydi.

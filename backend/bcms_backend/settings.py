@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Third party
     'rest_framework',
-    'rest_framework.authtoken',
     'corsheaders',
     # BCMS Modular Monolith Apps
     'apps.core',
