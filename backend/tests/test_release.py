@@ -17,7 +17,8 @@ def executor(applied=BASELINE, plan=None):
     loader = SimpleNamespace(
         disk_migrations={key: object() for key in BASELINE | release.ALLOWED},
         applied_migrations={key: object() for key in applied},
-        check_consistent_history=Mock(), graph=SimpleNamespace(leaf_nodes=lambda: ['leaves']))
+        check_consistent_history=Mock(), graph=SimpleNamespace(leaf_nodes=lambda: ['leaves'],
+                                                              nodes={key: object() for key in BASELINE | release.ALLOWED}))
     if plan is None:
         plan = [(SimpleNamespace(app_label=app, name=name), False) for app, name in sorted(pending)]
     return SimpleNamespace(loader=loader, connection=object(), migration_plan=lambda targets: plan)
@@ -273,3 +274,68 @@ def test_unknown_history_reports_only_bounded_migration_identifiers():
     obj.loader.applied_migrations[('retained_app', '0003_retained_history')] = object()
     with pytest.raises(release.ReleaseError, match='retained_app.0003_retained_history'):
         release.validate_plan(obj)
+
+
+def test_only_evidence_named_retained_history_is_accepted_and_never_planned():
+    orphan = next(iter(release.RETAINED_ONLY_HISTORY))
+    obj = executor(BASELINE | {orphan})
+    assert release.validate_plan(obj)[1] == release.ALLOWED
+    assert orphan not in release.validate_plan(obj)[1]
+    obj.loader.applied_migrations[('authentication', '0003_other_missing_source')] = object()
+    with pytest.raises(release.ReleaseError, match='RELEASE_HISTORY'):
+        release.validate_plan(obj)
+    injected = executor(BASELINE | {orphan}, [(SimpleNamespace(app_label=orphan[0], name=orphan[1]), False)])
+    with pytest.raises(release.ReleaseError, match='RELEASE_PLAN'):
+        release.validate_plan(injected)
+
+
+def test_schema_model_state_excludes_retained_only_and_non_graph_keys(local):
+    orphan = next(iter(release.RETAINED_ONLY_HISTORY))
+    obj = executor(BASELINE | {orphan})
+    model = SimpleNamespace(_meta=SimpleNamespace(managed=True, proxy=False,
+                            db_table='authentication_user',
+                            local_fields=[SimpleNamespace(column='id')]))
+    state = SimpleNamespace(apps=SimpleNamespace(get_models=lambda **kwargs: [model]))
+    obj.loader.project_state = Mock(return_value=state)
+    # Also prove a disk-only node cannot enter a graph state operation.
+    disk_only = ('retained_app', '0001_disk_only')
+    obj.loader.disk_migrations[disk_only] = object()
+    obj.loader.applied_migrations[disk_only] = object()
+    release.require_schema(local, obj, TABLES)
+    assert set(obj.loader.project_state.call_args.kwargs['nodes']) == BASELINE
+
+
+def _insert_retained_history(local):
+    orphan = next(iter(release.RETAINED_ONLY_HISTORY))
+    local.db.execute('INSERT INTO django_migrations (app,name,applied) VALUES (?,?,?)',
+                     (*orphan, 'retained-original-timestamp'))
+    local.db.commit()
+    return local.db.execute('SELECT id,app,name,applied FROM django_migrations WHERE app=? AND name=?', orphan).fetchone()
+
+
+def test_retained_complete_history_record_survives_apply_and_restart(local, monkeypatch):
+    original = _insert_retained_history(local)
+    monkeypatch.setattr(release, 'require_schema', Mock())
+    assert release.run_gate(local, local.current_executor, local.atomic, local.reviewed_migration) == release.ALLOWED
+    assert local.db.execute('SELECT id,app,name,applied FROM django_migrations WHERE id=?', (original[0],)).fetchone() == original
+    assert release.run_gate(local, local.current_executor, local.atomic, lambda *a, **k: None) == set()
+    assert local.db.execute('SELECT id,app,name,applied FROM django_migrations WHERE id=?', (original[0],)).fetchone() == original
+
+
+@pytest.mark.parametrize('damage', ['alter', 'delete'])
+def test_retained_history_mutation_or_deletion_rolls_back(local, monkeypatch, damage):
+    original = _insert_retained_history(local)
+    monkeypatch.setattr(release, 'require_schema', Mock())
+
+    def broken_migration(*args, **kwargs):
+        local.reviewed_migration()
+        if damage == 'alter':
+            local.db.execute("UPDATE django_migrations SET applied='tampered-timestamp' WHERE id=?", (original[0],))
+        else:
+            local.db.execute('DELETE FROM django_migrations WHERE id=?', (original[0],))
+
+    with pytest.raises(release.ReleaseError):
+        release.run_gate(local, local.current_executor, local.atomic, broken_migration)
+    assert local.db.execute('SELECT id,app,name,applied FROM django_migrations WHERE id=?', (original[0],)).fetchone() == original
+    assert set(local.table_names(None)) == TABLES
+    assert release.validate_plan(local.current_executor(local))[1] == release.ALLOWED

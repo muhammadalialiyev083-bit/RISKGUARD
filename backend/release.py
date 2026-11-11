@@ -17,6 +17,10 @@ ALLOWED = {
     ('authentication', '0003_authratelimit_user_preferences_googleidentity'),
     ('operations', '0001_initial'),
 }
+# Recovery evidence preserves this historical data-migration identifier, but its
+# complete source was intentionally not restored. Retain an existing record as
+# immutable history; never reconstruct, execute, fake, reverse, or delete it.
+RETAINED_ONLY_HISTORY = {('authentication', '0003_bootstrap_initial_admin')}
 NEW_MODELS = {
     ('authentication', 'authratelimit'), ('authentication', 'googleidentity'),
     ('operations', 'provider'), ('operations', 'incident'),
@@ -59,8 +63,8 @@ def validate_plan(executor):
     except Exception as exc:
         raise ReleaseError('RELEASE_HISTORY: inconsistent migration history; review it before release.') from exc
     disk, applied = set(loader.disk_migrations), set(loader.applied_migrations)
-    if not ALLOWED <= disk or applied - disk:
-        unknown = applied - disk
+    unknown = (applied - disk) - RETAINED_ONLY_HISTORY
+    if not ALLOWED <= disk or unknown:
         safe_names = [f'{app}.{name}' for app, name in sorted(unknown)
                       if re.fullmatch(r'[a-zA-Z0-9_]{1,64}', app)
                       and re.fullmatch(r'[a-zA-Z0-9_]{1,128}', name)]
@@ -85,7 +89,9 @@ def validate_plan(executor):
 def require_schema(connection, executor, tables):
     """History alone must not certify a missing or partially initialized schema."""
     try:
-        state = executor.loader.project_state(nodes=list(executor.loader.applied_migrations))
+        known_applied = (set(executor.loader.applied_migrations) & set(executor.loader.disk_migrations)
+                         & set(executor.loader.graph.nodes))
+        state = executor.loader.project_state(nodes=sorted(known_applied))
         expected = {}
         for model in state.apps.get_models(include_auto_created=True):
             if model._meta.managed and not model._meta.proxy:
