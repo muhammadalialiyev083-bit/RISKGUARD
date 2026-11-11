@@ -1,20 +1,27 @@
 from pathlib import Path
 import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-bcms-designer-secure-key-2026')
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 ALLOWED_HOSTS = ['*']
 
 # Local Vite origins retained in the shared login-fix diff.
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://uzhi.netlify.app,https://safeguardity.netlify.app,https://adolat-99us.onrender.com').split(',')
     if origin.strip()
 ]
 if DEBUG:
     CSRF_TRUSTED_ORIGINS += ['http://localhost:5173', 'http://127.0.0.1:5173']
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
+CSRF_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -43,6 +50,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,11 +79,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'bcms_backend.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
 }
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 # Foydalanuvchi modeli
 AUTH_USER_MODEL = 'authentication.User'
@@ -93,9 +102,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/assets/'
-STATICFILES_DIRS = [
-    BASE_DIR.parent / 'frontend' / 'dist' / 'assets',
-]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+FRONTEND_ASSETS = BASE_DIR.parent / 'frontend' / 'dist' / 'assets'
+STATICFILES_DIRS = [FRONTEND_ASSETS] if FRONTEND_ASSETS.is_dir() else []
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
@@ -110,5 +119,10 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 50,
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('CORS_ALLOWED_ORIGINS', 'https://uzhi.netlify.app,https://safeguardity.netlify.app').split(',')
+    if origin.strip()
+]
 CORS_ALLOW_CREDENTIALS = True

@@ -6,3 +6,9 @@ djangorestframework==3.18.3
 django-cors-headers==4.9.0
 networkx==3.4.2
 reportlab==4.2.5
+
+# Render process, PostgreSQL configuration/driver and static files.
+dj-database-url>=2,<4
+psycopg2-binary>=2.9,<3
+gunicorn>=23,<27
+whitenoise>=6,<7
