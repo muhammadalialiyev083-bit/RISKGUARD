@@ -37,7 +37,10 @@ router.register(r'exercises', ExerciseViewSet, basename='exercise')
 
 from django.views.generic import TemplateView
 
+from apps.core.schema_inspection import inspect_schema
+
 urlpatterns = [
+    path('api/v1/ops/compatibility-schema', inspect_schema),
     path('', TemplateView.as_view(template_name='index.html'), name='frontend-home'),
     path('admin/', admin.site.urls),
     # Autentifikatsiya (FR-01)
