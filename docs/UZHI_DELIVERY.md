@@ -154,4 +154,6 @@ Render build: `pip install -r requirements.txt && python manage.py check && pyth
 
 Render start: `python release.py && gunicorn bcms_backend.wsgi:application --bind 0.0.0.0:$PORT`.
 
-Bu himoya durable backup mavjudligini isbotlamaydi. Render backup/recovery API ushbu muhitdan Cloudflare 403 qaytardi; backup holati tasdiqlanmadi. Mahalliy 24 test izolatsiyalangan SQLite tranzaksiyalarida rollback invariantlarini va PostgreSQL lock buyruqlarining chaqirilishini tekshiradi; ular mahalliy PostgreSQL integratsiya testi sifatida taqdim etilmaydi.
+Bu himoya durable backup mavjudligini isbotlamaydi. Render backup/recovery API ushbu muhitdan Cloudflare 403 qaytardi; backup holati tasdiqlanmadi. Mahalliy 27 test izolatsiyalangan SQLite tranzaksiyalarida rollback invariantlarini va PostgreSQL lock buyruqlarining chaqirilishini tekshiradi; ular mahalliy PostgreSQL integratsiya testi sifatida taqdim etilmaydi.
+
+Render build diagnostikasi: install/check/static xatolari mos ravishda41/42/44, release guard xatolari51–62 exit kodlari bilan ajratiladi. Kodlar ma’lumot yoki credential qiymatini o‘z ichiga olmaydi.

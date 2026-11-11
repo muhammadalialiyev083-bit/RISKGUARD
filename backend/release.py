@@ -27,6 +27,13 @@ NEW_TABLES = {f'{app}_{model}' for app, model in NEW_MODELS} | {
 }
 METADATA_TABLES = {'django_migrations', 'django_content_type', 'auth_permission'}
 ADVISORY_LOCK = 846711097
+# Bounded status codes keep deployment diagnostics usable without exposing logs.
+EXIT_CODES = {
+    'RELEASE_DEBUG': 51, 'RELEASE_SECRET': 52, 'RELEASE_DATABASE': 53,
+    'RELEASE_ENGINE': 54, 'RELEASE_HISTORY': 55, 'RELEASE_BASELINE': 56,
+    'RELEASE_PLAN': 57, 'RELEASE_SCHEMA': 58, 'RELEASE_SNAPSHOT': 59,
+    'RELEASE_PRESERVATION': 60, 'RELEASE_METADATA': 61, 'RELEASE_POSTCHECK': 62,
+}
 
 
 class ReleaseError(Exception):
@@ -250,6 +257,7 @@ def main(argv=None):
         return 0
     except ReleaseError as exc:
         print(str(exc), file=sys.stderr)
+        return EXIT_CODES.get(str(exc).partition(':')[0], 1)
     except Exception:
         # DB/provider exception messages can contain connection details. Do not dump them.
         print('RELEASE_FAILURE: release verification did not complete; startup is blocked. Recheck migration history before retrying.', file=sys.stderr)

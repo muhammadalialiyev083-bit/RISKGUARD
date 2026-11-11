@@ -252,3 +252,17 @@ def test_cli_does_not_expose_database_exception_details(monkeypatch, capsys):
     output = capsys.readouterr()
     assert 'private-credential' not in output.err
     assert 'RELEASE_FAILURE' in output.err
+
+
+@pytest.mark.parametrize('changes,expected', [
+    ({'DEBUG': 'True'}, 51), ({'SECRET_KEY': ''}, 52),
+    ({'DATABASE_URL': 'sqlite:///unexpected.sqlite3'}, 53),
+])
+def test_cli_reports_safe_distinct_configuration_failures(monkeypatch, capsys, changes, expected):
+    values = {'DEBUG': 'False', 'SECRET_KEY': 'ephemeral-test-value',
+              'DATABASE_URL': 'postgresql://existing-db/production'}
+    values.update(changes)
+    for key, value in values.items():
+        monkeypatch.setenv(key, value)
+    assert release.main(['--check']) == expected
+    assert 'ephemeral-test-value' not in capsys.readouterr().err
