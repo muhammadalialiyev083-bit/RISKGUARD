@@ -1,3 +1,6 @@
+from django.db import transaction
+from apps.operations.models import SimulationRun
+from apps.core.viewsets import AuditedModelViewSet
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -8,7 +11,7 @@ from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly
 from apps.core.audit import record_audit
 
 
-class ScenarioViewSet(viewsets.ModelViewSet):
+class ScenarioViewSet(AuditedModelViewSet):
     """
     FR-10: Ssenariylar va simulyatsiya.
     """
@@ -39,18 +42,25 @@ class ScenarioViewSet(viewsets.ModelViewSet):
         scenario = self.get_object()
         result = ScenarioSimulator.simulate(scenario)
 
-        record_audit(
-            request=request,
-            action='SIMULATE',
-            entity='Scenario',
-            entity_id=scenario.id,
-            after_state={'affected_count': result['affected_processes_count']}
-        )
+        # Preserve the historical response fields and add a durable result ID.
+        # Only an immutable snapshot is saved, so later scenario edits do not
+        # rewrite previous evidence or the improvements linked to it.
+        with transaction.atomic():
+            run = SimulationRun.objects.create(
+                organization=scenario.organization, scenario=scenario,
+                created_by=request.user, result=result,
+            )
+            record_audit(
+                request=request,
+                action='SIMULATE',
+                entity='Scenario',
+                entity_id=scenario.id,
+                after_state={'affected_count': result['affected_processes_count'], 'simulation_run_id': run.pk}
+            )
+        return Response({**result, 'simulation_run_id': run.pk}, status=status.HTTP_200_OK)
 
-        return Response(result, status=status.HTTP_200_OK)
 
-
-class ExerciseViewSet(viewsets.ModelViewSet):
+class ExerciseViewSet(AuditedModelViewSet):
     """
     FR-13: Rejalashtirilgan mashqlar va real sinovlar.
     """

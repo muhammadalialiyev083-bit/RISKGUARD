@@ -1,0 +1,30 @@
+.dashboard-report {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.dashboard-report-title,
+.dashboard-report-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-report-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.dashboard-report p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.dashboard-report-actions {
+  flex-wrap: wrap;
+}

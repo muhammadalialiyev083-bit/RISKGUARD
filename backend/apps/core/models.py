@@ -44,6 +44,8 @@ class AuditLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
 
+    actor_role_snapshot = models.CharField(max_length=20, blank=True, default='', editable=False)
+
     class Meta:
         ordering = ['-timestamp']
         indexes = [
@@ -54,6 +56,8 @@ class AuditLog(models.Model):
     def save(self, *args, **kwargs):
         if self.pk and AuditLog.objects.filter(pk=self.pk).exists():
             raise PermissionDenied("Audit log yozuvlarini tahrirlash qat'iyan taqiqlangan.")
+        if self.actor_id and not self.actor_role_snapshot:
+            self.actor_role_snapshot = self.actor.role
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):

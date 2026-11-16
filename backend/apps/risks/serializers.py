@@ -1,8 +1,9 @@
+from apps.core.serializers import TenantModelSerializer
 from rest_framework import serializers
 from apps.risks.models import Risk, Control
 
 
-class ControlSerializer(serializers.ModelSerializer):
+class ControlSerializer(TenantModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
@@ -11,7 +12,14 @@ class ControlSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-class RiskSerializer(serializers.ModelSerializer):
+class RiskSerializer(TenantModelSerializer):
+    def validate(self, attrs):
+        for field in ('likelihood', 'impact', 'likelihood_residual', 'impact_residual'):
+            value = attrs.get(field)
+            if value is not None and not 1 <= value <= 5:
+                raise serializers.ValidationError({field: 'Qiymat 1 dan 5 gacha bo‘lishi shart.'})
+        return attrs
+
     process_name = serializers.CharField(source='process.name', read_only=True)
     asset_name = serializers.CharField(source='asset.name', read_only=True)
     risk_score = serializers.IntegerField(read_only=True)

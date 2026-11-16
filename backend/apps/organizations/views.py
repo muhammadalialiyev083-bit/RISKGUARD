@@ -1,3 +1,4 @@
+from apps.core.viewsets import AuditedModelViewSet
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from apps.organizations.models import Organization, Department, Service
@@ -6,13 +7,25 @@ from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, I
 from apps.core.audit import record_audit
 
 
-class OrganizationViewSet(viewsets.ModelViewSet):
+class OrganizationViewSet(AuditedModelViewSet):
     """
     FR-02: Tashkilot profili.
     Foydalanuvchi faqat o'z tashkilotini ko'ra oladi va Administrator o'zgartira oladi.
     """
     serializer_class = OrganizationSerializer
     permission_classes = [IsTenantMember, IsAuditorReadOnly]
+
+    def get_permissions(self):
+        permissions_list = super().get_permissions()
+        if self.action not in ('list', 'retrieve'):
+            permissions_list.append(IsAdminRole())
+        return permissions_list
+
+    def perform_create(self, serializer):
+        org = serializer.save()
+        record_audit(request=self.request, organization=org, action='CREATE',
+                     entity='Organization', entity_id=org.id,
+                     after_state=OrganizationSerializer(org).data)
 
     def get_queryset(self):
         user = self.request.user
@@ -33,7 +46,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         )
 
 
-class DepartmentViewSet(viewsets.ModelViewSet):
+class DepartmentViewSet(AuditedModelViewSet):
     """
     Tashkilot tarkibiy bo'linmalari va filiallari.
     """
@@ -69,7 +82,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         )
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(AuditedModelViewSet):
     """
     Tashkilot taqdim etadigan xizmatlar (Services) reestri.
     """

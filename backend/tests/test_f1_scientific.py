@@ -100,7 +100,7 @@ class TestStateMachine:
         second = api_client.post(url)  # APPROVED -> APPROVED taqiqlangan
         assert second.status_code == 400
 
-        bia2 = BIAAssessment.objects.create(organization=setup['org'], process=proc, rto_hours=2, mtpd_hours=8, status='REJECTED')
+        bia2 = BIAAssessment.objects.create(organization=setup['org'], process=proc, revision=2, rto_hours=2, mtpd_hours=8, status='REJECTED')
         url2 = reverse('bia-approve', kwargs={'pk': bia2.id})
         assert api_client.post(url2).status_code == 400  # avval DRAFT ga qaytishi shart
 

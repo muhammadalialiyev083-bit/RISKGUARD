@@ -1,3 +1,4 @@
+from apps.core.viewsets import AuditedModelViewSet
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from apps.processes.models import BusinessProcess, Asset, Dependency
@@ -6,7 +7,7 @@ from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, I
 from apps.core.audit import record_audit
 
 
-class BusinessProcessViewSet(viewsets.ModelViewSet):
+class BusinessProcessViewSet(AuditedModelViewSet):
     """
     FR-03: Biznes jarayonlar reestri.
     """
@@ -42,7 +43,7 @@ class BusinessProcessViewSet(viewsets.ModelViewSet):
         )
 
 
-class AssetViewSet(viewsets.ModelViewSet):
+class AssetViewSet(AuditedModelViewSet):
     """
     FR-04: Aktivlar va resurslar.
     """
@@ -66,7 +67,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         )
 
 
-class DependencyViewSet(viewsets.ModelViewSet):
+class DependencyViewSet(AuditedModelViewSet):
     """
     FR-04: Bog'liqliklar grafigi.
     """

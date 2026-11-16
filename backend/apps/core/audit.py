@@ -27,6 +27,7 @@ def record_audit(request=None, action='UPDATE', entity='', entity_id='', before_
     return AuditLog.objects.create(
         organization=organization,
         actor=actor,
+        actor_role_snapshot=getattr(actor, 'role', '') if actor else '',
         action=action,
         entity=entity,
         entity_id=str(entity_id),
