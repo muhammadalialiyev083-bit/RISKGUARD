@@ -37,6 +37,13 @@
       "skillPath": "skills/map-animation/SKILL.md",
       "computedHash": "d8911b29ae7767b4b22e1c26e007e687b06b0494c0b3a442d7c51a16107eaf14"
     },
+    "motion-background": {
+      "source": "iart-ai/motion-design-skills",
+      "commit": "b85e50c4cef5ff17aa2187a10d49d2dae9226c74",
+      "sourceType": "github",
+      "skillPath": "skills/motion-background/SKILL.md",
+      "computedHash": "73d38e3b04071caff0df7535e65344914a5952b54dad1236d6fbab262ef07dce"
+    },
     "supabase-postgres-best-practices": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

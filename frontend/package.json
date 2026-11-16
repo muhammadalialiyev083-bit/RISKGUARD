@@ -11,6 +11,8 @@
     "test:e2e": "node tests/e2e/auth.cjs && node tests/domain.e2e.cjs && node tests/e2e/operations.cjs",
     "test:reports": "node tests/e2e/reporting.cjs",
     "test:map": "node tests/e2e/map.cjs",
+    "test:experience": "node tests/e2e/experience.cjs",
+    "test:motion": "node tests/e2e/motion-background.cjs",
     "design:tokens": "node ../.agents/skills/design-system/scripts/generate-tokens.cjs --config design-tokens.json -o src/styles/tokens.css"
   },
   "dependencies": {

@@ -27,6 +27,7 @@ import {
   ChevronRight,
   ArrowUpRight,
   RefreshCw,
+  CircleHelp,
   X,
 } from "lucide-react";
 import { api, clearSessionRequests } from "./api/client";
@@ -34,6 +35,7 @@ import { Brand } from "./components/Brand";
 import { AuthPages, AccountPage } from "./auth/AuthPages";
 import { DomainPage } from "./pages/DomainPage";
 import { OperationsPage } from "./pages/OperationsPage";
+import { SectionGuide } from "./experience/SectionGuide";
 
 const ContinuityMapPage = lazy(() => import("./maps/ContinuityMapPage"));
 
@@ -97,6 +99,7 @@ function initialPage() {
 }
 
 export function App() {
+  const shellHeader = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<any>(null),
     [checking, setChecking] = useState(true),
     [sessionError, setSessionError] = useState("");
@@ -124,6 +127,19 @@ export function App() {
   const [toast, setToast] = useState("");
   const activeUser = useRef<any>(null);
   activeUser.current = user;
+  useEffect(() => {
+    const header = shellHeader.current;
+    if (!header) return;
+    const resize = () =>
+      document.documentElement.style.setProperty(
+        "--shell-header-height",
+        `${header.getBoundingClientRect().height}px`,
+      );
+    const observer = new ResizeObserver(resize);
+    observer.observe(header);
+    resize();
+    return () => observer.disconnect();
+  }, [user?.id]);
   useEffect(() => {
     function shortcuts(e: KeyboardEvent) {
       if (
@@ -194,17 +210,36 @@ export function App() {
     return () => window.removeEventListener("uzhi:session-expired", expired);
   }, []);
   useEffect(() => {
-    const pop = () => setPage(initialPage());
+    const pop = () => {
+      setPage(initialPage());
+      setVersion((value) => value + 1);
+    };
     window.addEventListener("popstate", pop);
     return () => window.removeEventListener("popstate", pop);
   }, []);
   function navigate(next: string) {
-    setPage(next);
+    const target = new URL(
+      next.startsWith("/") ? next : `/${next}`,
+      window.location.origin,
+    );
+    const key = target.pathname.split("/")[1];
+    if (
+      target.origin !== window.location.origin ||
+      (!items.some((item) => item[0] === key) && !aliases[key])
+    )
+      return;
+    if (key === page) setVersion((value) => value + 1);
+    setPage(key);
     setMobile(false);
     setSearch("");
     setResults([]);
     setShowNotices(false);
-    window.history.pushState({}, "", `/${next}`);
+    window.history.pushState(
+      {},
+      "",
+      target.pathname + target.search + target.hash,
+    );
+    window.scrollTo({ top: 0, behavior: "auto" });
   }
   useEffect(() => {
     let active = true;
@@ -331,7 +366,7 @@ export function App() {
       )}
       <aside className={`sidebar ${mobile ? "mobile-open" : ""}`}>
         <div className="sidebar-brand">
-          <Brand compact={collapsed} />
+          <Brand compact={collapsed} onHome={() => navigate("dashboard")} />
           <button
             className="btn btn-icon collapse-btn"
             onClick={() => {
@@ -389,152 +424,167 @@ export function App() {
         </div>
       </aside>
       <div className="app-body">
-        <header className="topbar">
-          <button
-            className="btn btn-icon mobile-menu"
-            aria-label="Menyuni ochish"
-            onClick={() => setMobile(!mobile)}
-          >
-            <Menu size={20} />
-          </button>
-          <div className="breadcrumb">
-            <span>{group?.name}</span>
-            <ChevronRight size={14} />
-            <strong>{label}</strong>
-          </div>
-          <div className="topbar-actions">
-            <div className="global-search">
-              <Search size={17} />
-              <input
-                aria-label="Platforma bo‘ylab qidirish"
-                placeholder="Qidirish…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <kbd>/</kbd>
-              <button
-                className="search-close"
-                aria-label="Qidiruvni yopish"
-                onClick={(e) => {
-                  setSearch("");
-                  (
-                    document.querySelector(
-                      ".global-search input",
-                    ) as HTMLInputElement
-                  )?.blur();
-                  e.currentTarget.blur();
-                }}
-              >
-                <X size={16} />
-              </button>
-              {search.length >= 2 && (
-                <div
-                  className="search-results"
-                  role="region"
-                  aria-label="Qidiruv natijalari"
-                >
-                  {searching ? (
-                    <p>Qidirilmoqda…</p>
-                  ) : searchError ? (
-                    <div role="alert">{searchError}</div>
-                  ) : results.length ? (
-                    results.map((r) => (
-                      <button
-                        key={`${r.module}${r.id}`}
-                        onClick={() => {
-                          navigate(r.module);
-                          window.history.replaceState(
-                            {},
-                            "",
-                            `/${r.module}?q=${encodeURIComponent(r.title)}`,
-                          );
-                        }}
-                      >
-                        <span>
-                          {r.title}
-                          <small>
-                            {r.label} · #{r.id}
-                          </small>
-                        </span>
-                        <ArrowUpRight size={16} />
-                      </button>
-                    ))
-                  ) : (
-                    <p>Mos yozuv topilmadi.</p>
-                  )}
-                </div>
-              )}
-            </div>
+        <div className="shell-header" ref={shellHeader}>
+          <header className="topbar">
             <button
-              className="btn btn-icon"
-              aria-label="Temani almashtirish"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="btn btn-icon mobile-menu"
+              aria-label="Menyuni ochish"
+              onClick={() => setMobile(!mobile)}
             >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              <Menu size={20} />
             </button>
-            <div className="notification-wrap">
+            <div className="mobile-brand"><Brand onHome={() => navigate("dashboard")} /></div>
+            <div className="breadcrumb">
+              <span>{group?.name}</span>
+              <ChevronRight size={14} />
+              <strong>{label}</strong>
+            </div>
+            <div className="topbar-actions">
+              <div className="global-search">
+                <Search size={17} />
+                <input
+                  aria-label="Platforma bo‘ylab qidirish"
+                  placeholder="Qidirish…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <kbd>/</kbd>
+                <button
+                  className="search-close"
+                  aria-label="Qidiruvni yopish"
+                  onClick={(e) => {
+                    setSearch("");
+                    (
+                      document.querySelector(
+                        ".global-search input",
+                      ) as HTMLInputElement
+                    )?.blur();
+                    e.currentTarget.blur();
+                  }}
+                >
+                  <X size={16} />
+                </button>
+                {search.length >= 2 && (
+                  <div
+                    className="search-results"
+                    role="region"
+                    aria-label="Qidiruv natijalari"
+                  >
+                    {searching ? (
+                      <p>Qidirilmoqda…</p>
+                    ) : searchError ? (
+                      <div role="alert">{searchError}</div>
+                    ) : results.length ? (
+                      results.map((r) => (
+                        <button
+                          key={`${r.module}${r.id}`}
+                          onClick={() => {
+                            navigate(r.module);
+                            window.history.replaceState(
+                              {},
+                              "",
+                              `/${r.module}?q=${encodeURIComponent(r.title)}`,
+                            );
+                          }}
+                        >
+                          <span>
+                            {r.title}
+                            <small>
+                              {r.label} · #{r.id}
+                            </small>
+                          </span>
+                          <ArrowUpRight size={16} />
+                        </button>
+                      ))
+                    ) : (
+                      <p>Mos yozuv topilmadi.</p>
+                    )}
+                  </div>
+                )}
+              </div>
               <button
                 className="btn btn-icon"
-                aria-label="Bildirishnomalar"
-                aria-expanded={showNotices}
-                onClick={() => setShowNotices(!showNotices)}
+                aria-label="Temani almashtirish"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               >
-                <Bell size={18} />
-                {notices.length > 0 && <i className="notification-dot" />}
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
               </button>
-              {showNotices && (
-                <div className="search-results notification-panel">
-                  <h3>Ochiq vazifalar</h3>
-                  {noticeError ? (
-                    <p role="alert">{noticeError}</p>
-                  ) : notices.length ? (
-                    notices.map((n) => (
-                      <button key={n.id} onClick={() => navigate("tasks")}>
-                        <span>
-                          {n.title}
-                          <small>{n.due_date || "Muddat belgilanmagan"}</small>
-                        </span>
-                        <ChevronRight size={16} />
-                      </button>
-                    ))
-                  ) : (
-                    <p>Ochiq vazifa yo‘q.</p>
-                  )}
-                </div>
+              <div className="notification-wrap">
+                <button
+                  className="btn btn-icon"
+                  aria-label="Bildirishnomalar"
+                  aria-expanded={showNotices}
+                  onClick={() => setShowNotices(!showNotices)}
+                >
+                  <Bell size={18} />
+                  {notices.length > 0 && <i className="notification-dot" />}
+                </button>
+                {showNotices && (
+                  <div className="search-results notification-panel">
+                    <h3>Ochiq vazifalar</h3>
+                    {noticeError ? (
+                      <p role="alert">{noticeError}</p>
+                    ) : notices.length ? (
+                      notices.map((n) => (
+                        <button key={n.id} onClick={() => navigate("tasks")}>
+                          <span>
+                            {n.title}
+                            <small>
+                              {n.due_date || "Muddat belgilanmagan"}
+                            </small>
+                          </span>
+                          <ChevronRight size={16} />
+                        </button>
+                      ))
+                    ) : (
+                      <p>Ochiq vazifa yo‘q.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <button
+                className="btn btn-icon header-help"
+                aria-label="Ishni boshlash yo‘riqnomasi"
+                title="Ishni nimadan boshlayman?"
+                onClick={() => navigate("dashboard?guide=1")}
+              >
+                <CircleHelp size={18} />
+              </button>
+              <button
+                className="btn btn-icon"
+                aria-label="Tizimdan chiqish"
+                title="Tizimdan chiqish"
+                disabled={busy}
+                onClick={logout}
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          </header>
+          <div className="context-bar">
+            <span>
+              <Building2 size={15} />
+              {user.organization_detail?.name || "Tashkilot biriktirilmagan"}
+            </span>
+            <span className="context-role">
+              {user.role_display || user.role}
+            </span>
+            <div className="context-tools">
+              <button
+                className="btn btn-small"
+                onClick={() => setVersion((v) => v + 1)}
+              >
+                <RefreshCw size={14} /> Yangilash
+              </button>
+              {user.role !== "AUDITOR" && (
+                <button
+                  className="btn btn-primary btn-small"
+                  onClick={() => navigate("incidents")}
+                >
+                  <Plus size={14} /> Hodisa ochish
+                </button>
               )}
             </div>
-            <button
-              className="btn btn-icon"
-              aria-label="Tizimdan chiqish"
-              title="Tizimdan chiqish"
-              disabled={busy}
-              onClick={logout}
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
-        </header>
-        <div className="context-bar">
-          <span>
-            <Building2 size={15} />
-            {user.organization_detail?.name || "Tashkilot biriktirilmagan"}
-          </span>
-          <span className="context-role">{user.role_display || user.role}</span>
-          <div className="context-tools">
-            <button
-              className="btn btn-small"
-              onClick={() => setVersion((v) => v + 1)}
-            >
-              <RefreshCw size={14} /> Yangilash
-            </button>
-            {user.role !== "AUDITOR" && (
-              <button
-                className="btn btn-primary btn-small"
-                onClick={() => navigate("incidents")}
-              >
-                <Plus size={14} /> Hodisa ochish
-              </button>
-            )}
           </div>
         </div>
         <main
@@ -543,22 +593,61 @@ export function App() {
           key={`${user.id}-${page}-${version}`}
         >
           {page === "map" ? (
-            <Suspense fallback={<div className="panel loading" role="status">Xarita yuklanmoqda…</div>}>
-              <ContinuityMapPage key={`${user.organization}:${user.id}`} user={user} />
+            <Suspense
+              fallback={
+                <div className="panel loading" role="status">
+                  Xarita yuklanmoqda…
+                </div>
+              }
+            >
+              <ContinuityMapPage
+                key={`${user.organization}:${user.id}`}
+                user={user}
+                onNavigate={navigate}
+              />
             </Suspense>
           ) : page === "settings" ? (
-            <AccountPage
-              user={user}
-              onUpdate={setUser}
-              onLogout={() => {
-                clear();
-                window.history.replaceState({}, "", "/auth/login");
-              }}
-            />
+            <>
+              <SectionGuide
+                module="settings"
+                user={user}
+                onNavigate={(target) => {
+                  if (target.startsWith("settings")) {
+                    const input = document.querySelector(
+                      target.includes("security")
+                        ? '#main input[name="current_password"]'
+                        : "#main form input",
+                    ) as HTMLInputElement | null;
+                    input?.focus();
+                    input?.scrollIntoView({ block: "center" });
+                  } else navigate(target);
+                }}
+                onStart={() => {
+                  const input = document.querySelector(
+                    "#main form input",
+                  ) as HTMLInputElement | null;
+                  input?.focus();
+                  input?.scrollIntoView({ block: "center" });
+                }}
+              />
+              <div id="module-workspace" />
+              <AccountPage
+                user={user}
+                onUpdate={setUser}
+                onLogout={() => {
+                  clear();
+                  window.history.replaceState({}, "", "/auth/login");
+                }}
+              />
+            </>
           ) : ["providers", "incidents", "tasks"].includes(page) ? (
             <OperationsPage module={page} user={user} onNavigate={navigate} />
           ) : (
-            <DomainPage module={page} user={user} onNavigate={navigate} />
+            <DomainPage
+              module={page === "scenarios" ? "simulation" : page}
+              user={user}
+              onNavigate={navigate}
+            />
           )}
         </main>
         <footer className="app-footer">

@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import MapCanvas from "./MapCanvas";
+import { SectionGuide } from "../experience/SectionGuide";
 import {
   cities,
   demoStops,
@@ -58,8 +59,10 @@ const emptyDraft = () => ({
 
 export default function ContinuityMapPage({
   user,
+  onNavigate,
 }: {
   user: { id: number; organization: number | null };
+  onNavigate?: (target: string) => void;
 }) {
   const key = storageKey(user.organization, user.id);
   const [initial] = useState(() => readPlan(key));
@@ -78,6 +81,7 @@ export default function ContinuityMapPage({
   const frameRef = useRef(frame);
   const [playing, setPlaying] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
@@ -90,6 +94,7 @@ export default function ContinuityMapPage({
   }
   useEffect(() => {
     setPlaying(false);
+    setPicking(false);
     setSelectedId(null);
     seek(durationFrames(stops.length) - 1);
   }, [stops]);
@@ -258,6 +263,20 @@ export default function ContinuityMapPage({
           />
         </div>
       </header>
+      <SectionGuide
+        module="map"
+        rows={stops}
+        user={user}
+        sample={mode === "demo"}
+        onNavigate={(target) =>
+          target.startsWith("map")
+            ? nameInput.current?.focus()
+            : onNavigate
+              ? onNavigate(target)
+              : window.location.assign("/" + target)
+        }
+        onStart={() => nameInput.current?.focus()}
+      />
       <p className="map-storage-note">
         <span aria-hidden="true">◈</span> Shaxsiy reja · shu brauzerda
         hisobingiz uchun saqlanadi. Boshqa qurilmaga o‘tishda GeoJSON nusxadan
@@ -314,6 +333,20 @@ export default function ContinuityMapPage({
             <div className="map-stage-header">
               <div className="map-mode-switch" aria-label="Xarita ma’lumoti">
                 <button
+                  className={`btn btn-small ${picking ? "btn-primary" : ""}`}
+                  aria-pressed={picking}
+                  onClick={() => {
+                    setPlaying(false);
+                    setSelectedId(null);
+                    seek(duration - 1);
+                    setPicking(!picking);
+                  }}
+                >
+                  {picking
+                    ? "Belgilashni bekor qilish"
+                    : "Xaritadan joy tanlash"}
+                </button>
+                <button
                   aria-pressed={mode === "plan"}
                   onClick={() => setMode("plan")}
                 >
@@ -349,8 +382,27 @@ export default function ContinuityMapPage({
                 frame={frame}
                 selectedId={selectedId}
                 onSelect={focusStop}
+                picking={picking}
+                onPick={(longitude, latitude) => {
+                  setDraft({
+                    ...draft,
+                    longitude: longitude.toFixed(6),
+                    latitude: latitude.toFixed(6),
+                    city: "custom",
+                  });
+                  setPicking(false);
+                  setNotice(
+                    "Koordinatalar tanlandi. Manzil nomini kiriting va rejaga qo‘shing.",
+                  );
+                  nameInput.current?.focus();
+                }}
               />
-              {!stops.length && (
+              {picking && (
+                <div className="map-pick-note" role="status">
+                  Xaritadagi kerakli nuqtani bosing.
+                </div>
+              )}
+              {!stops.length && !picking && (
                 <div className="map-empty">
                   <MapPin size={26} />
                   <h2>Birinchi manzilni belgilang</h2>
