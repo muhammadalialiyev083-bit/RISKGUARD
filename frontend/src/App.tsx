@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import {
   LayoutDashboard,
+  MapPinned,
   Building2,
   Layers,
   Box,
@@ -34,11 +35,14 @@ import { AuthPages, AccountPage } from "./auth/AuthPages";
 import { DomainPage } from "./pages/DomainPage";
 import { OperationsPage } from "./pages/OperationsPage";
 
+const ContinuityMapPage = lazy(() => import("./maps/ContinuityMapPage"));
+
 const groups = [
   {
     name: "Boshqaruv markazi",
     items: [
       ["dashboard", "Boshqaruv paneli", LayoutDashboard],
+      ["map", "Hududiy xarita", MapPinned],
       ["reports", "Hisobotlar", FileText],
     ],
   },
@@ -538,7 +542,11 @@ export function App() {
           className="main-content"
           key={`${user.id}-${page}-${version}`}
         >
-          {page === "settings" ? (
+          {page === "map" ? (
+            <Suspense fallback={<div className="panel loading" role="status">Xarita yuklanmoqda…</div>}>
+              <ContinuityMapPage key={`${user.organization}:${user.id}`} user={user} />
+            </Suspense>
+          ) : page === "settings" ? (
             <AccountPage
               user={user}
               onUpdate={setUser}
