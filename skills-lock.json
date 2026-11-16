@@ -1,11 +1,23 @@
 {
   "version": 2,
   "skills": {
+    "design-system": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/design-system/SKILL.md",
+      "computedHash": "9efdc106c73d8d298b5a90d55c56995840a37f754fb9d498d14e6562bdaadc23"
+    },
     "firecrawl-dashboard-reporting": {
       "source": "firecrawl/firecrawl-workflows",
       "sourceType": "github",
       "skillPath": "skills/firecrawl-dashboard-reporting/SKILL.md",
       "computedHash": "145d48fef50fc03f29931f2eec7b7cca0e64769a69dba77034409c515bf98822"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "83485963700bcf11d5bf78118facb301676b69d918fee2e45a95e7f1a2840f6c"
     }
   }
 }

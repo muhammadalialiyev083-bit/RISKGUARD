@@ -690,7 +690,6 @@ export function DomainPage({
     <div className="domain-page">
       <div className="page-header">
         <div>
-          <p className="eyebrow">UZLUKSIZLIKNI BOSHQARISH</p>
           <h1>{title}</h1>
           <p>
             {schema?.description ||

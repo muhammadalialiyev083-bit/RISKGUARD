@@ -341,7 +341,7 @@ export function App() {
         </div>
         <div className="workspace-label">
           <span className="workspace-dot" />
-          <span>ISHCHI MAYDON</span>
+          <span>Ishchi maydon</span>
           <span className="workspace-tier">BCMS</span>
         </div>
         <nav aria-label="Asosiy navigatsiya">
@@ -555,7 +555,7 @@ export function App() {
         </main>
         <footer className="app-footer">
           <span>Uzluksiz Himoya</span>
-          <span>Ma’lumotlar · Mas’uliyat · Tayyorlik</span>
+          <span>Tayyorlikdan tiklanishgacha</span>
         </footer>
       </div>
       {toast && (
