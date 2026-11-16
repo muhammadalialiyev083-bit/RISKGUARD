@@ -19,11 +19,23 @@
       "skillPath": "skills/firecrawl-dashboard-reporting/SKILL.md",
       "computedHash": "145d48fef50fc03f29931f2eec7b7cca0e64769a69dba77034409c515bf98822"
     },
+    "flashcards": {
+      "source": "anthropics/claude-for-legal",
+      "sourceType": "github",
+      "skillPath": "law-student/skills/flashcards/SKILL.md",
+      "computedHash": "bf7173319ea48da6c36b6afba62accc0663ce217db58156056086268b6262101"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "83485963700bcf11d5bf78118facb301676b69d918fee2e45a95e7f1a2840f6c"
+    },
+    "map-animation": {
+      "source": "iart-ai/map-animation-skills",
+      "sourceType": "github",
+      "skillPath": "skills/map-animation/SKILL.md",
+      "computedHash": "d8911b29ae7767b4b22e1c26e007e687b06b0494c0b3a442d7c51a16107eaf14"
     },
     "supabase-postgres-best-practices": {
       "source": "supabase/agent-skills",
