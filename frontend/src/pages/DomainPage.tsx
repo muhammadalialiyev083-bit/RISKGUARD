@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { api } from "../api/client";
 import { DashboardReportExport } from "../reports/DashboardReportExport";
+import { MapDiscoveryCard } from "../maps/MapDiscoveryCard";
 import {
   RiskMatrix,
   DependencyMap,
@@ -840,6 +841,7 @@ export function DomainPage({
                     else setNotice(message);
                   }}
                 />
+                {current === "dashboard" && <MapDiscoveryCard onOpen={() => navigate("map")} />}
                 <div className="stat-grid">
                   {[
                     ["total_processes", "Jarayonlar", "processes"],
