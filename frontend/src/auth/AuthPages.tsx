@@ -131,7 +131,7 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
     : "";
   const titles: any = {
     login: [
-      "Ishonchli boshqaruv shu yerdan boshlanadi.",
+      "Uzilishlardan oldin tayyor bo‘ling.",
       "Hisobingizga kirish",
     ],
     forgot: ["Hisobingizga kirishni tiklang.", "Parolni tiklash"],
@@ -143,34 +143,34 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
       <section className="auth-story">
         <Brand />
         <div className="auth-story-content">
-          <div className="eyebrow">
-            <span className="live-dot" /> UZLUKSIZLIK UCHUN YAGONA MAKON
+          <div className="auth-story-intro">
+            Biznes uzluksizligini boshqarish
           </div>
           <h1>{titles[mode][0]}</h1>
           <p>
-            Risklarni oldindan ko‘ring. Muhim jarayonlarni bog‘lang.
-            Uzilishlarga tayyor jamoa yarating.
+            Muhim jarayonlar, risklar va tiklanish rejalarini bir joyda boshqaring.
           </p>
-          <div className="resilience-visual" aria-hidden="true">
-            <div className="orbit orbit-one" />
-            <div className="orbit orbit-two" />
-            <span className="visual-center">UzHi</span>
-            <span className="visual-label label-one">Jarayonlar</span>
-            <span className="visual-label label-two">Risklar</span>
-            <span className="visual-label label-three">Tiklanish</span>
-          </div>
-          <div className="auth-pill-row">
-            <span>ISO 22301 tamoyillari</span>
-            <span>Tashkilot bo‘yicha himoya</span>
-          </div>
+          <ol className="continuity-flow" aria-label="Uzluksizlikni boshqarish bosqichlari">
+            <li>
+              <span className="continuity-flow-index" aria-hidden="true">01</span>
+              <div><h3>Jarayonni aniqlang</h3><p>Muhim xizmatlar va ularga bog‘liq resurslarni belgilang.</p></div>
+            </li>
+            <li>
+              <span className="continuity-flow-index" aria-hidden="true">02</span>
+              <div><h3>Riskni baholang</h3><p>Uzilish ta’siri va tiklanish talablarini aniqlang.</p></div>
+            </li>
+            <li>
+              <span className="continuity-flow-index" aria-hidden="true">03</span>
+              <div><h3>Tiklanishni rejalang</h3><p>Reja, mas’ul va amaliy qadamlarni bir-biriga bog‘lang.</p></div>
+            </li>
+          </ol>
         </div>
         <p className="muted small">
-          Uzluksiz Himoya · Biznesingiz davom etishi uchun
+          Uzluksiz Himoya. Biznesingiz davom etishi uchun.
         </p>
       </section>
       <section className="auth-form-side">
         <div className="auth-form-card">
-          <span className="eyebrow">UZLUKSIZ HIMOYA PLATFORMASI</span>
           <h2>
             {sent
               ? "Elektron pochtangizni tekshiring"
@@ -320,7 +320,7 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
             </div>
           )}
           <div className="auth-security">
-            <KeyRound size={14} /> Sessiya va CSRF bilan himoyalangan
+            <KeyRound size={14} /> Xavfsiz sessiya orqali kirish
           </div>
         </div>
       </section>

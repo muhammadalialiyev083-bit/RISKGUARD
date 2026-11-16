@@ -1,0 +1,91 @@
+/* Design Tokens - Auto-generated */
+/* Do not edit directly - modify tokens.json instead */
+
+/* === PRIMITIVES === */
+:root {
+  --primitive-color-ink: #102433;
+  --primitive-color-panel: #162F40;
+  --primitive-color-raised: #1D3A4C;
+  --primitive-color-teal: #52CAB4;
+  --primitive-color-teal-dark: #08786D;
+  --primitive-color-teal-hover: #70D9C5;
+  --primitive-color-teal-deep: #06695F;
+  --primitive-color-slate: #AAC0CA;
+  --primitive-color-mist: #EDF3F3;
+  --primitive-color-paper: #FFFFFF;
+  --primitive-color-line-dark: #315064;
+  --primitive-color-line-light: #CEDCDF;
+  --primitive-color-muted-light: #516672;
+  --primitive-color-soft-light: #F5F8F8;
+  --primitive-color-danger-dark: #FFA3AC;
+  --primitive-color-danger-light: #B9384E;
+  --primitive-color-transparent: transparent;
+  --primitive-space-1: 4px;
+  --primitive-space-2: 8px;
+  --primitive-space-3: 12px;
+  --primitive-space-4: 16px;
+  --primitive-space-5: 20px;
+  --primitive-space-6: 24px;
+  --primitive-space-8: 32px;
+  --primitive-space-10: 40px;
+  --primitive-space-12: 48px;
+  --primitive-space-16: 64px;
+  --primitive-radius-small: 6px;
+  --primitive-radius-control: 8px;
+  --primitive-radius-panel: 12px;
+  --primitive-font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --primitive-font-small: 12px;
+  --primitive-font-label: 13px;
+  --primitive-font-body: 14px;
+  --primitive-font-lead: 16px;
+  --primitive-font-title: 28px;
+  --primitive-font-metric: 38px;
+  --primitive-duration-fast: 150ms;
+  --primitive-opacity-disabled: 0.72;
+}
+
+/* === SEMANTIC === */
+:root {
+  --color-background: var(--primitive-color-ink);
+  --color-surface: var(--primitive-color-panel);
+  --color-raised: var(--primitive-color-raised);
+  --color-foreground: var(--primitive-color-mist);
+  --color-muted: var(--primitive-color-slate);
+  --color-border: var(--primitive-color-line-dark);
+  --color-primary: var(--primitive-color-teal);
+  --color-primary-hover: var(--primitive-color-teal-hover);
+  --color-on-primary: var(--primitive-color-ink);
+  --color-danger: var(--primitive-color-danger-dark);
+  --color-accent-soft: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  --font-family: var(--primitive-font-family);
+  --focus-ring: var(--color-primary);
+  --spacing-section: var(--primitive-space-6);
+  --spacing-control: var(--primitive-space-3);
+  --duration-fast: var(--primitive-duration-fast);
+  --opacity-disabled: var(--primitive-opacity-disabled);
+}
+
+/* === COMPONENTS === */
+:root {
+  --button-bg: var(--color-primary);
+  --button-fg: var(--color-on-primary);
+  --button-hover-bg: var(--color-primary-hover);
+  --button-height: 44px;
+  --button-radius: var(--primitive-radius-control);
+  --button-padding-x: var(--primitive-space-4);
+  --input-bg: var(--color-background);
+  --input-border: var(--color-border);
+  --input-height: 44px;
+  --input-radius: var(--primitive-radius-control);
+  --input-area-height: 96px;
+  --card-bg: var(--color-surface);
+  --card-padding: var(--primitive-space-6);
+  --card-radius: var(--primitive-radius-panel);
+  --nav-height: 44px;
+  --nav-font-size: var(--primitive-font-label);
+  --auth-bg: var(--primitive-color-ink);
+  --auth-fg: var(--primitive-color-mist);
+  --auth-muted: var(--primitive-color-slate);
+  --auth-accent: var(--primitive-color-teal);
+  --auth-border: var(--primitive-color-line-dark);
+}

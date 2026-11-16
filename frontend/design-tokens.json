@@ -1,0 +1,342 @@
+{
+  "primitive": {
+    "color": {
+      "ink": {
+        "$value": "#102433",
+        "$description": "ink palette value"
+      },
+      "panel": {
+        "$value": "#162F40",
+        "$description": "panel palette value"
+      },
+      "raised": {
+        "$value": "#1D3A4C",
+        "$description": "raised palette value"
+      },
+      "teal": {
+        "$value": "#52CAB4",
+        "$description": "teal palette value"
+      },
+      "teal-dark": {
+        "$value": "#08786D",
+        "$description": "teal-dark palette value"
+      },
+      "teal-hover": {
+        "$value": "#70D9C5",
+        "$description": "teal-hover palette value"
+      },
+      "teal-deep": {
+        "$value": "#06695F",
+        "$description": "teal-deep palette value"
+      },
+      "slate": {
+        "$value": "#AAC0CA",
+        "$description": "slate palette value"
+      },
+      "mist": {
+        "$value": "#EDF3F3",
+        "$description": "mist palette value"
+      },
+      "paper": {
+        "$value": "#FFFFFF",
+        "$description": "paper palette value"
+      },
+      "line-dark": {
+        "$value": "#315064",
+        "$description": "line-dark palette value"
+      },
+      "line-light": {
+        "$value": "#CEDCDF",
+        "$description": "line-light palette value"
+      },
+      "muted-light": {
+        "$value": "#516672",
+        "$description": "muted-light palette value"
+      },
+      "soft-light": {
+        "$value": "#F5F8F8",
+        "$description": "soft-light palette value"
+      },
+      "danger-dark": {
+        "$value": "#FFA3AC",
+        "$description": "danger-dark palette value"
+      },
+      "danger-light": {
+        "$value": "#B9384E",
+        "$description": "danger-light palette value"
+      },
+      "transparent": {
+        "$value": "transparent",
+        "$description": "transparent palette value"
+      }
+    },
+    "space": {
+      "1": {
+        "$value": "4px",
+        "$description": "4 pixel spacing"
+      },
+      "2": {
+        "$value": "8px",
+        "$description": "8 pixel spacing"
+      },
+      "3": {
+        "$value": "12px",
+        "$description": "12 pixel spacing"
+      },
+      "4": {
+        "$value": "16px",
+        "$description": "16 pixel spacing"
+      },
+      "5": {
+        "$value": "20px",
+        "$description": "20 pixel spacing"
+      },
+      "6": {
+        "$value": "24px",
+        "$description": "24 pixel spacing"
+      },
+      "8": {
+        "$value": "32px",
+        "$description": "32 pixel spacing"
+      },
+      "10": {
+        "$value": "40px",
+        "$description": "40 pixel spacing"
+      },
+      "12": {
+        "$value": "48px",
+        "$description": "48 pixel spacing"
+      },
+      "16": {
+        "$value": "64px",
+        "$description": "64 pixel spacing"
+      }
+    },
+    "radius": {
+      "small": {
+        "$value": "6px",
+        "$description": "Small badges"
+      },
+      "control": {
+        "$value": "8px",
+        "$description": "Interactive controls"
+      },
+      "panel": {
+        "$value": "12px",
+        "$description": "Content surfaces"
+      }
+    },
+    "font": {
+      "family": {
+        "$value": "\"IBM Plex Sans\", ui-sans-serif, system-ui, sans-serif",
+        "$description": "Self-hosted Latin variable font"
+      },
+      "small": {
+        "$value": "12px",
+        "$description": "Secondary labels"
+      },
+      "label": {
+        "$value": "13px",
+        "$description": "Control and navigation labels"
+      },
+      "body": {
+        "$value": "14px",
+        "$description": "Application body"
+      },
+      "lead": {
+        "$value": "16px",
+        "$description": "Lead copy"
+      },
+      "title": {
+        "$value": "28px",
+        "$description": "Page title"
+      },
+      "metric": {
+        "$value": "38px",
+        "$description": "KPI figures"
+      }
+    },
+    "duration": {
+      "fast": {
+        "$value": "150ms",
+        "$description": "Interactive color changes"
+      }
+    },
+    "opacity": {
+      "disabled": {
+        "$value": "0.72",
+        "$description": "Disabled control treatment"
+      }
+    }
+  },
+  "semantic": {
+    "color": {
+      "background": {
+        "$value": "var(--primitive-color-ink)",
+        "$description": "Application canvas"
+      },
+      "surface": {
+        "$value": "var(--primitive-color-panel)",
+        "$description": "Content surface"
+      },
+      "raised": {
+        "$value": "var(--primitive-color-raised)",
+        "$description": "Raised controls"
+      },
+      "foreground": {
+        "$value": "var(--primitive-color-mist)",
+        "$description": "Primary text"
+      },
+      "muted": {
+        "$value": "var(--primitive-color-slate)",
+        "$description": "Secondary text"
+      },
+      "border": {
+        "$value": "var(--primitive-color-line-dark)",
+        "$description": "Separators"
+      },
+      "primary": {
+        "$value": "var(--primitive-color-teal)",
+        "$description": "Primary actions"
+      },
+      "primary-hover": {
+        "$value": "var(--primitive-color-teal-hover)",
+        "$description": "Primary action hover"
+      },
+      "on-primary": {
+        "$value": "var(--primitive-color-ink)",
+        "$description": "Text on a primary action"
+      },
+      "danger": {
+        "$value": "var(--primitive-color-danger-dark)",
+        "$description": "Errors"
+      },
+      "accent-soft": {
+        "$value": "color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))",
+        "$description": "Quiet selected surface"
+      }
+    },
+    "font-family": {
+      "$value": "var(--primitive-font-family)",
+      "$description": "Application typography"
+    },
+    "focus-ring": {
+      "$value": "var(--color-primary)",
+      "$description": "Keyboard focus"
+    },
+    "spacing": {
+      "section": {
+        "$value": "var(--primitive-space-6)",
+        "$description": "Related content sections"
+      },
+      "control": {
+        "$value": "var(--primitive-space-3)",
+        "$description": "Control padding"
+      }
+    },
+    "duration-fast": {
+      "$value": "var(--primitive-duration-fast)",
+      "$description": "Interactive transitions"
+    },
+    "opacity-disabled": {
+      "$value": "var(--primitive-opacity-disabled)",
+      "$description": "Disabled state"
+    }
+  },
+  "component": {
+    "button": {
+      "bg": {
+        "$value": "var(--color-primary)",
+        "$description": "Primary button"
+      },
+      "fg": {
+        "$value": "var(--color-on-primary)",
+        "$description": "Primary button text"
+      },
+      "hover-bg": {
+        "$value": "var(--color-primary-hover)",
+        "$description": "Primary hover"
+      },
+      "height": {
+        "$value": "44px",
+        "$description": "Minimum primary action target"
+      },
+      "radius": {
+        "$value": "var(--primitive-radius-control)",
+        "$description": "Button corners"
+      },
+      "padding-x": {
+        "$value": "var(--primitive-space-4)",
+        "$description": "Button horizontal spacing"
+      }
+    },
+    "input": {
+      "bg": {
+        "$value": "var(--color-background)",
+        "$description": "Input surface"
+      },
+      "border": {
+        "$value": "var(--color-border)",
+        "$description": "Input outline"
+      },
+      "height": {
+        "$value": "44px",
+        "$description": "Minimum input target"
+      },
+      "radius": {
+        "$value": "var(--primitive-radius-control)",
+        "$description": "Input corners"
+      },
+      "area-height": {
+        "$value": "96px",
+        "$description": "Multiline input minimum height"
+      }
+    },
+    "card": {
+      "bg": {
+        "$value": "var(--color-surface)",
+        "$description": "Card surface"
+      },
+      "padding": {
+        "$value": "var(--primitive-space-6)",
+        "$description": "Content padding"
+      },
+      "radius": {
+        "$value": "var(--primitive-radius-panel)",
+        "$description": "Content corners"
+      }
+    },
+    "nav": {
+      "height": {
+        "$value": "44px",
+        "$description": "Navigation target"
+      },
+      "font-size": {
+        "$value": "var(--primitive-font-label)",
+        "$description": "Navigation labels"
+      }
+    },
+    "auth": {
+      "bg": {
+        "$value": "var(--primitive-color-ink)",
+        "$description": "Brand story background"
+      },
+      "fg": {
+        "$value": "var(--primitive-color-mist)",
+        "$description": "Brand story text"
+      },
+      "muted": {
+        "$value": "var(--primitive-color-slate)",
+        "$description": "Brand story supporting copy"
+      },
+      "accent": {
+        "$value": "var(--primitive-color-teal)",
+        "$description": "Continuity path accent"
+      },
+      "border": {
+        "$value": "var(--primitive-color-line-dark)",
+        "$description": "Continuity path line"
+      }
+    }
+  }
+}
