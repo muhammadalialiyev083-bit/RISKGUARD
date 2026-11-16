@@ -309,6 +309,26 @@ code, pre, .font-mono {
   margin-top: 2px;
 }
 
+.dashboard-report {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+}
+
+.dashboard-report-title,
+.dashboard-report-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-report-actions {
+  flex-wrap: wrap;
+}
+
 /* ─── Metric Cards ─── */
 .metric-card {
   background: var(--color-bg-card);

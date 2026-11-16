@@ -7,6 +7,7 @@ import {
   TrendingDown, GitBranch, BookOpen, X, Info, Check
 } from 'lucide-react';
 import { api } from './api/client';
+import { DashboardReportExport } from './reports/DashboardReportExport';
 import type {
   BusinessProcess, Asset, BIAAssessment, Risk,
   ContinuityPlan, DashboardSummary, AuditLog
@@ -299,11 +300,13 @@ function Header({ currentUser, onSwitchUser, onRefresh, loading, theme, onThemeT
 /* ────────────────────────────────────────────────
    DASHBOARD TAB
 ──────────────────────────────────────────────── */
-function DashboardTab({ dashboard, processes, bias, risks }: {
+function DashboardTab({ dashboard, processes, bias, risks, reportAvailable, onNotify }: {
   dashboard: DashboardSummary | null;
   processes: BusinessProcess[];
   bias: BIAAssessment[];
   risks: Risk[];
+  reportAvailable: boolean;
+  onNotify: (message: string, type: 'success' | 'error') => void;
 }) {
   const d = dashboard;
 
@@ -360,6 +363,7 @@ function DashboardTab({ dashboard, processes, bias, risks }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <DashboardReportExport available={reportAvailable} onNotify={onNotify} />
       {/* RPO Gap Alert */}
       {d && d.rpo_gap_count > 0 && (
         <div className="alert alert-high">
@@ -1382,7 +1386,11 @@ export function App() {
 
           {/* Tab Content */}
           {activeTab === 'dashboard' && (
-            <DashboardTab dashboard={dashboard} processes={processes} bias={bias} risks={risks} />
+            <DashboardTab
+              dashboard={dashboard} processes={processes} bias={bias} risks={risks}
+              reportAvailable={Boolean(currentUser) && dashboard !== null && !loading}
+              onNotify={showToast}
+            />
           )}
           {activeTab === 'processes' && (
             <ProcessesTab processes={processes} assets={assets} onNewProcess={() => setShowNewProcessModal(true)} />

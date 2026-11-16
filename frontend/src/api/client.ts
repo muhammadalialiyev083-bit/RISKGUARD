@@ -1,4 +1,4 @@
-import type { User } from '../types';
+import type { User, DashboardSummary } from '../types';
 
 const API_BASE = '/api/v1';
 let csrfToken: string | null = null;
@@ -118,7 +118,7 @@ export const api = {
   getMe: () => request<User>('/auth/me'),
 
   // Dashboard
-  getDashboard: () => request<{ organization: string; summary: any }>('/reports/organization'),
+  getDashboard: () => request<{ organization: string; summary: DashboardSummary }>('/reports/organization'),
 
   // Processes & Assets
   getProcesses: () => request<{ results: any[] }>('/processes/'),
