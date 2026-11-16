@@ -14,6 +14,12 @@ import {
 import { api } from "../api/client";
 import { DashboardReportExport } from "../reports/DashboardReportExport";
 import { MapDiscoveryCard } from "../maps/MapDiscoveryCard";
+import { SectionGuide } from "../experience/SectionGuide";
+import {
+  DashboardWelcome,
+  ExecutiveDashboard,
+} from "../experience/ExecutiveDashboard";
+import { MotionBackground } from "../experience/MotionBackground";
 import {
   RiskMatrix,
   DependencyMap,
@@ -513,6 +519,7 @@ export function DomainPage({
 }) {
   const [current, setCurrent] = useState(module);
   const [data, setData] = useState<Record<string, Row[]>>({});
+  const [workspace, setWorkspace] = useState<Record<string, Row[]>>({});
   const [summary, setSummary] = useState<Row | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -546,8 +553,20 @@ export function DomainPage({
   useEffect(() => {
     setCurrent(module);
     setQuery(new URLSearchParams(window.location.search).get("q") || "");
-    setFilter("");
-    setMatrix(null);
+    const params = new URLSearchParams(window.location.search);
+    setFilter(params.get("filter") || "");
+    const likelihood = Number(params.get("likelihood")),
+      impact = Number(params.get("impact"));
+    setMatrix(
+      Number.isInteger(likelihood) &&
+        likelihood >= 1 &&
+        likelihood <= 5 &&
+        Number.isInteger(impact) &&
+        impact >= 1 &&
+        impact <= 5
+        ? [likelihood, impact]
+        : null,
+    );
     setResult(null);
     setSelected(null);
   }, [module]);
@@ -575,6 +594,10 @@ export function DomainPage({
       ].forEach((r) => resources.add(r));
     if (["plans", "simulation"].includes(current)) resources.add("users");
     if (["dashboard", "reports"].includes(current)) resources.add("services");
+    if (current === "dashboard") {
+      resources.add("organizations");
+      resources.add("exercises");
+    }
     if (["dependencies", "simulation"].includes(current))
       ["processes", "assets", "dependencies"].forEach((r) => resources.add(r));
     try {
@@ -588,6 +611,7 @@ export function DomainPage({
         : null;
       if (generation.current !== id) return;
       const loaded: Record<string, Row[]> = Object.fromEntries(entries);
+      setWorkspace({ ...loaded });
       if (report?.process_ids) {
         const ids = new Set<number>(report.process_ids);
         loaded.processes = (loaded.processes || []).filter((p) =>
@@ -618,6 +642,10 @@ export function DomainPage({
     };
   }, [current, user.id, period, endPeriod, serviceFilter]);
   const switchTo = (key: string) => {
+    if (onNavigate) {
+      onNavigate(key);
+      return;
+    }
     setCurrent(key);
     setSelected(null);
     setResult(null);
@@ -687,40 +715,100 @@ export function DomainPage({
       } as Record<string, string>
     )[current] ||
     current;
+  const begin = () => {
+    if (current === "organizations" && canEdit && data.organizations?.length) {
+      setEditing(
+        data.organizations.find((row) => row.id === user.organization) ||
+          data.organizations[0],
+      );
+    } else if (schema && canEdit && !["audit", "users"].includes(current))
+      setEditing(null);
+    else
+      document
+        .getElementById("module-workspace")
+        ?.scrollIntoView({ block: "start" });
+  };
+  useEffect(() => {
+    if (loading || error) return;
+    const url = new URL(window.location.href);
+    const action = url.searchParams.get("action");
+    if (action && canEdit && schema && !["audit", "users"].includes(current)) {
+      if (action === "edit" && data[schema.resource]?.length)
+        setEditing(
+          data[schema.resource].find((row) => row.id === user.organization) ||
+            data[schema.resource][0],
+        );
+      else if (
+        action === "create" &&
+        (current !== "organizations" || !data.organizations?.length)
+      )
+        setEditing(null);
+      url.searchParams.delete("action");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+    const target =
+      url.searchParams.get("guide") === "1"
+        ? "getting-started"
+        : url.searchParams.get("focus") === "work"
+          ? "module-workspace"
+          : null;
+    if (!target) return;
+    const frame = requestAnimationFrame(() =>
+      document.getElementById(target)?.scrollIntoView({ block: "start" }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [loading, error, current, data, canEdit]);
   return (
-    <div className="domain-page">
-      <div className="page-header">
-        <div>
-          <h1>{title}</h1>
-          <p>
-            {schema?.description ||
-              "Ma’lumotlarga asoslangan qarorlar. Bog‘langan jarayonlar. Boshqariladigan tiklanish."}
-          </p>
+    <div
+      className={`domain-page ${current === "dashboard" ? "dashboard-domain" : ""}`}
+    >
+      {current === "dashboard" && <MotionBackground />}
+      {current !== "dashboard" && (
+        <div className="page-header">
+          <div>
+            <h1>{title}</h1>
+            <p>
+              {schema?.description ||
+                "Ma’lumotlarga asoslangan qarorlar. Bog‘langan jarayonlar. Boshqariladigan tiklanish."}
+            </p>
+          </div>
+          <div className="domain-actions">
+            <button
+              className="btn"
+              aria-label="Ma’lumotlarni yangilash"
+              onClick={load}
+              disabled={loading || busy}
+            >
+              <RefreshCw size={16} /> Yangilash
+            </button>
+            {schema &&
+              !["audit", "users"].includes(current) &&
+              canEdit &&
+              (current !== "organizations" ||
+                !(data.organizations || []).length ||
+                user.is_superuser) && (
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setEditing(null)}
+                >
+                  <Plus size={16} /> Yangi yozuv
+                </button>
+              )}
+          </div>
         </div>
-        <div className="domain-actions">
-          <button
-            className="btn"
-            aria-label="Ma’lumotlarni yangilash"
-            onClick={load}
-            disabled={loading || busy}
-          >
-            <RefreshCw size={16} /> Yangilash
-          </button>
-          {schema &&
-            !["audit", "users"].includes(current) &&
-            canEdit &&
-            (current !== "organizations" ||
-              !(data.organizations || []).length ||
-              user.is_superuser) && (
-              <button
-                className="btn btn-primary"
-                onClick={() => setEditing(null)}
-              >
-                <Plus size={16} /> Yangi yozuv
-              </button>
-            )}
-        </div>
-      </div>
+      )}
+      {current !== "dashboard" && (
+        <SectionGuide
+          module={current}
+          rows={data[schema?.resource || current] || []}
+          user={user}
+          loading={loading}
+          unavailable={Boolean(error)}
+          onNavigate={navigate}
+          onStart={begin}
+        />
+      )}
+      <div id="module-workspace" />
       {group && (
         <nav className="tabs" aria-label="Modul bo‘limlari">
           {group.map((key) => (
@@ -765,6 +853,14 @@ export function DomainPage({
           <>
             {["dashboard", "reports"].includes(current) && (
               <>
+                {current === "dashboard" && (
+                  <DashboardWelcome
+                    user={user}
+                    workspace={workspace}
+                    summary={summary}
+                    onNavigate={navigate}
+                  />
+                )}
                 <div className="domain-toolbar">
                   <label className="field">
                     Jarayon yaratilgan davr · dan
@@ -832,6 +928,15 @@ export function DomainPage({
                     </>
                   )}
                 </div>
+                {current === "dashboard" && (
+                  <ExecutiveDashboard
+                    data={data}
+                    workspace={workspace}
+                    summary={summary}
+                    user={user}
+                    onNavigate={navigate}
+                  />
+                )}
                 <DashboardReportExport
                   key={`${current}:${user.id}:${reportQuery}`}
                   available={Boolean(summary?.summary) && !loading && !busy}
@@ -841,68 +946,74 @@ export function DomainPage({
                     else setNotice(message);
                   }}
                 />
-                {current === "dashboard" && <MapDiscoveryCard onOpen={() => navigate("map")} />}
-                <div className="stat-grid">
-                  {[
-                    ["total_processes", "Jarayonlar", "processes"],
-                    ["high_risks_count", "Yuqori risklar", "risks"],
-                    ["rpo_gap_count", "RPO tafovutlari", "bia"],
-                    [
-                      "unplanned_processes_count",
-                      "Rejasiz jarayonlar",
-                      "plans",
-                    ],
-                    [
-                      "published_plans_count",
-                      "E’lon qilingan rejalar",
-                      "plans",
-                    ],
-                    ["approved_bias_count", "Tasdiqlangan BIA", "bia"],
-                  ].map(([key, label, target]) => (
-                    <button
-                      key={key}
-                      className="stat-card"
-                      onClick={() => navigate(target)}
-                    >
-                      <span>
-                        {label}
-                        <ArrowUpRight size={15} />
-                      </span>
-                      <strong>{summary?.summary?.[key] ?? "—"}</strong>
-                      <small>Tegishli reestrni ochish</small>
-                    </button>
-                  ))}
-                </div>
-                {!(data.processes || []).length ? (
-                  <Empty
-                    title="Birinchi xizmatni bog‘lashdan boshlang"
-                    text="Haqiqiy ko‘rsatkichlar tashkilot ma’lumotlari kiritilgach shakllanadi."
-                    action={() => navigate("organizations")}
-                    label="Tashkilot va xizmatlar"
-                  />
-                ) : (
+                {current === "dashboard" && (
+                  <MapDiscoveryCard onOpen={() => navigate("map")} />
+                )}
+                {current !== "dashboard" && (
                   <>
-                    <SummaryCharts
-                      processes={data.processes || []}
-                      bias={data.bia || []}
-                      risks={data.risks || []}
-                      onNavigate={navigate}
-                    />
-                    <div className="domain-two">
-                      <RiskMatrix
-                        risks={data.risks || []}
-                        onSelect={() => navigate("risks")}
-                      />
-                      <ReadinessList
-                        bias={data.bia || []}
-                        onNavigate={navigate}
-                      />
+                    <div className="stat-grid">
+                      {[
+                        ["total_processes", "Jarayonlar", "processes"],
+                        ["high_risks_count", "Yuqori risklar", "risks"],
+                        ["rpo_gap_count", "RPO tafovutlari", "bia"],
+                        [
+                          "unplanned_processes_count",
+                          "Rejasiz jarayonlar",
+                          "plans",
+                        ],
+                        [
+                          "published_plans_count",
+                          "E’lon qilingan rejalar",
+                          "plans",
+                        ],
+                        ["approved_bias_count", "Tasdiqlangan BIA", "bia"],
+                      ].map(([key, label, target]) => (
+                        <button
+                          key={key}
+                          className="stat-card"
+                          onClick={() => navigate(target)}
+                        >
+                          <span>
+                            {label}
+                            <ArrowUpRight size={15} />
+                          </span>
+                          <strong>{summary?.summary?.[key] ?? "—"}</strong>
+                          <small>Tegishli reestrni ochish</small>
+                        </button>
+                      ))}
                     </div>
-                    <DependencyMap
-                      processes={data.processes || []}
-                      assets={data.assets || []}
-                      dependencies={data.dependencies || []}
-                    />
+                    {!(data.processes || []).length ? (
+                      <Empty
+                        title="Birinchi xizmatni bog‘lashdan boshlang"
+                        text="Haqiqiy ko‘rsatkichlar tashkilot ma’lumotlari kiritilgach shakllanadi."
+                        action={() => navigate("organizations")}
+                        label="Tashkilot va xizmatlar"
+                      />
+                    ) : (
+                      <>
+                        <SummaryCharts
+                          processes={data.processes || []}
+                          bias={data.bia || []}
+                          risks={data.risks || []}
+                          onNavigate={navigate}
+                        />
+                        <div className="domain-two">
+                          <RiskMatrix
+                            risks={data.risks || []}
+                            onSelect={() => navigate("risks")}
+                          />
+                          <ReadinessList
+                            bias={data.bia || []}
+                            onNavigate={navigate}
+                          />
+                        </div>
+                        <DependencyMap
+                          processes={data.processes || []}
+                          assets={data.assets || []}
+                          dependencies={data.dependencies || []}
+                        />
+                      </>
+                    )}
                   </>
                 )}
               </>
@@ -1064,10 +1175,7 @@ export function DomainPage({
                                       current === "bia" &&
                                       row.status === "APPROVED"
                                     ) &&
-                                    !(
-                                      current === "plans" &&
-                                      row.is_frozen
-                                    ) && (
+                                    !(current === "plans" && row.is_frozen) && (
                                       <button
                                         className="btn icon-button"
                                         aria-label={`${row.name || row.title || row.process_name || row.username} tahrirlash`}
@@ -1102,22 +1210,32 @@ export function DomainPage({
                                         Qoralamaga qaytarish
                                       </button>
                                     )}
-                                  {canEdit && current === "plans" && row.is_frozen && (
-                                    <button
-                                      className="btn"
-                                      disabled={busy}
-                                      onClick={() => {
-                                        const version = window.prompt("Yangi reja versiyasi:");
-                                        if (version?.trim())
-                                          mutate(
-                                            () => api.action("plans", row.id, "clone_version", { version: version.trim() }),
-                                            "Yangi qoralama versiya yaratildi.",
+                                  {canEdit &&
+                                    current === "plans" &&
+                                    row.is_frozen && (
+                                      <button
+                                        className="btn"
+                                        disabled={busy}
+                                        onClick={() => {
+                                          const version = window.prompt(
+                                            "Yangi reja versiyasi:",
                                           );
-                                      }}
-                                    >
-                                      Yangi versiya
-                                    </button>
-                                  )}
+                                          if (version?.trim())
+                                            mutate(
+                                              () =>
+                                                api.action(
+                                                  "plans",
+                                                  row.id,
+                                                  "clone_version",
+                                                  { version: version.trim() },
+                                                ),
+                                              "Yangi qoralama versiya yaratildi.",
+                                            );
+                                        }}
+                                      >
+                                        Yangi versiya
+                                      </button>
+                                    )}
                                   {current === "plans" &&
                                     row.status === "DRAFT" &&
                                     !row.is_frozen &&

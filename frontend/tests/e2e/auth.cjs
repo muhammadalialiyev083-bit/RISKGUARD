@@ -57,7 +57,7 @@ if (!username || !password)
     await page.locator(".stat-card").first().waitFor();
     await page.reload();
     await page.locator(".stat-card").first().waitFor();
-    assert.equal(await page.locator(".logo-slot img").count(), 0);
+    assert.equal(await page.locator(".sidebar-brand .brand-approved img").count(), 1);
     assert.equal(
       await page
         .getByRole("combobox")
@@ -158,7 +158,7 @@ if (!username || !password)
     assert.deepEqual(errors, [], "uncaught browser errors");
     assert.deepEqual(serverErrors, [], "unexpected server failures");
     console.log(
-      "PASS auth browser: protected URL, invalid password, show/hide, login, refresh, blank logo, theme, keyboard search, mobile navigation/settings, logout/relogin, Google result, expired reset; no page errors or HTTP 5xx",
+      "PASS auth browser: protected URL, invalid password, show/hide, login, refresh, brand logo, theme, keyboard search, mobile navigation/settings, logout/relogin, Google result, expired reset; no page errors or HTTP 5xx",
     );
   } finally {
     await browser.close();

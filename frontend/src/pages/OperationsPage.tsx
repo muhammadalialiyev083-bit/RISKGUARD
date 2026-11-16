@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { api } from "../api/client";
 import type { User } from "../types";
+import { SectionGuide } from "../experience/SectionGuide";
 import "./operations.css";
 
 type Module = "providers" | "incidents" | "tasks";
@@ -251,6 +252,7 @@ function Dialog({
 export function OperationsPage({
   module: moduleName,
   user,
+  onNavigate,
 }: {
   module: string;
   user: User;
@@ -646,6 +648,15 @@ export function OperationsPage({
     );
   };
 
+  useEffect(() => {
+    if (loading || error || !writable) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("action") !== "create") return;
+    openEdit();
+    url.searchParams.delete("action");
+    window.history.replaceState({}, "", url.pathname + url.search);
+  }, [loading, error, writable, module]);
+
   const filtered = rows.filter((row) => {
     const term = `${names(row)} ${row.description || ""}`.toLocaleLowerCase();
     return (
@@ -705,6 +716,24 @@ export function OperationsPage({
           )}
         </div>
       </div>
+      <SectionGuide
+        module={module}
+        rows={rows}
+        user={user}
+        loading={loading}
+        unavailable={Boolean(error)}
+        onNavigate={(target) =>
+          onNavigate ? onNavigate(target) : window.location.assign("/" + target)
+        }
+        onStart={() =>
+          writable
+            ? openEdit()
+            : document
+                .getElementById("module-workspace")
+                ?.scrollIntoView({ block: "start" })
+        }
+      />
+      <div id="module-workspace" />
       {success && (
         <div className="alert ops-success" role="status">
           <CheckCircle2 size={18} />

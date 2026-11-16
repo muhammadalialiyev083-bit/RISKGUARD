@@ -31,11 +31,15 @@ export default function MapCanvas({
   frame,
   selectedId,
   onSelect,
+  picking = false,
+  onPick,
 }: {
   stops: MapStop[];
   frame: number;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  picking?: boolean;
+  onPick?: (longitude: number, latitude: number) => void;
 }) {
   const clipId = "map-clip-" + useId().replace(/:/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
@@ -168,12 +172,42 @@ export default function MapCanvas({
   return (
     <svg
       ref={svgRef}
-      className="continuity-map"
+      className={`continuity-map ${picking ? "is-picking" : ""}`}
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       role="group"
       aria-label="Manzillar va tiklanish yo‘nalishi xaritasi"
       data-frame={frame}
       data-overlay-frame={f}
+      onClick={(event) => {
+        if (
+          !picking ||
+          !onPick ||
+          !svgRef.current ||
+          (event.target as Element).closest('[role="button"]')
+        )
+          return;
+        const matrix = svgRef.current.getScreenCTM();
+        if (!matrix) return;
+        const point = svgRef.current.createSVGPoint();
+        point.x = event.clientX;
+        point.y = event.clientY;
+        const local = point.matrixTransform(matrix.inverse());
+        if (local.x < 0 || local.x > WIDTH || local.y < 0 || local.y > HEIGHT)
+          return;
+        const coordinates = projection.invert?.([
+          (local.x - camera.x) / scale,
+          (local.y - camera.y) / scale,
+        ]);
+        if (
+          coordinates &&
+          coordinates.every(Number.isFinite) &&
+          Math.abs(coordinates[1]) <= 85
+        )
+          onPick(
+            ((((coordinates[0] + 180) % 360) + 360) % 360) - 180,
+            coordinates[1],
+          );
+      }}
     >
       <title>Hududiy tiklanish xaritasi</title>
       <desc>
