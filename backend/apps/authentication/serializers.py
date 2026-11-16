@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from apps.authentication.models import User
 from apps.organizations.models import Organization, Department
 
@@ -20,13 +22,17 @@ class UserSerializer(serializers.ModelSerializer):
     organization_detail = OrganizationSummarySerializer(source='organization', read_only=True)
     department_detail = DepartmentSummarySerializer(source='department', read_only=True)
     role_display = serializers.CharField(source='get_role_display', read_only=True)
+    google_linked = serializers.SerializerMethodField()
+
+    def get_google_linked(self, obj):
+        return hasattr(obj, 'google_identity')
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
             'role', 'role_display', 'organization', 'organization_detail',
-            'department', 'department_detail', 'phone', 'is_active', 'date_joined'
+            'department', 'department_detail', 'phone', 'is_active', 'date_joined', 'preferences', 'google_linked'
         ]
         read_only_fields = ['id', 'date_joined']
 
@@ -36,7 +42,21 @@ class UserCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'role', 'department', 'phone']
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'role', 'department', 'phone', 'is_active']
+
+    def validate(self, attrs):
+        request = self.context['request']
+        department = attrs.get('department')
+        if department and department.organization_id != request.user.organization_id:
+            raise serializers.ValidationError({'department': 'Bo‘lim sizning tashkilotingizga tegishli emas.'})
+        if attrs.get('password'):
+            try:
+                validate_password(attrs['password'], self.instance)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError({'password': exc.messages})
+        if self.instance and self.instance.pk == request.user.pk and attrs.get('is_active') is False:
+            raise serializers.ValidationError({'is_active': 'O‘z hisobingizni bu yerda o‘chira olmaysiz.'})
+        return attrs
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)

@@ -35,7 +35,16 @@ class BusinessProcess(BaseTenantModel):
     criticality = models.CharField(max_length=20, choices=CRITICALITY_CHOICES, default='HIGH')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
 
+    department = models.ForeignKey('organizations.Department', null=True, blank=True,
+                                   on_delete=models.SET_NULL, related_name='business_processes')
+    required_staff = models.PositiveIntegerField(default=1)
+    working_hours = models.CharField(max_length=200, blank=True, default='')
+    critical_periods = models.TextField(blank=True, default='')
+    resource_notes = models.TextField(blank=True, default='')
+    data_recovery_applicable = models.BooleanField(default=True)
+
     class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(required_staff__gte=1), name='process_positive_staff')]
         ordering = ['name']
         unique_together = ('organization', 'name')
 

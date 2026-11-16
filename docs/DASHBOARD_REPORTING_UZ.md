@@ -1,10 +1,10 @@
 # Dashboard hisobotini yuklab olish
 
-Dashboard tepasidagi **Dashboard hisoboti** bo'limi joriy tashkilotning KPI ko'rsatkichlarini **Markdown (.md)** yoki **JSON (.json)** fayliga yuklaydi.
+**Boshqaruv paneli** va **Hisobotlar** sahifalaridagi **Dashboard hisoboti** bo'limi joriy tashkilotning KPI ko'rsatkichlarini **Markdown (.md)** yoki **JSON (.json)** fayliga yuklaydi. Mavjud PDF va CSV eksportlari ham saqlanadi.
 
-Har bir yuklab olish mavjud sessiya orqali `GET /api/v1/reports/organization` so'rovini qayta bajaradi. Backendning mavjud tashkilot bo'yicha ruxsatlari amal qiladi. Hisobot jami 10 ta KPI, tashkilot nomi, API manbasi va ma'lumot olingan UTC vaqtini saqlaydi. Sahifalangan jarayonlar ro'yxatidan umumiy sonlar hisoblanmaydi.
+Har bir yuklab olish mavjud sessiya orqali `GET /api/v1/reports/organization` so'rovini tanlangan `from`, `to` va `service` filtrlari bilan qayta bajaradi. Backendning mavjud tashkilot bo'yicha ruxsatlari amal qiladi. Hisobot jami 10 ta KPI, tashkilot nomi, API manbasi, filtrlar va ma'lumot olingan UTC vaqtini saqlaydi. Sahifalangan jarayonlar ro'yxatidan umumiy sonlar hisoblanmaydi. Manba URL'ida faqat shu uchta filtr qoldiriladi, sessiya parametrlari va fragmentlar chiqarib tashlanadi.
 
-Bu joriy holat hisoboti: tarixiy davr filtri yoki oldingi davrga nisbatan o'zgarishlar mavjud emas. Server qaytarmagan ko'rsatkichlar `null` / `Mavjud emas` deb belgilanadi. Dashboard yuklanmagan bo'lsa tugmalar o'chiriladi; yuklab olish paytidagi sessiya yoki server xatosi foydalanuvchiga ko'rsatiladi va fayl yaratilmaydi.
+Bu joriy holat hisoboti: sana filtri jarayonning yaratilgan sanasiga tegishli, tarixiy trend yoki oldingi davrga nisbatan o'zgarishlar hisoblanmaydi. Backenddagi mavjud hisoblashga muvofiq jami aktivlar tashkilot bo'yicha, qolgan KPI tanlangan jarayonlar bo'yicha olinadi. Server qaytarmagan ko'rsatkichlar `null` / `Mavjud emas` deb belgilanadi. Dashboard yuklanmagan yoki xato bo'lsa eksport mavjud emas; yuklab olish paytidagi sessiya yoki server xatosida fayl yaratilmaydi. Hisob yoki sahifa almashganda eski so'rov fayl yaratishi bloklanadi.
 
 ## Skill bilan bog'liqligi
 
@@ -20,10 +20,12 @@ Saytning yuklab olish funksiyasi mavjud autentifikatsiyalangan API javobidan foy
 npm ci
 npm test
 npm run build
+# Alohida terminalda: npm run preview -- --port 5176
+npm run test:reports
 ```
 
 Tizimga kirib, Dashboard'da har ikkala formatni yuklang. JSON/Markdown qiymatlarini dashboard bilan solishtiring. Backend javob bermaganda yoki sessiya tugaganda yangi fayl yaratilmasligini tekshiring.
 
-Ushbu o'zgarish uchun `npm test` (16 ta test) va `npm run build` muvaffaqiyatli bajarildi. Build qilingan interfeys Chromium'da alohida API test javoblari bilan tekshirildi: ikkala fayl yuklandi, qiymatlar yangidan olindi, 503/403 xatolarida fayl yaratilmadi, dashboard yuklanmaganda tugmalar o'chirildi va 390 px ekranda tugmalar sig'di. Bu tekshiruv ishlab turgan saytdagi ma'lumotlar bilan o'tkazilmagan.
+Ushbu o'zgarish uchun `npm test` (19 ta test) va `npm run build` muvaffaqiyatli bajarildi. Build qilingan interfeys Chromium'da alohida API test javoblari bilan tekshirildi: JSON va Markdown fayllari yuklandi, qiymatlar yangidan olindi, sana/xizmat filtrlari saqlandi, 503 xatosida fayl yaratilmadi, PDF/CSV tugmalari saqlandi va 390 px ekranda tugmalar sig'di. Bu eksport tekshiruvlari ishlab turgan saytdagi ma'lumotlar bilan o'tkazilmagan. Production frontend va backendning anonim CSRF endpointlari JSON qaytarishi alohida tekshirildi.
 
-O'zgarish frontendda bajarilgan; baza sxemasi va migratsiyalar o'zgarmaydi. Jonli saytga chiqarish uchun tekshirilgan frontend buildini odatdagi Netlify/Render jarayoni orqali deploy qilish kerak. Muddati tugagan PostgreSQL bazasi alohida tiklanishi yoki almashtirilishi kerak.
+Hisobot funksiyasi frontendda bajarilgan; unga backend yoki baza migratsiyasi qo'shilmagan. GitHub `main` manbasi jonli saytda ishlayotgan `5cd71fd` versiyasi bilan birlashtirilib, hisobot shu interfeysga kiritiladi. Netlify build toza `npm ci --no-audit --no-fund && npm run build` buyrug'idan foydalanadi; bu repozitoriyda saqlangan Windows dependency fayllari Linux buildiga xalaqit berishini oldini oladi. Netlify'da base `frontend`, publish `dist`.

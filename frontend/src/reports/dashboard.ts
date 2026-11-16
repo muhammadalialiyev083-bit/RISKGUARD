@@ -20,7 +20,8 @@ export interface DashboardReport {
   collectionMethod: 'authenticated-dashboard-api';
   organization: string;
   reportedAt: string;
-  dateRange: { type: 'snapshot'; at: string };
+  dateRange: { type: 'snapshot'; at: string; processCreatedFrom: string | null; processCreatedTo: string | null };
+  filters: { from: string | null; to: string | null; service: string | null };
   dashboards: { name: string; url: string; sourceUrl: string }[];
   metrics: {
     key: keyof DashboardSummary;
@@ -42,13 +43,23 @@ export interface DashboardReport {
   notes: string[];
 }
 
-function reportUrl(value: string): string {
+function reportUrl(value: string, preserveFilters = false): string {
   const url = new URL(value);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
     throw new Error("Hisobot manbasi manzili noto'g'ri.");
   }
-  // Session parameters and fragments do not belong in a downloaded report.
+  const filters = new URLSearchParams();
+  if (preserveFilters) {
+    for (const key of ['from', 'to', 'service']) {
+      const filter = url.searchParams.get(key);
+      if (filter && (key === 'service' ? /^\d+$/.test(filter) : /^\d{4}-\d{2}-\d{2}$/.test(filter))) {
+        filters.set(key, filter);
+      }
+    }
+  }
+  // Preserve only report filters; session parameters and fragments are excluded.
   url.search = '';
+  if (preserveFilters) url.search = filters.toString();
   url.hash = '';
   return url.href;
 }
@@ -64,7 +75,12 @@ export function createDashboardReport({ data, dashboardUrl, sourceUrl, reportedA
     throw new Error("Dashboard ma'lumotlari olinmadi. Hisobot yaratilmadi.");
   }
 
-  const source = reportUrl(sourceUrl);
+  const source = reportUrl(sourceUrl, true);
+  const params = new URL(source).searchParams;
+  const filters = { from: params.get('from'), to: params.get('to'), service: params.get('service') };
+  const period = filters.from || filters.to
+    ? `Jarayon yaratilgan davr: ${filters.from || 'boshlanishdan'} — ${filters.to || 'hozirgacha'}`
+    : 'Joriy holat';
   const timestamp = reportedAt.toISOString();
   const values = payload.summary as Record<string, unknown>;
   const metrics = METRICS.map(metric => {
@@ -73,7 +89,7 @@ export function createDashboardReport({ data, dashboardUrl, sourceUrl, reportedA
       ...metric,
       value: typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null,
       change: null,
-      period: 'Joriy holat',
+      period: metric.key === 'total_assets' ? 'Tashkilotning joriy holati' : period,
       sourceUrl: source,
     };
   });
@@ -82,9 +98,10 @@ export function createDashboardReport({ data, dashboardUrl, sourceUrl, reportedA
   }
 
   const notes = [
-    "Hisobot ma'lumotlar olingan paytdagi holatni aks ettiradi; tarixiy davr filtri qo'llanmagan.",
+    "Hisobot joriy holatni aks ettiradi. Sana filtri jarayon yaratilgan sanaga qo'llanadi; bu tarixiy davr bo'yicha trend hisoboti emas.",
     "Oldingi davr ma'lumotlari mavjud emas, shu sababli o'zgarish va trend hisoblanmagan.",
     "Qiymatlar tashkilotning dashboard API javobidan olingan. Jarayonlar ro'yxatining sahifalangan qismidan hisoblanmagan.",
+    "Jami aktivlar tashkilot bo'yicha hisoblanadi; qolgan KPI qiymatlari tanlangan jarayonlar bo'yicha olinadi.",
   ];
   const unavailable = metrics.filter(metric => metric.value === null);
   if (unavailable.length) {
@@ -106,8 +123,9 @@ export function createDashboardReport({ data, dashboardUrl, sourceUrl, reportedA
     collectionMethod: 'authenticated-dashboard-api',
     organization,
     reportedAt: timestamp,
-    dateRange: { type: 'snapshot', at: timestamp },
-    dashboards: [{ name: 'BCMS Dashboard', url: reportUrl(dashboardUrl), sourceUrl: source }],
+    dateRange: { type: 'snapshot', at: timestamp, processCreatedFrom: filters.from, processCreatedTo: filters.to },
+    filters,
+    dashboards: [{ name: 'UzHi Dashboard', url: reportUrl(dashboardUrl), sourceUrl: source }],
     metrics,
     tables: [{
       title: "Dashboard ko'rsatkichlari",
@@ -136,6 +154,8 @@ function toMarkdown(report: DashboardReport): string {
     '',
     `Tashkilot: ${markdownCell(report.organization)}`,
     `Ma'lumot olingan vaqt (UTC): ${report.reportedAt}`,
+    `Jarayon yaratilgan davr: ${report.filters.from || 'boshlanishdan'} — ${report.filters.to || 'hozirgacha'}`,
+    `Xizmat ID: ${report.filters.service || 'barcha xizmatlar'}`,
     `Dashboard: <${dashboard.url}>`,
     `Manba: <${dashboard.sourceUrl}>`,
     '',
@@ -163,7 +183,7 @@ function toMarkdown(report: DashboardReport): string {
     `workflow: ${report.workflow}`,
     `dashboards: ${dashboard.url}`,
     `source: ${dashboard.sourceUrl}`,
-    `date_range: joriy holat (${report.reportedAt})`,
+    `date_range: joriy holat (${report.reportedAt}); from=${report.filters.from || ''}; to=${report.filters.to || ''}`,
     `metrics: ${report.metrics.map(metric => metric.key).join(', ')}`,
     'output: markdown',
     '```',
@@ -173,7 +193,7 @@ function toMarkdown(report: DashboardReport): string {
 
 export function dashboardReportFile(report: DashboardReport, format: DashboardReportFormat) {
   const extension = format === 'json' ? 'json' : 'md';
-  const filename = `bcms-dashboard-${report.reportedAt.replace(/[:.]/g, '-')}.${extension}`;
+  const filename = `uzhi-dashboard-${report.reportedAt.replace(/[:.]/g, '-')}.${extension}`;
   const contentType = format === 'json' ? 'application/json;charset=utf-8' : 'text/markdown;charset=utf-8';
   const exported = { ...report, exports: [{ format, filename, contentType }] };
   return {

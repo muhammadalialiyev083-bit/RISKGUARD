@@ -1,3 +1,4 @@
+from apps.core.viewsets import AuditedModelViewSet
 from rest_framework import viewsets, permissions, status
 from apps.risks.models import Risk, Control
 from apps.risks.serializers import RiskSerializer, ControlSerializer
@@ -5,7 +6,12 @@ from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, I
 from apps.core.audit import record_audit
 
 
-class RiskViewSet(viewsets.ModelViewSet):
+class ControlTenantMember(IsTenantMember):
+    def has_object_permission(self, request, view, obj):
+        return request.user.is_superuser or obj.risk.organization_id == request.user.organization_id
+
+
+class RiskViewSet(AuditedModelViewSet):
     """
     FR-06: Risk reestri (Likelihood, Impact, Residual risk).
     """
@@ -41,12 +47,12 @@ class RiskViewSet(viewsets.ModelViewSet):
         )
 
 
-class ControlViewSet(viewsets.ModelViewSet):
+class ControlViewSet(AuditedModelViewSet):
     """
     FR-06: Xavf nazorat choralari (Controls).
     """
     serializer_class = ControlSerializer
-    permission_classes = [IsTenantMember, IsAuditorReadOnly]
+    permission_classes = [ControlTenantMember, IsAuditorReadOnly]
 
     def get_queryset(self):
         user = self.request.user

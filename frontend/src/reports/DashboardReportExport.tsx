@@ -1,44 +1,53 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, FileText } from 'lucide-react';
 import { api } from '../api/client';
 import { createDashboardReport, downloadDashboardReport } from './dashboard';
 import type { DashboardReportFormat } from './dashboard';
+import './dashboard-report.css';
 
-export function DashboardReportExport({ available, onNotify }: {
+export function DashboardReportExport({ available, query = '', onNotify }: {
   available: boolean;
+  query?: string;
   onNotify: (message: string, type: 'success' | 'error') => void;
 }) {
   const [exporting, setExporting] = useState<DashboardReportFormat | null>(null);
+  const active = useRef(true);
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
 
   const download = async (format: DashboardReportFormat) => {
     if (!available || exporting) return;
     setExporting(format);
     try {
       // Refresh through the authenticated API instead of exporting fallback zeros.
-      const data = await api.getDashboard();
+      const endpoint = '/reports/organization' + (query ? '?' + query : '');
+      const data = await api.get(endpoint);
+      if (!active.current) return;
       const report = createDashboardReport({
         data,
         dashboardUrl: new URL(window.location.pathname, window.location.origin).href,
-        sourceUrl: new URL('/api/v1/reports/organization', window.location.origin).href,
+        sourceUrl: new URL('/api/v1' + endpoint, window.location.origin).href,
       });
       downloadDashboardReport(report, format);
       onNotify('Hisobot yuklab olishga tayyorlandi.', 'success');
     } catch (error) {
-      onNotify(error instanceof Error ? error.message : 'Hisobotni yuklab olishda xatolik yuz berdi.', 'error');
+      if (active.current) onNotify(error instanceof Error ? error.message : 'Hisobotni yuklab olishda xatolik yuz berdi.', 'error');
     } finally {
-      setExporting(null);
+      if (active.current) setExporting(null);
     }
   };
 
   return (
-    <section className="card dashboard-report" aria-labelledby="dashboard-report-title" aria-busy={exporting !== null}>
+    <section className="panel dashboard-report" aria-labelledby="dashboard-report-title" aria-busy={exporting !== null}>
       <div>
-        <div id="dashboard-report-title" className="card-title dashboard-report-title">
+        <h2 id="dashboard-report-title" className="dashboard-report-title">
           <FileText size={17} aria-hidden="true" /> Dashboard hisoboti
-        </div>
-        <p id="dashboard-report-description" className="card-subtitle">
+        </h2>
+        <p id="dashboard-report-description" className="muted">
           {available
-            ? "Joriy ko'rsatkichlar, manba va ma'lumot olingan vaqt bilan hisobot."
+            ? "Tanlangan filtrlar, ko'rsatkichlar, manba va vaqt bilan hisobot."
             : "Hisobot olish uchun dashboard ma'lumotlari yuklanishi kerak."}
         </p>
       </div>
@@ -55,7 +64,7 @@ export function DashboardReportExport({ available, onNotify }: {
         </button>
         <button
           type="button"
-          className="btn btn-secondary"
+          className="btn"
           disabled={!available || exporting !== null}
           aria-describedby="dashboard-report-description"
           onClick={() => download('json')}

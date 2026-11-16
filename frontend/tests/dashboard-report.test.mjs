@@ -30,14 +30,14 @@ test('JSON export preserves API totals, organization, source and snapshot time',
   const exported = JSON.parse(file.content);
   assert.equal(exported.organization, 'Sinov tashkiloti');
   assert.equal(exported.reportedAt, '2026-11-16T12:30:45.123Z');
-  assert.deepEqual(exported.dateRange, { type: 'snapshot', at: exported.reportedAt });
+  assert.deepEqual(exported.dateRange, { type: 'snapshot', at: exported.reportedAt, processCreatedFrom: null, processCreatedTo: null });
   assert.equal(exported.collectionMethod, 'authenticated-dashboard-api');
   assert.deepEqual(Object.fromEntries(exported.metrics.map(item => [item.key, item.value])), summary);
   assert.ok(exported.metrics.every(item => item.sourceUrl === options.sourceUrl && item.change === null));
   assert.equal(exported.tables[0].rows.length, 10);
   assert.equal(exported.exports.length, 1);
   assert.deepEqual(exported.exports[0], { format: 'json', filename: file.filename, contentType: file.contentType });
-  assert.match(file.filename, /^bcms-dashboard-[\w-]+\.json$/);
+  assert.match(file.filename, /^uzhi-dashboard-[\w-]+\.json$/);
   assert.deepEqual(report.exports, [], 'serializing a format must not mutate the report');
 });
 
@@ -97,4 +97,18 @@ test('Markdown keeps Uzbek text and safely quotes organization-supplied markup',
   assert.match(file.content, /\| Jami jarayonlar \| 1234 \| jarayon \| Joriy holat \|/);
   assert.match(file.content, /workflow: firecrawl-dashboard-reporting/);
   assert.match(file.content, /Manba: <https:\/\/example.com\/api\/v1\/reports\/organization>/);
+});
+
+test('date and service filters are retained without carrying authentication parameters', () => {
+  const report = createDashboardReport({
+    ...options,
+    sourceUrl: `${options.sourceUrl}?from=2026-11-01&to=2026-11-16&service=7&token=secret`,
+  });
+  assert.deepEqual(report.filters, { from: '2026-11-01', to: '2026-11-16', service: '7' });
+  assert.equal(report.dateRange.processCreatedFrom, '2026-11-01');
+  assert.equal(report.dateRange.processCreatedTo, '2026-11-16');
+  assert.equal(report.dashboards[0].sourceUrl, `${options.sourceUrl}?from=2026-11-01&to=2026-11-16&service=7`);
+  assert.match(report.metrics.find(metric => metric.key === 'total_processes').period, /2026-11-01/);
+  assert.equal(report.metrics.find(metric => metric.key === 'total_assets').period, 'Tashkilotning joriy holati');
+  assert.ok(!dashboardReportFile(report, 'json').content.includes('secret'));
 });

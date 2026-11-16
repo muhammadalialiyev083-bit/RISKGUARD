@@ -24,6 +24,10 @@ class Organization(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    contact_details = models.TextField(blank=True, default='')
+    is_demo = models.BooleanField(default=False)
+    recovery_budget = models.DecimalField(max_digits=18, decimal_places=2, null=True, blank=True)
+
     class Meta:
         ordering = ['name']
 
