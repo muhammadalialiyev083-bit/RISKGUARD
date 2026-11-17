@@ -9,6 +9,9 @@ import {
 import { RiskMatrix, DependencyMap } from "../components/DomainCharts";
 import { startingSteps } from "./workflow";
 import type { RecordRow, WorkspaceData } from "./workflow";
+import { ProcessDistribution } from "./ProcessDistribution";
+import { ProductWalkthrough } from "./ProductWalkthrough";
+import { MetricFocus } from "./MetricFocus";
 
 export function DashboardWelcome({
   user,
@@ -47,6 +50,7 @@ export function DashboardWelcome({
               : "Natijalarni hisobotda ko‘rish"}
           <ArrowRight size={16} />
         </button>
+        <ProductWalkthrough />
       </div>
       <div className="welcome-progress">
         <ShieldCheck size={24} />
@@ -158,16 +162,19 @@ export function ExecutiveDashboard({
     ["published_plans_count", "E’lon qilingan rejalar", "plans", ShieldCheck],
     ["approved_bias_count", "Tasdiqlangan BIA", "bia", Target],
   ] as const;
-  const levels = [
-    ["CRITICAL", "Kritik"],
-    ["HIGH", "Yuqori"],
-    ["MEDIUM", "O‘rta"],
-    ["LOW", "Past"],
-  ];
+  const descriptions: Record<string, string> = {
+    total_processes: "Hisobot doirasidagi biznes jarayonlari. Reestrda ularning muhimligi, mas’uli va bog‘liqliklarini ko‘ring.",
+    high_risks_count: "Yuqori darajali risklar: ehtimollik × ta’sir bo‘yicha 15–25 ball olgan yozuvlar.",
+    rpo_gap_count: "Zaxiralash oralig‘i belgilangan RPO muddatidan oshib ketgan jarayonlar.",
+    unplanned_processes_count: "Hali e’lon qilingan tiklanish rejasi yo‘q jarayonlar. Reestrdan kerakli rejani tekshiring.",
+    published_plans_count: "Rasmiy e’lon qilingan BCP / DRP rejalari. Rejalar reestrida mas’ullar va qadamlarni ko‘ring.",
+    approved_bias_count: "Tasdiqlangan biznes ta’siri baholashlari. BIA reestrida RTO, RPO va MTPD talablarini tekshiring.",
+  };
   return (
     <div className="executive-dashboard">
       <div className="executive-kpis stat-grid">
         {counts.map(([key, label, target, Icon]) => (
+          <MetricFocus key={key} label={label} value={metric(key)} description={descriptions[key]} onNavigate={() => onNavigate(target)}>
           <button
             className={`stat-card executive-kpi metric-${key}`}
             key={key}
@@ -181,6 +188,7 @@ export function ExecutiveDashboard({
             <strong>{metric(key)}</strong>
             <small>Tegishli reestrni ochish</small>
           </button>
+          </MetricFocus>
         ))}
       </div>
       <div className="executive-charts">
@@ -212,34 +220,7 @@ export function ExecutiveDashboard({
             label="E’lon qilingan reja mavjud"
             onClick={() => onNavigate("plans")}
           />
-          <div className="executive-distribution">
-            <h3>Jarayonlar muhimligi</h3>
-            {levels.map(([key, label]) => {
-              const count = processes.filter(
-                (row) => row.criticality === key,
-              ).length;
-              return (
-                <button
-                  key={key}
-                  onClick={() => onNavigate("processes?filter=" + key)}
-                >
-                  <span>{label}</span>
-                  <i>
-                    <b
-                      className={`level-${key.toLowerCase()}`}
-                      style={{
-                        width: `${processes.length ? (count / processes.length) * 100 : 0}%`,
-                      }}
-                    />
-                  </i>
-                  <strong>{count}</strong>
-                </button>
-              );
-            })}
-            {!processes.length && (
-              <p>Birinchi jarayondan so‘ng taqsimot shakllanadi.</p>
-            )}
-          </div>
+          <ProcessDistribution processes={processes} onNavigate={onNavigate} />
         </section>
       </div>
       <section

@@ -44,6 +44,13 @@
       "skillPath": "skills/motion-background/SKILL.md",
       "computedHash": "73d38e3b04071caff0df7535e65344914a5952b54dad1236d6fbab262ef07dce"
     },
+    "motion-effects": {
+      "source": "charlie947/motion-graphics-skills",
+      "commit": "229022ebca76972e119e36ada23a1648d51665ab",
+      "sourceType": "github",
+      "skillPath": "skills/motion-effects/SKILL.md",
+      "computedHash": "665f2911af78d794d32cd18c2c775b76ff12699fbbb05d7954eb21bb4f2b2b33"
+    },
     "supabase-postgres-best-practices": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

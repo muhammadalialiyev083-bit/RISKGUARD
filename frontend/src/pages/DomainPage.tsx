@@ -20,6 +20,7 @@ import {
   ExecutiveDashboard,
 } from "../experience/ExecutiveDashboard";
 import { MotionBackground } from "../experience/MotionBackground";
+import { MotionNav } from "../experience/MotionEffects";
 import {
   RiskMatrix,
   DependencyMap,
@@ -810,7 +811,7 @@ export function DomainPage({
       )}
       <div id="module-workspace" />
       {group && (
-        <nav className="tabs" aria-label="Modul bo‘limlari">
+        <MotionNav activeKey={current} className="tabs" label="Modul bo‘limlari">
           {group.map((key) => (
             <button
               key={key}
@@ -821,7 +822,7 @@ export function DomainPage({
               {schemas[key].title}
             </button>
           ))}
-        </nav>
+        </MotionNav>
       )}
       {notice && (
         <div role="status" className="alert success">

@@ -198,7 +198,8 @@
   border-color: var(--accent);
   background: var(--panel-2);
 }
-.domain-page .stat-card:first-child {
+.domain-page .stat-grid > .stat-card:first-child,
+.domain-page .stat-grid > .kpi-focus-card:first-child > .stat-card {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   background: var(--accent-soft);
 }

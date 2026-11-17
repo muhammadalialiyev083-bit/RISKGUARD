@@ -36,6 +36,7 @@ import { AuthPages, AccountPage } from "./auth/AuthPages";
 import { DomainPage } from "./pages/DomainPage";
 import { OperationsPage } from "./pages/OperationsPage";
 import { SectionGuide } from "./experience/SectionGuide";
+import { MotionNav, MotionToggle } from "./experience/MotionEffects";
 
 const ContinuityMapPage = lazy(() => import("./maps/ContinuityMapPage"));
 
@@ -383,7 +384,7 @@ export function App() {
           <span>Ishchi maydon</span>
           <span className="workspace-tier">BCMS</span>
         </div>
-        <nav aria-label="Asosiy navigatsiya">
+        <MotionNav activeKey={`${active}-${collapsed}-${mobile}`} label="Asosiy navigatsiya" className="motion-sidebar-nav">
           {groups.map((g) => (
             <div className="nav-group" key={g.name}>
               <div className="nav-group-label">{g.name}</div>
@@ -401,7 +402,7 @@ export function App() {
               ))}
             </div>
           ))}
-        </nav>
+        </MotionNav>
         <div className="sidebar-bottom">
           <div className="system-state">
             <span className="live-dot" />
@@ -502,6 +503,7 @@ export function App() {
                   </div>
                 )}
               </div>
+              <MotionToggle />
               <button
                 className="btn btn-icon"
                 aria-label="Temani almashtirish"

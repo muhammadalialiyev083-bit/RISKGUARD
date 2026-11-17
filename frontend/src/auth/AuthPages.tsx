@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { api, clearSessionRequests } from "../api/client";
 import { Brand } from "../components/Brand";
+import { ProductWalkthrough } from "../experience/ProductWalkthrough";
 
 function Password({
   name,
@@ -319,6 +320,7 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
               tashkilot administratoriga murojaat qiling.
             </div>
           )}
+          <div className="auth-walkthrough"><ProductWalkthrough /></div>
           <div className="auth-security">
             <KeyRound size={14} /> Xavfsiz sessiya orqali kirish
           </div>

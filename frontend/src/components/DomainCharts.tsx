@@ -1,4 +1,5 @@
-import React, { useId } from "react";
+import React, { useId, useRef } from "react";
+import { useMotion, useSceneClock } from "../experience/MotionEffects";
 import "./domain-charts.css";
 
 type RecordRow = Record<string, any>;
@@ -108,6 +109,16 @@ export function DependencyMap({
 }) {
   const titleId = useId(),
     descId = useId();
+  const flowRoot = useRef<SVGSVGElement>(null);
+  const { enabled } = useMotion();
+  useSceneClock(flowRoot, (seconds) => {
+    const stage = seconds < 6.6 ? Math.min(1, seconds / 2.2) : (8 - seconds) / 1.4;
+    flowRoot.current?.querySelectorAll<SVGPathElement>(".dependency-pulse").forEach((pulse, index) => {
+      const progress = ((seconds - index * .14) % 3.1 + 3.1) % 3.1 / 3.1;
+      pulse.style.strokeDashoffset = String(.08 - progress * 1.08);
+      pulse.style.opacity = String(enabled && progress > 0 && progress < .96 ? stage * .8 : 0);
+    });
+  }, `${processes.length}-${assets.length}-${dependencies.length}`);
   const processNodes = processes.map((r, i) => ({
     ...r,
     id: Number(r.id),
@@ -148,6 +159,7 @@ export function DependencyMap({
       ) : (
         <div className="dependency-scroll">
           <svg
+            ref={flowRoot}
             viewBox={`0 0 670 ${height}`}
             className="dependency-svg"
             role="img"
@@ -169,13 +181,13 @@ export function DependencyMap({
                 <path d="M0 0 L8 4 L0 8" fill="currentColor" />
               </marker>
             </defs>
-            {dependencies.map((d) => {
+            {dependencies.map((d, index) => {
               const a = node(d.from_type, d.from_id),
                 b = node(d.to_type, d.to_id);
               if (!a || !b) return null;
               return (
+                <g key={d.id}>
                 <path
-                  key={d.id}
                   d={`M${a.x + 250} ${a.y + 18} C${a.x + 295} ${a.y + 18},${b.x - 45} ${b.y + 18},${b.x} ${b.y + 18}`}
                   fill="none"
                   stroke="currentColor"
@@ -187,6 +199,11 @@ export function DependencyMap({
                     {a.name} → {b.name}
                   </title>
                 </path>
+                {index < 24 && <path className="dependency-pulse" aria-hidden="true"
+                  d={`M${a.x + 250} ${a.y + 18} C${a.x + 295} ${a.y + 18},${b.x - 45} ${b.y + 18},${b.x} ${b.y + 18}`}
+                  fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"
+                  pathLength="1" strokeDasharray=".08 1" opacity="0" />}
+                </g>
               );
             })}
             {nodes.map((n) => (
