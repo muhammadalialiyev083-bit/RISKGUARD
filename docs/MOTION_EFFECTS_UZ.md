@@ -8,6 +8,8 @@ Sayt bo‘ylab qo‘llangan effektlar: faol menyu/panelning umumiy belgisi, qidi
 
 Kirish sahifasi va dashboarddagi **UzHi qanday ishlaydi?** tugmasi 8 soniyalik mahsulot ko‘rinishini ochadi. Unda ayni kartochka to‘liq ishchi maydonga kengayadi, jarayon → BIA/risk → reja oqimi yoritiladi. Yangi operatsion ma’lumot yoki sun’iy KPI yaratilmaydi.
 
+Harakat kamaytirilganda yoki interfeys pauzada bo‘lsa, player avval statik kadrni ko‘rsatadi. **Ijro etish** shu animatsiyani qo‘lda yoqadi, **Qayta** uni boshidan ijro etadi. Bu tugmalar umumiy sozlama bilan bloklanmaydi va saqlangan interfeys sozlamasini o‘zgartirmaydi. Alohida `effect.html` sahifasida ham ijro/pauza va qayta boshlash tugmalari bor; eksportning `?render` rejimida ular yashiriladi.
+
 Brend va harakat tafsilotlari: `brand.md`, `MOTION.md`. Jonli shakllarda qisqa, foydalanuvchi amali bilan boshlanadigan o‘tishlar ishlatiladi; eksportga yaroqli mahsulot ko‘rinishi alohida deterministik HTML hisoblanadi. Sayt vazifasiga aloqasi bo‘lmagan media yoki logotip effektlari ishchi interfeysga tiqishtirilmagan.
 
 Tekshirish:

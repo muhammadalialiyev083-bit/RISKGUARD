@@ -25,6 +25,7 @@ The self-contained walkthrough retains the approved dark brand canvas in either 
 - Flowing paths: a pulse draws each connector, and destination nodes answer on arrival; a second wave animates the hold.
 - `?render` disables autoplay; `?render&t=4.4` shows the readable still. `?mode=hold` retains the final composition.
 - Explicit font loading precedes the first frame. No autonomous CSS animation, timer, unseeded randomness or external assets.
+- Autoplay respects reduced motion. Explicit Play and Replay allow motion within this player; Replay restarts at zero and begins playback. The standalone page has its own controls, hidden in embedded and `?render` mode. Commands received while assets load remain in effect after initialization.
 
 ## Application interactions
 
@@ -39,4 +40,4 @@ The site uses the recipes as interactions with real content, rather than looping
 - Flowing paths: existing dependencies receive subtle pulses, limited to 24 paths. Offscreen/hidden scenes stop their clock.
 - Masked type: login and welcome headings reveal once.
 
-UI durations are 240–740 ms, with at most 180 ms total entrance staggering. The product scene alone repeats over 8 s. Application interactions have a persistent pause control. `prefers-reduced-motion` takes precedence and updates live. The player has independent pause/replay controls, native dialog focus trapping, Escape, focus restoration, and a readable still when motion is disabled. Print/report data is unchanged.
+UI durations are 240–740 ms, with at most 180 ms total entrance staggering. The product scene alone repeats over 8 s. Application interactions have a persistent pause control. `prefers-reduced-motion` takes precedence for automatic motion and updates live. The player starts on a readable still when automatic motion is disabled. Its independent Play and Replay buttons remain available: an explicit action enables this scene without changing the saved interface or OS preference. Native dialog focus trapping, Escape and focus restoration remain in place. Print/report data is unchanged.

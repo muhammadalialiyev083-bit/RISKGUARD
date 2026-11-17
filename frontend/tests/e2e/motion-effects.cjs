@@ -44,6 +44,17 @@ async function apiFixtures(page, state) {
   });
 }
 const settle = page => page.evaluate(async () => { await document.fonts.ready; for (const animation of document.getAnimations()) if (Number.isFinite(animation.effect?.getComputedTiming().endTime)) animation.finish(); });
+async function expectRunning(frame) {
+  await frame.waitForFunction(() => window.__playing === true);
+  const before = await frame.evaluate(() => window.__time);
+  await frame.waitForFunction(time => window.__time > time + .1, before);
+}
+async function expectPaused(frame) {
+  await frame.waitForFunction(() => window.__playing === false);
+  const before = await frame.evaluate(() => window.__time);
+  await frame.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.equal(await frame.evaluate(() => window.__time), before, "pause must freeze the real animation clock");
+}
 (async () => {
   await fs.mkdir(artifacts, { recursive: true });
   const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || "/usr/bin/chromium", args: ["--no-sandbox"] });
@@ -102,7 +113,8 @@ const settle = page => page.evaluate(async () => { await document.fonts.ready; f
     await iframe.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.equal(await iframe.evaluate(() => window.__time), stopped, "pausing must freeze the scene clock");
     await page.getByRole("button", { name: "Ko‘rinishni boshidan ko‘rish", exact: true }).click();
-    await iframe.waitForFunction(() => window.__time === 0);
+    await expectRunning(iframe);
+    assert.ok(await iframe.evaluate(() => window.__time < 2.2), "replay must restart and play the opening");
     assert.ok(stopped >= 0);
     await page.keyboard.press("Escape");
     assert.equal(await page.getByRole("dialog").count(), 0);
@@ -113,6 +125,20 @@ const settle = page => page.evaluate(async () => { await document.fonts.ready; f
     await page.getByRole("button", { name: "Interfeys harakatini yoqish", exact: true }).waitFor();
     await page.getByRole("button", { name: "Chiziqli ko‘rinish", exact: true }).click();
     assert.equal(await page.locator(".morph-line").evaluate(n => n.style.strokeDashoffset), "0", "paused motion still updates the final chart immediately");
+    await page.getByRole("button", { name: "UzHi qanday ishlaydi?", exact: true }).click();
+    const pausedFrame = page.frames().find(frame => frame.url().includes("/effect.html"));
+    await pausedFrame.waitForFunction(() => window.__ready && window.__time === 4.4 && !window.__playing);
+    assert.ok(await page.getByRole("button", { name: "Ko‘rinishni ijro etish", exact: true }).isEnabled(), "interface pause must never disable the player's Play button");
+    await page.getByRole("button", { name: "Ko‘rinishni ijro etish", exact: true }).click();
+    await expectRunning(pausedFrame);
+    assert.ok(await pausedFrame.evaluate(() => window.__time < 2.2), "the first manual play must start at the opening, rather than hold at 4.4 seconds");
+    assert.equal(await page.evaluate(() => localStorage.getItem("uzhi-ui-motion")), "paused", "manual playback must preserve the interface preference");
+    await page.getByRole("button", { name: "Ko‘rinishni to‘xtatish", exact: true }).click();
+    await expectPaused(pausedFrame);
+    await page.getByRole("button", { name: "Ko‘rinishni boshidan ko‘rish", exact: true }).click();
+    await expectRunning(pausedFrame);
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.uiMotion), "off");
+    await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Temani almashtirish", exact: true }).click();
     await page.evaluate(() => scrollTo(0, 0));
     await page.screenshot({ path: path.join(artifacts, "dashboard-light.png"), fullPage: true });
@@ -139,6 +165,19 @@ const settle = page => page.evaluate(async () => { await document.fonts.ready; f
     await page.getByRole("button", { name: "UzHi qanday ishlaydi?", exact: true }).click();
     const reducedFrame = page.frames().find(f => f.url().includes("/effect.html"));
     await reducedFrame.waitForFunction(() => window.__ready && window.__time === 4.4);
+    await expectPaused(reducedFrame);
+    assert.ok(await page.getByRole("button", { name: "Ko‘rinishni ijro etish", exact: true }).isEnabled(), "reduced motion must still allow an explicit Play action");
+    await page.getByRole("button", { name: "Ko‘rinishni ijro etish", exact: true }).click();
+    await expectRunning(reducedFrame);
+    const titleBefore = await reducedFrame.locator("#shared-title").getAttribute("y");
+    await reducedFrame.waitForFunction(() => window.__time > 1.2);
+    assert.notEqual(await reducedFrame.locator("#shared-title").getAttribute("y"), titleBefore, "manual playback must move the artwork with reduced motion enabled");
+    await page.getByRole("button", { name: "Ko‘rinishni to‘xtatish", exact: true }).click();
+    await expectPaused(reducedFrame);
+    await page.getByRole("button", { name: "Ko‘rinishni boshidan ko‘rish", exact: true }).click();
+    await expectRunning(reducedFrame);
+    assert.ok(await reducedFrame.evaluate(() => window.__time < 1.2), "Replay must restart from zero even when the OS reduces motion");
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.uiMotion), "off");
     await page.keyboard.press("Escape");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: path.join(artifacts, "dashboard-mobile.png"), fullPage: true });
@@ -155,7 +194,15 @@ const settle = page => page.evaluate(async () => { await document.fonts.ready; f
     await page.goto(origin + "/dashboard");
     await page.locator(".executive-kpi").first().waitFor();
     assert.equal(await page.locator(".morph-chart").count(), 0, "empty data must not show invented chart values");
+    await page.goto(origin + "/effect.html");
+    await page.waitForFunction(() => window.__ready && window.__time === 4.4 && !window.__playing);
+    await page.getByRole("button", { name: "Animatsiyani ijro etish", exact: true }).click();
+    await expectRunning(page);
+    await page.getByRole("button", { name: "Animatsiyani to‘xtatish", exact: true }).click();
+    await expectPaused(page);
+    await page.getByRole("button", { name: "Qayta", exact: true }).click();
+    await expectRunning(page);
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ passed: true, artifacts, checks: ["seven seekable frames", "pixel-identical loop", "reverse seeking", "embedded assets", "real chart values", "player controls and focus", "persistent pause", "module tabs and record forms", "light/dark", "reduced motion", "mobile layout", "login page", "empty dataset", "no API writes or browser errors"] }, null, 2));
+    console.log(JSON.stringify({ passed: true, artifacts, checks: ["seven seekable frames", "pixel-identical loop", "reverse seeking", "embedded assets", "real chart values", "player controls and focus", "persistent pause", "module tabs and record forms", "light/dark", "reduced motion", "manual playback with interface paused", "manual playback with reduced motion", "replay restarts and plays", "standalone playback controls", "mobile layout", "login page", "empty dataset", "no API writes or browser errors"] }, null, 2));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
