@@ -7,14 +7,16 @@ type RecordRow = Record<string, any>;
 export function RiskMatrix({
   risks,
   onSelect,
+  featured = false,
 }: {
   risks: RecordRow[];
+  featured?: boolean;
   onSelect?: (likelihood: number, impact: number) => void;
 }) {
   const id = useId();
   return (
     <section className="panel chart-panel" aria-labelledby={id}>
-      <div className="chart-heading">
+      <div className={featured ? "chart-heading feature-summary" : "chart-heading"}>
         <div>
           <h3 id={id}>Risklar xaritasi</h3>
           <p>Ehtimollik × ta’sir. Katakni tanlab risklarni ko‘ring.</p>

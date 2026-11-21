@@ -3,22 +3,22 @@
 
 /* === PRIMITIVES === */
 :root {
-  --primitive-color-ink: #102433;
-  --primitive-color-panel: #162F40;
-  --primitive-color-raised: #1D3A4C;
-  --primitive-color-teal: #52CAB4;
-  --primitive-color-teal-dark: #08786D;
-  --primitive-color-teal-hover: #70D9C5;
-  --primitive-color-teal-deep: #06695F;
-  --primitive-color-slate: #AAC0CA;
-  --primitive-color-mist: #EDF3F3;
+  --primitive-color-ink: #19172A;
+  --primitive-color-panel: #232138;
+  --primitive-color-raised: #2B2843;
+  --primitive-color-indigo-light: #B9A6EF;
+  --primitive-color-indigo: #504082;
+  --primitive-color-indigo-light-hover: #CBBBF7;
+  --primitive-color-indigo-hover: #40336B;
+  --primitive-color-slate: #B9B1D2;
+  --primitive-color-mist: #F0EBFC;
   --primitive-color-paper: #FFFFFF;
-  --primitive-color-line-dark: #315064;
-  --primitive-color-line-light: #CEDCDF;
-  --primitive-color-muted-light: #516672;
-  --primitive-color-soft-light: #F5F8F8;
+  --primitive-color-line-dark: #3C3654;
+  --primitive-color-line-light: #DDD9EA;
+  --primitive-color-muted-light: #5C5879;
+  --primitive-color-soft-light: #F7F5FC;
   --primitive-color-danger-dark: #FFA3AC;
-  --primitive-color-danger-light: #B9384E;
+  --primitive-color-danger-light: #9F324A;
   --primitive-color-transparent: transparent;
   --primitive-space-1: 4px;
   --primitive-space-2: 8px;
@@ -52,11 +52,22 @@
   --color-foreground: var(--primitive-color-mist);
   --color-muted: var(--primitive-color-slate);
   --color-border: var(--primitive-color-line-dark);
-  --color-primary: var(--primitive-color-teal);
-  --color-primary-hover: var(--primitive-color-teal-hover);
-  --color-on-primary: var(--primitive-color-ink);
+  --color-primary: var(--primitive-color-indigo-light);
+  --color-primary-hover: var(--primitive-color-indigo-light-hover);
+  --color-on-primary: #22183B;
   --color-danger: var(--primitive-color-danger-dark);
   --color-accent-soft: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  --color-sidebar: #1E1B32;
+  --color-selected: #392F58;
+  --color-on-selected: #F0EBFC;
+  --color-control-border: #786D98;
+  --color-success: #8DD9AE;
+  --color-warning: #F1CB88;
+  --color-info: #BECCF5;
+  --color-overlay: rgb(14 11 30 / 72%);
+  --color-feature-gradient: linear-gradient(118deg, #32235F, #594580);
+  --color-on-gradient: #FFFFFF;
+  --color-gradient-line: rgb(255 255 255 / 40%);
   --font-family: var(--primitive-font-family);
   --focus-ring: var(--color-primary);
   --spacing-section: var(--primitive-space-6);
@@ -73,8 +84,8 @@
   --button-height: 44px;
   --button-radius: var(--primitive-radius-control);
   --button-padding-x: var(--primitive-space-4);
-  --input-bg: var(--color-background);
-  --input-border: var(--color-border);
+  --input-bg: var(--color-surface);
+  --input-border: var(--color-control-border);
   --input-height: 44px;
   --input-radius: var(--primitive-radius-control);
   --input-area-height: 96px;
@@ -83,9 +94,9 @@
   --card-radius: var(--primitive-radius-panel);
   --nav-height: 44px;
   --nav-font-size: var(--primitive-font-label);
-  --auth-bg: var(--primitive-color-ink);
-  --auth-fg: var(--primitive-color-mist);
-  --auth-muted: var(--primitive-color-slate);
-  --auth-accent: var(--primitive-color-teal);
-  --auth-border: var(--primitive-color-line-dark);
+  --auth-bg: var(--color-feature-gradient);
+  --auth-fg: var(--color-on-gradient);
+  --auth-muted: var(--color-on-gradient);
+  --auth-accent: var(--color-on-gradient);
+  --auth-border: var(--color-gradient-line);
 }

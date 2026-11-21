@@ -312,59 +312,7 @@ const summary = {
       path: path.join(artifacts, "dashboard-dark.png"),
       fullPage: true,
     });
-    await page.waitForFunction(
-      () =>
-        document.querySelector(".motion-background video")?.currentTime > 0.05,
-    );
-    await page
-      .getByRole("button", { name: "Fon harakatini to‘xtatish", exact: true })
-      .click();
-    assert.equal(
-      await page
-        .locator(".motion-background video")
-        .evaluate((video) => video.paused),
-      true,
-    );
-    await page
-      .getByRole("button", { name: "Fon harakatini yoqish", exact: true })
-      .click();
-    await page.waitForFunction(
-      () => !document.querySelector(".motion-background video")?.paused,
-    );
-    await page.evaluate(() => {
-      Object.defineProperty(document, "hidden", {
-        configurable: true,
-        get: () => true,
-      });
-      document.dispatchEvent(new Event("visibilitychange"));
-    });
-    await page.waitForFunction(
-      () => document.querySelector(".motion-background video")?.paused,
-    );
-    await page.evaluate(() => {
-      delete document.hidden;
-      document.dispatchEvent(new Event("visibilitychange"));
-    });
-    await page.waitForFunction(
-      () => !document.querySelector(".motion-background video")?.paused,
-    );
-    await page.evaluate(() => {
-      const spacer = document.createElement("div");
-      spacer.id = "visibility-spacer";
-      spacer.style.height = "2000px";
-      document.body.append(spacer);
-      scrollTo(0, document.body.scrollHeight);
-    });
-    await page.waitForFunction(
-      () => document.querySelector(".motion-background video")?.paused,
-    );
-    await page.evaluate(() => {
-      document.getElementById("visibility-spacer").remove();
-      scrollTo(0, 0);
-    });
-    await page.waitForFunction(
-      () => !document.querySelector(".motion-background video")?.paused,
-    );
+    assert.equal(await page.locator(".motion-background, .motion-controls, video").count(), 0);
     await page
       .getByRole("button", { name: "Temani almashtirish", exact: true })
       .click();
@@ -544,18 +492,13 @@ const summary = {
     assert.equal(new URL(page.url()).pathname, "/dashboard");
     await page.goto(base + "/dashboard", { waitUntil: "networkidle" });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page
-      .getByRole("button", {
-        name: "Statik fon: harakat kamaytirilgan",
-        exact: true,
-      })
-      .waitFor();
-    assert.equal(
-      await page
-        .locator(".motion-background video")
-        .evaluate((video) => video.paused),
-      true,
-    );
+    const reducedMotion = page.getByRole("button", {
+      name: "Interfeys harakati kamaytirilgan",
+      exact: true,
+    });
+    await reducedMotion.waitFor();
+    assert.equal(await reducedMotion.isDisabled(), true);
+    assert.equal(await page.locator(".motion-background, .motion-controls, video").count(), 0);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     empty = true;
     await page.goto(base + "/dashboard", { waitUntil: "networkidle" });
@@ -609,7 +552,7 @@ const summary = {
             "all primary sections/guides/charts/illustrations",
             "linked sections and risk filters",
             "map coordinate picking",
-            "video play/pause/hidden/offscreen/reduced motion",
+            "static dashboard and reduced-motion preference",
             "mobile layout and branding",
             "API failure and recovery",
             "no browser exceptions or production writes",

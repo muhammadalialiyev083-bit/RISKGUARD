@@ -124,17 +124,17 @@
 }
 .ops-bar-fill.status-critical,
 .ops-bar-fill.status-high {
-  background: #f87171;
+  background: var(--danger);
 }
 .ops-bar-fill.status-medium,
 .ops-bar-fill.status-investigating {
-  background: #fbbf24;
+  background: var(--color-warning);
 }
 .ops-bar-fill.status-low,
 .ops-bar-fill.status-done,
 .ops-bar-fill.status-closed,
 .ops-bar-fill.status-resolved {
-  background: #34d399;
+  background: var(--color-success);
 }
 .ops-help {
   font-size: 12px;
@@ -237,23 +237,23 @@
 }
 .ops-badge.status-critical,
 .ops-badge.status-high {
-  color: #f87171;
-  border-color: #f8717140;
-  background: #f8717110;
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--panel));
+  background: color-mix(in srgb, var(--danger) 9%, var(--panel));
 }
 .ops-badge.status-done,
 .ops-badge.status-low,
 .ops-badge.status-resolved,
 .ops-badge.status-closed {
-  color: #34d399;
-  border-color: #34d39940;
-  background: #34d39910;
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 30%, var(--panel));
+  background: color-mix(in srgb, var(--color-success) 9%, var(--panel));
 }
 .ops-badge.status-medium,
 .ops-badge.status-investigating {
-  color: #eab308;
-  border-color: #eab30840;
-  background: #eab30810;
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, var(--panel));
+  background: color-mix(in srgb, var(--color-warning) 9%, var(--panel));
 }
 .ops-badge.status-open,
 .ops-badge.status-in_progress,
@@ -264,7 +264,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #34d399;
+  color: var(--color-success);
 }
 .ops-success > span {
   flex: 1;
@@ -410,7 +410,7 @@
 .ops-overlay {
   position: fixed;
   inset: 0;
-  background: #020617b8;
+  background: var(--color-overlay);
   backdrop-filter: blur(6px);
   z-index: 1000;
   display: flex;
@@ -487,9 +487,9 @@
 .ops-form select,
 .ops-form textarea,
 .ops-filter select {
-  background: var(--bg);
+  background: var(--input-bg);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 10px 12px;
   font: inherit;
@@ -638,7 +638,7 @@
 }
 @supports not (backdrop-filter: blur(6px)) {
   .ops-overlay {
-    background: #020617ed;
+    background: var(--panel);
   }
 }
 .ops-run-metrics {
@@ -673,7 +673,7 @@
   background: var(--panel);
   color: var(--text);
   padding: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
 }
 .ops-run-result {

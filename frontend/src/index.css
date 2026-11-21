@@ -411,7 +411,7 @@ small {
   inset: 0 auto 0 0;
   width: 252px;
   border-right: 1px solid var(--border);
-  background: var(--panel);
+  background: var(--color-sidebar);
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -485,10 +485,8 @@ small {
   color: var(--text);
 }
 .nav-item.active {
-  color: var(--accent);
-  background: var(--accent-soft);
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
-  box-shadow: inset 3px 0 0 var(--accent);
+  color: var(--color-on-selected);
+  background: var(--color-selected);
 }
 .nav-dot {
   margin-left: auto;
@@ -546,7 +544,7 @@ small {
   place-items: center;
   background: var(--accent-soft);
   color: var(--accent);
-  border: 1px solid rgba(66, 219, 192, 0.2);
+  border: 1px solid var(--border);
   border-radius: 7px;
   font-weight: 700;
 }
@@ -771,6 +769,7 @@ small {
   min-height: 100vh;
 }
 .auth-story {
+  --focus-ring: var(--color-on-gradient);
   background: var(--auth-bg);
   color: var(--auth-fg);
   padding: var(--primitive-space-12) 8%;
@@ -1102,10 +1101,10 @@ small {
     max-width: 55%;
     font-size: 9px;
   }
-  .context-tools .btn:not(.btn-primary) {
+  .context-tools .btn:not(.incident-shortcut) {
     display: none;
   }
-  .context-tools .btn-primary {
+  .context-tools .incident-shortcut {
     font-size: 10px;
   }
   .main-content {
@@ -1242,4 +1241,23 @@ small {
 @media (max-width: 800px) {
   .sidebar { visibility: hidden; }
   .sidebar.mobile-open { visibility: visible; }
+}
+
+.feature-summary {
+  background: var(--color-feature-gradient);
+  color: var(--color-on-gradient);
+  --focus-ring: var(--color-on-gradient);
+  padding: 16px 18px;
+  border-radius: var(--primitive-radius-control);
+  margin-bottom: 16px;
+}
+.feature-summary :is(p, .eyebrow, .badge) {
+  color: inherit;
+}
+.feature-summary .badge {
+  background: transparent;
+  border-color: var(--color-gradient-line);
+}
+.feature-summary > p:last-child {
+  margin-bottom: 0;
 }

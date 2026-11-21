@@ -75,9 +75,9 @@
 .domain-page select,
 .domain-page textarea {
   width: 100%;
-  background: var(--bg);
+  background: var(--input-bg);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid var(--input-border);
   border-radius: var(--input-radius);
   padding: 10px 12px;
   font: inherit;
@@ -235,13 +235,13 @@
   margin-left: auto;
 }
 .domain-page .error {
-  background: rgba(244, 63, 94, 0.08);
-  border-color: rgba(244, 63, 94, 0.3);
-  color: #fb7185;
+  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
+  border-color: color-mix(in srgb, var(--danger) 30%, var(--panel));
+  color: var(--danger);
 }
 .domain-page .success {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: color-mix(in srgb, var(--color-success) 8%, var(--panel));
+  border-color: color-mix(in srgb, var(--color-success) 30%, var(--panel));
   color: var(--accent);
 }
 .domain-page .badge {
@@ -255,11 +255,19 @@
   white-space: nowrap;
 }
 .domain-page .badge.danger {
-  background: rgba(244, 63, 94, 0.12);
-  color: #fb7185;
+  background: color-mix(in srgb, var(--danger) 12%, var(--panel));
+  color: var(--danger);
+}
+.domain-page .badge.status-ok {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--panel));
+  color: var(--color-success);
+}
+.domain-page .badge.status-warning {
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--panel));
+  color: var(--color-warning);
 }
 .domain-page .danger-text {
-  color: #fb7185;
+  color: var(--danger);
 }
 .loading {
   display: flex;
@@ -354,7 +362,7 @@
 .domain-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(3, 8, 18, 0.75);
+  background: var(--color-overlay);
   backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;

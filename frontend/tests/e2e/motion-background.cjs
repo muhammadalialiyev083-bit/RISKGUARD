@@ -62,32 +62,19 @@ const artifacts =
         body: JSON.stringify(data),
       });
     });
-    for (const time of [0, 10, 20]) {
-      await page.goto(base + "/dashboard?motion_t=" + time, {
-        waitUntil: "networkidle",
-      });
-      await page.waitForFunction((time) => {
-        const video = document.querySelector(".motion-background video");
-        return (
-          video?.readyState >= 2 &&
-          Math.abs(video.currentTime - (time % video.duration)) < 0.05 &&
-          video.paused
-        );
-      }, time);
-      await page.evaluate(async () => {
-        await document.fonts.ready;
-        for (const animation of document
-          .querySelector(".main-content")
-          .getAnimations())
-          animation.finish();
-        await new Promise((resolve) =>
-          requestAnimationFrame(() => requestAnimationFrame(resolve)),
-        );
-      });
-      await page.screenshot({
-        path: path.join(artifacts, `video-frozen-${time}.png`),
-      });
-    }
+    const dashboardMedia = [];
+    const trackDashboardMedia = (request) => {
+      if (request.url().includes("/media/uzhi-dashboard-")) {
+        dashboardMedia.push(request.url());
+      }
+    };
+    page.on("request", trackDashboardMedia);
+    await page.goto(base + "/dashboard", { waitUntil: "networkidle" });
+    await page.locator(".dashboard-welcome").waitFor();
+    assert.equal(await page.locator(".motion-background, .motion-controls, video").count(), 0);
+    assert.deepEqual(dashboardMedia, [], "dashboard should never request decorative background media");
+    page.off("request", trackDashboardMedia);
+    await page.screenshot({ path: path.join(artifacts, "dashboard-without-background.png") });
     let inspectingStandalone = true;
     const externalResources = [];
     page.on("request", request => {
@@ -121,29 +108,6 @@ const artifacts =
       !samples[0].equals(samples[1]),
       "the middle of the loop must move",
     );
-    await page.route("**/media/uzhi-dashboard-loop.mp4", (route) =>
-      route.abort(),
-    );
-    await page.goto(base + "/dashboard", { waitUntil: "networkidle" });
-    await page.locator('.motion-background[data-driver="mesh"]').waitFor();
-    assert.equal(
-      await page
-        .locator(".motion-background video")
-        .evaluate((video) => video.paused),
-      true,
-    );
-    await page
-      .getByRole("button", { name: "Fon harakatini to‘xtatish", exact: true })
-      .click();
-    assert.equal(
-      await page
-        .locator(".motion-mesh")
-        .evaluate((el) => getComputedStyle(el).animationPlayState),
-      "paused",
-    );
-    await page.screenshot({
-      path: path.join(artifacts, "video-unavailable-fallback.png"),
-    });
     assert.deepEqual(errors, []);
     console.log(
       JSON.stringify(
@@ -151,12 +115,10 @@ const artifacts =
           passed: true,
           artifacts,
           checks: [
-            "native video freeze 0/10/20 seconds",
+            "dashboard does not load decorative background media",
             "self-contained CSS preview",
             "identical loop seam",
             "changed mid-loop",
-            "media error fallback",
-            "pause control still works without the video",
             "no browser exceptions",
           ],
         },

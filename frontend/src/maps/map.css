@@ -1,14 +1,8 @@
 .map-page {
-  --map-backup: #e9b56a;
-  --map-partner: #a9bde2;
-  --map-water: color-mix(in srgb, var(--bg) 78%, var(--panel));
-  --map-land: color-mix(in srgb, var(--panel-2) 80%, var(--muted));
-}
-:root[data-theme="light"] .map-page {
-  --map-backup: #945914;
-  --map-partner: #536b9a;
-  --map-water: #e8f1f3;
-  --map-land: #d2e0dd;
+  --map-backup: var(--color-warning);
+  --map-partner: var(--color-info);
+  --map-water: var(--bg);
+  --map-land: color-mix(in srgb, var(--panel-2) 82%, var(--muted));
 }
 .map-page-heading {
   display: flex;

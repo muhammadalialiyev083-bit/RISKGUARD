@@ -19,7 +19,6 @@ import {
   DashboardWelcome,
   ExecutiveDashboard,
 } from "../experience/ExecutiveDashboard";
-import { MotionBackground } from "../experience/MotionBackground";
 import { MotionNav } from "../experience/MotionEffects";
 import {
   RiskMatrix,
@@ -484,6 +483,31 @@ const groups: string[][] = [
   ["risks", "controls"],
   ["simulation", "exercises"],
 ];
+function badgeClass(column: string, row: Row) {
+  const value = row[column];
+  switch (column) {
+    case "risk_score": {
+      const score = Number(value);
+      if (!Number.isFinite(score) || score < 1 || score > 25) return "badge";
+      const status = score >= 15 ? "danger" : score >= 7 ? "status-warning" : "status-ok";
+      return "badge " + status;
+    }
+    case "criticality":
+      return value === "CRITICAL" ? "badge danger" : "badge";
+    case "has_rpo_gap":
+      return value === true ? "badge status-warning" : value === false ? "badge status-ok" : "badge";
+    case "outcome_display":
+      if (row.outcome === "SUCCESS") return "badge status-ok";
+      if (row.outcome === "PARTIAL") return "badge status-warning";
+      if (row.outcome === "FAILED") return "badge danger";
+      return "badge";
+    case "status":
+      return "badge";
+    default:
+      return "";
+  }
+}
+
 const display = (value: any): string =>
   value === true
     ? "Ha"
@@ -763,7 +787,6 @@ export function DomainPage({
     <div
       className={`domain-page ${current === "dashboard" ? "dashboard-domain" : ""}`}
     >
-      {current === "dashboard" && <MotionBackground />}
       {current !== "dashboard" && (
         <div className="page-header">
           <div>
@@ -1039,6 +1062,7 @@ export function DomainPage({
             )}
             {current === "risks" && (
               <RiskMatrix
+                featured
                 risks={data.risks || []}
                 onSelect={(likelihood: number, impact: number) =>
                   setMatrix([likelihood, impact])
@@ -1139,18 +1163,7 @@ export function DomainPage({
                                   {c === "timestamp" ? (
                                     new Date(row[c]).toLocaleString("uz-UZ")
                                   ) : (
-                                    <span
-                                      className={
-                                        [
-                                          "status",
-                                          "criticality",
-                                          "risk_score",
-                                          "has_rpo_gap",
-                                        ].includes(c)
-                                          ? `badge ${row[c] === "CRITICAL" || row[c] === true || Number(row[c]) >= 15 ? "danger" : ""}`
-                                          : ""
-                                      }
-                                    >
+                                    <span className={badgeClass(c, row)}>
                                       {c === "from_id" || c === "to_id"
                                         ? `${(data[row[c === "from_id" ? "from_type" : "to_type"] === "PROCESS" ? "processes" : "assets"] || []).find((n) => n.id === row[c])?.name || row[c]}`
                                         : display(row[c])}
@@ -2005,14 +2018,16 @@ function SimulationResult({
 }) {
   return (
     <section className="panel">
-      <p className="eyebrow">SIMULYATSIYA NATIJASI</p>
-      <h2>{result.scenario_title}</h2>
-      <p>
-        {result.estimated_outage_hours} soat uzilish ·{" "}
-        {result.affected_processes_count} jarayonga ta’sir ·{" "}
-        {result.rto_breaches_count} RTO buzilishi · {result.missing_plans_count}{" "}
-        rejasiz jarayon
-      </p>
+      <header className="feature-summary">
+        <p className="eyebrow">Simulyatsiya natijasi</p>
+        <h2>{result.scenario_title}</h2>
+        <p>
+          {result.estimated_outage_hours} soat uzilish ·{" "}
+          {result.affected_processes_count} jarayonga ta’sir ·{" "}
+          {result.rto_breaches_count} RTO buzilishi · {result.missing_plans_count}{" "}
+          rejasiz jarayon
+        </p>
+      </header>
       <div className="table-wrap">
         <table>
           <thead>
@@ -2033,11 +2048,13 @@ function SimulationResult({
                 <td>{p.target_rto_hours}</td>
                 <td>{p.target_mtpd_hours}</td>
                 <td>
-                  {p.mtpd_breached
-                    ? "MTPD buziladi"
-                    : p.rto_breached
-                      ? "RTO buziladi"
-                      : "Maqsadga mos"}
+                  <span className={`badge ${p.mtpd_breached || p.rto_breached ? "danger" : "status-ok"}`}>
+                    {p.mtpd_breached
+                      ? "MTPD buziladi"
+                      : p.rto_breached
+                        ? "RTO buziladi"
+                        : "Maqsadga mos"}
+                  </span>
                 </td>
                 <td>{p.has_published_plan ? "Mavjud" : "Yetishmaydi"}</td>
               </tr>

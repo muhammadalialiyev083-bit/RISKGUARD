@@ -2,39 +2,39 @@
   "primitive": {
     "color": {
       "ink": {
-        "$value": "#102433",
+        "$value": "#19172A",
         "$description": "ink palette value"
       },
       "panel": {
-        "$value": "#162F40",
+        "$value": "#232138",
         "$description": "panel palette value"
       },
       "raised": {
-        "$value": "#1D3A4C",
+        "$value": "#2B2843",
         "$description": "raised palette value"
       },
-      "teal": {
-        "$value": "#52CAB4",
-        "$description": "teal palette value"
+      "indigo-light": {
+        "$value": "#B9A6EF",
+        "$description": "indigo-light palette value"
       },
-      "teal-dark": {
-        "$value": "#08786D",
-        "$description": "teal-dark palette value"
+      "indigo": {
+        "$value": "#504082",
+        "$description": "indigo palette value"
       },
-      "teal-hover": {
-        "$value": "#70D9C5",
-        "$description": "teal-hover palette value"
+      "indigo-light-hover": {
+        "$value": "#CBBBF7",
+        "$description": "indigo-light-hover palette value"
       },
-      "teal-deep": {
-        "$value": "#06695F",
-        "$description": "teal-deep palette value"
+      "indigo-hover": {
+        "$value": "#40336B",
+        "$description": "indigo-hover palette value"
       },
       "slate": {
-        "$value": "#AAC0CA",
+        "$value": "#B9B1D2",
         "$description": "slate palette value"
       },
       "mist": {
-        "$value": "#EDF3F3",
+        "$value": "#F0EBFC",
         "$description": "mist palette value"
       },
       "paper": {
@@ -42,19 +42,19 @@
         "$description": "paper palette value"
       },
       "line-dark": {
-        "$value": "#315064",
+        "$value": "#3C3654",
         "$description": "line-dark palette value"
       },
       "line-light": {
-        "$value": "#CEDCDF",
+        "$value": "#DDD9EA",
         "$description": "line-light palette value"
       },
       "muted-light": {
-        "$value": "#516672",
+        "$value": "#5C5879",
         "$description": "muted-light palette value"
       },
       "soft-light": {
-        "$value": "#F5F8F8",
+        "$value": "#F7F5FC",
         "$description": "soft-light palette value"
       },
       "danger-dark": {
@@ -62,7 +62,7 @@
         "$description": "danger-dark palette value"
       },
       "danger-light": {
-        "$value": "#B9384E",
+        "$value": "#9F324A",
         "$description": "danger-light palette value"
       },
       "transparent": {
@@ -196,15 +196,15 @@
         "$description": "Separators"
       },
       "primary": {
-        "$value": "var(--primitive-color-teal)",
+        "$value": "var(--primitive-color-indigo-light)",
         "$description": "Primary actions"
       },
       "primary-hover": {
-        "$value": "var(--primitive-color-teal-hover)",
+        "$value": "var(--primitive-color-indigo-light-hover)",
         "$description": "Primary action hover"
       },
       "on-primary": {
-        "$value": "var(--primitive-color-ink)",
+        "$value": "#22183B",
         "$description": "Text on a primary action"
       },
       "danger": {
@@ -214,6 +214,50 @@
       "accent-soft": {
         "$value": "color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))",
         "$description": "Quiet selected surface"
+      },
+      "sidebar": {
+        "$value": "#1E1B32",
+        "$description": "Sidebar surface"
+      },
+      "selected": {
+        "$value": "#392F58",
+        "$description": "Active navigation surface"
+      },
+      "on-selected": {
+        "$value": "#F0EBFC",
+        "$description": "Active navigation text"
+      },
+      "control-border": {
+        "$value": "#786D98",
+        "$description": "Visible input boundary"
+      },
+      "success": {
+        "$value": "#8DD9AE",
+        "$description": "Successful or low risk"
+      },
+      "warning": {
+        "$value": "#F1CB88",
+        "$description": "Needs review or medium risk"
+      },
+      "info": {
+        "$value": "#BECCF5",
+        "$description": "Informational chart marks"
+      },
+      "overlay": {
+        "$value": "rgb(14 11 30 / 72%)",
+        "$description": "Dialog scrim"
+      },
+      "feature-gradient": {
+        "$value": "linear-gradient(118deg, #32235F, #594580)",
+        "$description": "Featured results"
+      },
+      "on-gradient": {
+        "$value": "#FFFFFF",
+        "$description": "Text on featured surfaces"
+      },
+      "gradient-line": {
+        "$value": "rgb(255 255 255 / 40%)",
+        "$description": "Featured surface separators"
       }
     },
     "font-family": {
@@ -272,11 +316,11 @@
     },
     "input": {
       "bg": {
-        "$value": "var(--color-background)",
+        "$value": "var(--color-surface)",
         "$description": "Input surface"
       },
       "border": {
-        "$value": "var(--color-border)",
+        "$value": "var(--color-control-border)",
         "$description": "Input outline"
       },
       "height": {
@@ -318,23 +362,23 @@
     },
     "auth": {
       "bg": {
-        "$value": "var(--primitive-color-ink)",
+        "$value": "var(--color-feature-gradient)",
         "$description": "Brand story background"
       },
       "fg": {
-        "$value": "var(--primitive-color-mist)",
+        "$value": "var(--color-on-gradient)",
         "$description": "Brand story text"
       },
       "muted": {
-        "$value": "var(--primitive-color-slate)",
+        "$value": "var(--color-on-gradient)",
         "$description": "Brand story supporting copy"
       },
       "accent": {
-        "$value": "var(--primitive-color-teal)",
+        "$value": "var(--color-on-gradient)",
         "$description": "Continuity path accent"
       },
       "border": {
-        "$value": "var(--primitive-color-line-dark)",
+        "$value": "var(--color-gradient-line)",
         "$description": "Continuity path line"
       }
     }

@@ -101,7 +101,7 @@ export function SectionGuide({
         )}
         <div className="section-guide-actions">
           {onStart && (
-            <button className="btn btn-primary btn-small" onClick={onStart}>
+            <button className="btn btn-small" onClick={onStart}>
               <Plus size={14} />
               {readonly ? "Reestrni ko‘rish" : guide.primary}
             </button>

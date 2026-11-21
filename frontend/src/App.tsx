@@ -580,7 +580,7 @@ export function App() {
               </button>
               {user.role !== "AUDITOR" && (
                 <button
-                  className="btn btn-primary btn-small"
+                  className="btn btn-small incident-shortcut"
                   onClick={() => navigate("incidents")}
                 >
                   <Plus size={14} /> Hodisa ochish

@@ -13,11 +13,11 @@
   border-radius: 7px;
   transform-origin: center;
 }
-.motion-sidebar-nav .motion-selection { box-shadow: inset 3px 0 0 var(--accent); }
+.motion-sidebar-nav .motion-selection { background: var(--color-selected); border: 0; }
 .motion-sidebar-nav .nav-item.active,
 .motion-nav.tabs button.active { background: transparent; box-shadow: none; border-color: transparent; }
 .motion-nav .nav-group, .motion-nav > button { position: relative; }
-.motion-sidebar-nav .nav-item:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.motion-sidebar-nav .nav-item:not(.active):hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
 html[data-ui-motion="on"] :is(.btn, .executive-kpi, .coverage-widget, .getting-started li button, .profile-card) {
   transition: transform var(--motion-duration) var(--motion-ease), border-color 150ms, background-color 150ms, box-shadow var(--motion-duration);
 }
@@ -38,7 +38,7 @@ html[data-ui-motion="on"] .section-guide:hover .section-illustration { opacity: 
 .kpi-expand { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 28px; height: 28px; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 6px; }
 .kpi-expand:hover { color: var(--accent); border-color: var(--accent); }
 .kpi-focus-dialog { width: min(500px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 28px; background: var(--panel); color: var(--text); border: 1px solid var(--accent); border-radius: 14px; box-shadow: var(--shadow); }
-.kpi-focus-dialog::backdrop { background: #081720bb; backdrop-filter: blur(5px); }
+.kpi-focus-dialog::backdrop { background: var(--color-overlay); backdrop-filter: blur(5px); }
 .metric-focus-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
 .metric-focus-heading p { margin: 0; color: var(--accent); font-size: 11px; }
 .metric-focus-value { display: block; font-size: clamp(56px, 12vw, 88px); font-weight: 500; line-height: 1.2; margin: 12px 0 20px; color: var(--accent); font-variant-numeric: tabular-nums; }
@@ -54,11 +54,11 @@ html[data-ui-motion="on"] .section-guide:hover .section-illustration { opacity: 
   overflow-y: auto;
   box-shadow: var(--shadow);
 }
-.walkthrough-dialog::backdrop { background: #081720cc; backdrop-filter: blur(8px); }
+.walkthrough-dialog::backdrop { background: var(--color-overlay); backdrop-filter: blur(8px); }
 .walkthrough-heading { display: flex; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .walkthrough-heading h2 { margin-bottom: 0; font-size: clamp(18px, 2.5vw, 24px); }
 .walkthrough-heading .eyebrow { color: var(--accent); margin-bottom: 6px; }
-.walkthrough-dialog iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--border); border-radius: 10px; background: #102433; }
+.walkthrough-dialog iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
 .walkthrough-controls { display: flex; align-items: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 .walkthrough-controls p { flex: 1 1 260px; font-size: 12px; color: var(--muted); margin: 0; }
 .walkthrough-controls .btn { white-space: nowrap; }
@@ -72,10 +72,10 @@ html[data-ui-motion="on"] .section-guide:hover .section-illustration { opacity: 
 .morph-grid { stroke: var(--border); stroke-width: 1; opacity: .6; }
 .morph-value, .morph-label { text-anchor: middle; font-size: 11px; fill: var(--muted); }
 .morph-value { font-weight: 600; fill: var(--text); }
-.morph-bar.level-critical { fill: #fb7185; }
-.morph-bar.level-high { fill: #fbbf24; }
-.morph-bar.level-medium { fill: #38bdf8; }
-.morph-bar.level-low { fill: #34d399; }
+.morph-bar.level-critical { fill: var(--danger); }
+.morph-bar.level-high { fill: var(--color-warning); }
+.morph-bar.level-medium { fill: var(--color-info); }
+.morph-bar.level-low { fill: var(--color-success); }
 .dependency-pulse { pointer-events: none; }
 html[data-ui-motion="off"] :is(.btn, .executive-kpi, .coverage-widget, .getting-started li button, .profile-card, .section-illustration, .bar-fill, .risk-cell) { transition: none !important; }
 html[data-ui-motion="off"] .dependency-pulse { opacity: 0 !important; }
