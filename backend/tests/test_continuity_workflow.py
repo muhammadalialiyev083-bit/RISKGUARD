@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 from apps.authentication.models import User
 from apps.bia.models import BIAAssessment
 from apps.core.models import AuditLog
-from apps.operations.models import ImprovementTask
+from apps.operations.models import ContinuityMap, ImprovementTask
 from apps.organizations.models import Organization, Service
 from apps.plans.models import ContinuityPlan, PlanStep
 from apps.processes.models import Asset, BusinessProcess, Dependency
@@ -143,20 +143,21 @@ def test_review_tasks_and_exercise_evidence_are_idempotent(pilot):
     assert AuditLog.objects.filter(entity='ImprovementTask', action='CREATE').count() == 2
 
 
-def test_shared_map_and_service_evidence_tenant_scope(pilot):
-    org, service, _, admin, client = pilot
+def test_service_evidence_tenant_scope(pilot):
+    org, service, _, _, client = pilot
     outsider_org = Organization.objects.create(name='Boshqa tashkilot', sector='IT')
     foreign_service = Service.objects.create(organization=outsider_org, name='Boshqa xizmat')
-    foreign_asset = Asset.objects.create(organization=outsider_org, name='Boshqa aktiv', type='SERVER')
     assert client.get(f'/api/v1/services/{foreign_service.pk}/continuity/').status_code == 404
-    stop = {'id': 'pilot', 'kind': 'office', 'name': 'Universitet', 'latitude': 41.3, 'longitude': 69.24}
-    payload = {'version': 1, 'revision': 0, 'stops': [{**stop, 'link': {'resource': 'assets', 'id': foreign_asset.pk}}]}
-    assert client.put('/api/v1/continuity-map', payload, format='json').status_code == 400
-    payload['stops'] = [stop]
-    assert client.put('/api/v1/continuity-map', payload, format='json').status_code == 200
-    assert client.put('/api/v1/continuity-map', payload, format='json').status_code == 409
     auditor = User.objects.create_user(username='pilot-audit', organization=org, role='AUDITOR')
     client.force_authenticate(auditor)
-    assert client.get('/api/v1/continuity-map').data['stops'] == [stop]
     assert client.get(f'/api/v1/services/{service.pk}/continuity/').status_code == 200
-    assert client.put('/api/v1/continuity-map', {**payload, 'revision': 1}, format='json').status_code == 403
+
+
+def test_regional_map_route_is_retired_without_dropping_saved_plans(pilot):
+    org, _, _, _, client = pilot
+    stops = [{'id': 'pilot', 'name': 'Universitet', 'latitude': 41.3, 'longitude': 69.24}]
+    old_plan = ContinuityMap.objects.create(organization=org, stops=stops, revision=2)
+    assert client.get('/api/v1/continuity-map').status_code == 404
+    assert client.put('/api/v1/continuity-map', {'stops': []}, format='json').status_code == 404
+    old_plan.refresh_from_db()
+    assert old_plan.stops == stops and old_plan.revision == 2

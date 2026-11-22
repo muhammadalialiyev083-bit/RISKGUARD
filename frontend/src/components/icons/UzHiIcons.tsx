@@ -7,11 +7,6 @@ const glyphs = {
     <path d="M14 3h7v6h-7zM14 12h7v9h-7zM3 16h8v5H3z" />
     <path d="M6 6h2v2H6z" fill={spark} stroke="none" />
   </>,
-  map: <>
-    <path d="m2.5 12 9.5-8 9.5 8-9.5 8z" fill={accent} />
-    <path d="m7.5 12 4.5-4 4.5 4-4.5 4zM12 2v2m0 16v2" />
-    <circle cx="12" cy="12" r="1.5" fill={spark} stroke="none" />
-  </>,
   reports: <>
     <path d="M5 3h10l4 4v14H5z" fill={accent} />
     <path d="M15 3v5h4M8 17v-3m4 3v-6m4 6v-5" />
@@ -239,22 +234,6 @@ const glyphs = {
     <path d="M3 15v5h18v-5" fill={accent} />
     <path d="M12 3v11m-4-4 4 4 4-4" />
     <path d="M11 16h2v2h-2z" fill={spark} stroke="none" />
-  </>,
-  upload: <>
-    <path d="M3 15v5h18v-5" fill={accent} />
-    <path d="M12 14V3m-4 4 4-4 4 4" />
-    <path d="M11 16h2v2h-2z" fill={spark} stroke="none" />
-  </>,
-  pin: <>
-    <path d="M5 6 8 3h8l3 3v7l-7 8-7-8z" fill={accent} />
-    <path d="m9 10 3-3 3 3-3 3z" />
-    <circle cx="12" cy="10" r="1.1" fill={spark} stroke="none" />
-  </>,
-  globe: <>
-    <circle cx="12" cy="12" r="9" fill={accent} />
-    <ellipse cx="12" cy="12" rx="4" ry="9" />
-    <path d="M3 12h18" />
-    <circle cx="16" cy="12" r="1.3" fill={spark} stroke="none" />
   </>,
   pencil: <>
     <path d="m4 15 11-11h3l2 2v3L9 20H4z" fill={accent} />

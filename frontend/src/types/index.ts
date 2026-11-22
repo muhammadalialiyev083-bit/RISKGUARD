@@ -12,6 +12,7 @@ export interface User {
     | "APPROVER"
     | "AUDITOR";
   role_display: string;
+  is_demo_viewer?: boolean;
   organization: number;
   organization_detail?: {
     id: number;

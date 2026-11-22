@@ -26,6 +26,16 @@ def bia_basis(assessment):
     }
 
 
+def publication_snapshot(plan, assessment):
+    snapshot = plan.snapshot or {
+        'title': plan.title, 'version': plan.version, 'scope': plan.scope,
+        'steps': list(plan.steps.values(
+            'sequence', 'title', 'description', 'assigned_to_id', 'expected_duration_minutes',
+        )),
+    }
+    return {**snapshot, 'bia': bia_basis(assessment)}
+
+
 def step_issues(plan, steps):
     if not steps:
         return ['Tiklanish qadamlari kiritilmagan.']

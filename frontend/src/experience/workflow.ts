@@ -166,9 +166,9 @@ export const guides: Record<string, ModuleGuide> = {
         "Bog‘liqlik yaratish",
       ),
       step(
-        "Jismoniy yoki zaxira manzilni xaritada rejalashtiring.",
-        "map",
-        "Hududiy xarita",
+        "Tashqi aktivga xizmat ko‘rsatadigan provayderni tekshiring.",
+        "providers",
+        "Provayderlar",
       ),
     ],
   },
@@ -589,33 +589,6 @@ export const guides: Record<string, ModuleGuide> = {
       ),
     ],
   },
-  map: {
-    title: "Manzildan yo‘nalishgacha",
-    purpose:
-      "Asosiy va zaxira joylashuvlarni geografik tiklanish ketma-ketligida ko‘ring.",
-    resource: "map",
-    field: "kind",
-    primary: "Manzil qo‘shish",
-    previous: "assets",
-    next: "plans",
-    steps: [
-      step(
-        "Mening rejam rejimida shahar yoki aniq koordinatani kiriting.",
-        "map?focus=work",
-        "Manzil qo‘shish",
-      ),
-      step(
-        "Manzillarni tartiblang, xaritada yaqinlashtiring va animatsiyani ijro eting.",
-        "map?focus=work",
-        "Yo‘nalishni ko‘rish",
-      ),
-      step(
-        "GeoJSON nusxani saqlang va tiklanish rejasini tuzing.",
-        "plans",
-        "Rejalarga o‘tish",
-      ),
-    ],
-  },
 };
 
 export const labels: Record<string, string> = {
@@ -638,7 +611,6 @@ export const labels: Record<string, string> = {
   reports: "Hisobotlar",
   audit: "Audit",
   settings: "Profil",
-  map: "Hududiy xarita",
   departments: "Bo‘limlar",
   services: "Xizmatlar",
   users: "Foydalanuvchilar",

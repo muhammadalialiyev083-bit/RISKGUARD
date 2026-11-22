@@ -155,10 +155,24 @@ if (!username || !password)
       .getByRole("alert")
       .filter({ hasText: /Havola/ })
       .waitFor();
+    await page.goto(base + "/auth/login");
+    await page.getByRole("button", { name: "Demo yozuvlarini ko‘rish", exact: true }).click();
+    await page.getByText("Demo · Faqat ko‘rish", { exact: true }).waitFor();
+    await page.locator(".metric-total_processes strong").waitFor();
+    assert.equal(await page.locator(".metric-total_processes strong").innerText(), "3");
+    await page.goto(base + "/simulation");
+    await page.getByRole("button", { name: "Namuna natijasini ko‘rish", exact: true }).click();
+    const impact = page.getByRole("table", { name: "Uzilish ta’siri" });
+    const classroom = impact.getByRole("row").filter({ hasText: "Masofaviy darslarni o‘tkazish" });
+    await classroom.getByText("RTO chegarasi buzilgan", { exact: true }).waitFor();
+    await classroom.getByRole("button", { name: "Reja v1.0", exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.getByRole("button", { name: "Tizimdan chiqish", exact: true }).click();
+    await page.getByRole("heading", { name: "Hisobingizga kirish", exact: true }).waitFor();
     assert.deepEqual(errors, [], "uncaught browser errors");
     assert.deepEqual(serverErrors, [], "unexpected server failures");
     console.log(
-      "PASS auth browser: protected URL, invalid password, show/hide, login, refresh, brand logo, theme, keyboard search, mobile navigation/settings, logout/relogin, Google result, expired reset; no page errors or HTTP 5xx",
+      "PASS auth browser: protected URL, login, logout, theme, mobile, Google result, expired reset and read-only demo; no page errors or HTTP 5xx",
     );
   } finally {
     await browser.close();

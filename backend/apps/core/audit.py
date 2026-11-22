@@ -18,6 +18,8 @@ def record_audit(request=None, action='UPDATE', entity='', entity_id='', before_
     if request:
         if not actor and hasattr(request, 'user') and request.user.is_authenticated:
             actor = request.user
+        if getattr(actor, 'is_demo_viewer', False):
+            return None
         if not organization and actor and hasattr(actor, 'organization'):
             organization = actor.organization
         ip = get_client_ip(request)

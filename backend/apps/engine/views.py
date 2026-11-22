@@ -50,8 +50,10 @@ class PriorityAnalysisView(views.APIView):
             result = PriorityEngine.calculate_priority(proc)
             return Response(result, status=status.HTTP_200_OK)
 
-        # Butun tashkilot bo'yicha hisoblash
-        procs = BusinessProcess.objects.filter(organization=user.organization)
+        return self.get(request)
+
+    def get(self, request):
+        procs = BusinessProcess.objects.filter(organization=request.user.organization)
         results = [PriorityEngine.calculate_priority(p) for p in procs]
         results.sort(key=lambda x: x['priority_score'], reverse=True)
 

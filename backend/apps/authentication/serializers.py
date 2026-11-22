@@ -22,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
     organization_detail = OrganizationSummarySerializer(source='organization', read_only=True)
     department_detail = DepartmentSummarySerializer(source='department', read_only=True)
     role_display = serializers.CharField(source='get_role_display', read_only=True)
+    is_demo_viewer = serializers.BooleanField(read_only=True)
     google_linked = serializers.SerializerMethodField()
 
     def get_google_linked(self, obj):
@@ -32,7 +33,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
             'role', 'role_display', 'organization', 'organization_detail',
-            'department', 'department_detail', 'phone', 'is_active', 'date_joined', 'preferences', 'google_linked'
+            'department', 'department_detail', 'phone', 'is_active', 'date_joined', 'preferences', 'google_linked',
+            'is_demo_viewer',
         ]
         read_only_fields = ['id', 'date_joined']
 

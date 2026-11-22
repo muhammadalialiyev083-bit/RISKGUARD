@@ -14,6 +14,7 @@ class User(AbstractUser):
     ROLE_RISK_ANALYST = 'RISK_ANALYST'
     ROLE_APPROVER = 'APPROVER'
     ROLE_AUDITOR = 'AUDITOR'
+    DEMO_USERNAME = 'uzhi_demo_viewer'
 
     ROLE_CHOICES = [
         (ROLE_ADMIN, 'Administrator'),
@@ -70,6 +71,15 @@ class User(AbstractUser):
     @property
     def is_auditor(self):
         return self.role == self.ROLE_AUDITOR
+
+    @property
+    def is_demo_viewer(self):
+        return (
+            self.username == self.DEMO_USERNAME and self.is_active
+            and self.is_auditor and not self.is_superuser and not self.is_staff
+            and bool(self.organization_id and self.organization.is_demo)
+            and not self.has_usable_password()
+        )
 
 
 class GoogleIdentity(models.Model):

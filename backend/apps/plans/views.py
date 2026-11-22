@@ -11,7 +11,7 @@ from rest_framework.exceptions import ValidationError
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from apps.plans.models import Strategy, ContinuityPlan, PlanStep
-from apps.plans.readiness import approved_assessments, bia_basis, readiness_label, step_issues
+from apps.plans.readiness import approved_assessments, publication_snapshot, readiness_label, step_issues
 from apps.processes.models import BusinessProcess
 from apps.plans.serializers import StrategySerializer, ContinuityPlanSerializer, PlanStepSerializer
 from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, IsApproverRole
@@ -140,16 +140,11 @@ class ContinuityPlanViewSet(AuditedModelViewSet):
             issues.append('Avval jarayonning BIA baholashini tasdiqlang.')
         if issues:
             raise ValidationError({'detail': ' '.join(issues)})
-        basis = bia_basis(assessment)
         before_status = plan.status
         plan.status = 'PUBLISHED'
         plan.approved_by = request.user
         plan.approved_at = timezone.now()
-        if not plan.snapshot:
-            plan.snapshot = {'title': plan.title, 'version': plan.version, 'scope': plan.scope,
-                             'steps': list(plan.steps.values('sequence', 'title', 'description',
-                                         'assigned_to_id', 'expected_duration_minutes'))}
-        plan.snapshot = {**plan.snapshot, 'bia': basis}
+        plan.snapshot = publication_snapshot(plan, assessment)
         plan.save()
 
         record_audit(
@@ -158,7 +153,7 @@ class ContinuityPlanViewSet(AuditedModelViewSet):
             entity='ContinuityPlan',
             entity_id=plan.id,
             before_state={'status': before_status},
-            after_state={'status': 'PUBLISHED', 'approved_by': request.user.username, 'bia': basis}
+            after_state={'status': 'PUBLISHED', 'approved_by': request.user.username, 'bia': plan.snapshot['bia']}
         )
 
         return Response({

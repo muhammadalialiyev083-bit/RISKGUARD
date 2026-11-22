@@ -2,6 +2,7 @@ import { PublicScenario } from "./PublicScenario";
 import { useEffect, useState, type FormEvent } from "react";
 import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { api, clearSessionRequests } from "../api/client";
+import type { User } from "../types";
 import { Brand } from "../components/Brand";
 import { ProductWalkthrough } from "../experience/ProductWalkthrough";
 
@@ -80,6 +81,24 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
       next === "forgot" ? "/auth/forgot" : "/auth/login",
     );
   }
+  function enterWorkspace(user: User) {
+    onLogin(user);
+    window.history.replaceState({}, "", "/dashboard");
+  }
+  async function openDemo() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      clearSessionRequests();
+      const result = await api.demoLogin();
+      enterWorkspace(result.user);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (busy) return;
@@ -93,8 +112,7 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
           username: String(d.username),
           password: String(d.password),
         });
-        onLogin(result.user);
-        window.history.replaceState({}, "", "/dashboard");
+        enterWorkspace(result.user);
       } else if (mode === "forgot") {
         await api.post("/auth/password/reset", { email: d.email });
         setSent(true);
@@ -148,6 +166,9 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
             <div className="auth-demo-entry">
               <p className="auth-mobile-intro">Uzilish ta’sirini baholang va tiklanishni rejalang.</p>
               <PublicScenario />
+              <button className="btn btn-wide demo-entry-button" disabled={busy} onClick={openDemo}>
+                Demo yozuvlarini ko‘rish <UzHiIcon name="arrowRight" size={16} />
+              </button>
             </div>
           )}
           <h2>
@@ -337,6 +358,18 @@ export function AccountPage({
     } finally {
       setBusy(false);
     }
+  }
+  if (user.is_demo_viewer) {
+    return (
+      <section className="panel">
+        <h1>Shaxsiy sozlamalar</h1>
+        <dl className="domain-detail">
+          <div><dt>Ism</dt><dd>{user.first_name} {user.last_name}</dd></div>
+          <div><dt>Login</dt><dd>{user.username}</dd></div>
+          <div><dt>Rol</dt><dd>{user.role_display}</dd></div>
+        </dl>
+      </section>
+    );
   }
   return (
     <section>

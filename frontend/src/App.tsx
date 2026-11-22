@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { UzHiIcon, type UzHiIconName } from "./components/icons/UzHiIcons";
 import { BubbleIcon } from "./components/ui/BubbleIcon";
 import { api, clearSessionRequests } from "./api/client";
@@ -10,14 +10,11 @@ import { ISOEvidence } from "./pages/ContinuityDetails";
 import { SectionGuide } from "./experience/SectionGuide";
 import { MotionNav, MotionToggle } from "./experience/MotionEffects";
 
-const ContinuityMapPage = lazy(() => import("./maps/ContinuityMapPage"));
-
 const groups: { name: string; items: [key: string, label: string, icon: UzHiIconName][] }[] = [
   {
     name: "Boshqaruv markazi",
     items: [
       ["dashboard", "Boshqaruv paneli", "dashboard"],
-      ["map", "Hududiy xarita", "map"],
       ["reports", "Hisobotlar", "reports"],
     ],
   },
@@ -184,10 +181,15 @@ export function App() {
     return () => window.removeEventListener("uzhi:session-expired", expired);
   }, []);
   useEffect(() => {
+    const retiredMap = /^\/map(?:\/|$)/;
     const pop = () => {
+      if (retiredMap.test(window.location.pathname)) {
+        window.history.replaceState({}, "", "/dashboard");
+      }
       setPage(initialPage());
       setVersion((value) => value + 1);
     };
+    if (retiredMap.test(window.location.pathname)) pop();
     window.addEventListener("popstate", pop);
     return () => window.removeEventListener("popstate", pop);
   }, []);
@@ -537,8 +539,8 @@ export function App() {
               <UzHiIcon name="organization" size={15} />
               {user.organization_detail?.name || "Tashkilot biriktirilmagan"}
             </span>
-            <span className="context-role">
-              {user.role_display || user.role}
+            <span className={user.is_demo_viewer ? "context-role demo-role" : "context-role"}>
+              {user.is_demo_viewer ? "Demo · Faqat ko‘rish" : user.role_display || user.role}
             </span>
             <div className="context-tools">
               <button
@@ -563,44 +565,32 @@ export function App() {
           className="main-content"
           key={`${user.id}-${page}-${version}`}
         >
-          {page === "map" ? (
-            <Suspense
-              fallback={
-                <div className="panel loading" role="status">
-                  Xarita yuklanmoqda…
-                </div>
-              }
-            >
-              <ContinuityMapPage
-                key={`${user.organization}:${user.id}`}
-                user={user}
-                onNavigate={navigate}
-              />
-            </Suspense>
-          ) : page === "settings" ? (
+          {page === "settings" ? (
             <>
-              <SectionGuide
-                module="settings"
-                user={user}
-                onNavigate={(target) => {
-                  if (target.startsWith("settings")) {
+              {!user.is_demo_viewer && (
+                <SectionGuide
+                  module="settings"
+                  user={user}
+                  onNavigate={(target) => {
+                    if (target.startsWith("settings")) {
+                      const input = document.querySelector(
+                        target.includes("security")
+                          ? '#main input[name="current_password"]'
+                          : "#main form input",
+                      ) as HTMLInputElement | null;
+                      input?.focus();
+                      input?.scrollIntoView({ block: "center" });
+                    } else navigate(target);
+                  }}
+                  onStart={() => {
                     const input = document.querySelector(
-                      target.includes("security")
-                        ? '#main input[name="current_password"]'
-                        : "#main form input",
+                      "#main form input",
                     ) as HTMLInputElement | null;
                     input?.focus();
                     input?.scrollIntoView({ block: "center" });
-                  } else navigate(target);
-                }}
-                onStart={() => {
-                  const input = document.querySelector(
-                    "#main form input",
-                  ) as HTMLInputElement | null;
-                  input?.focus();
-                  input?.scrollIntoView({ block: "center" });
-                }}
-              />
+                  }}
+                />
+              )}
               <div id="module-workspace" />
               <AccountPage
                 user={user}

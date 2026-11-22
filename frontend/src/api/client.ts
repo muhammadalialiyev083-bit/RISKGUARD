@@ -163,6 +163,20 @@ async function request<T>(
   );
 }
 
+async function startSession(
+  endpoint: "/auth/login" | "/auth/demo",
+  credentials?: { username: string; password: string },
+) {
+  const result = await request<{
+    message: string;
+    user: User;
+    csrfToken?: string;
+  }>(endpoint, { method: "POST", body: JSON.stringify(credentials) });
+  // Django rotates CSRF on login. Older servers may omit the new token.
+  csrfToken = result.csrfToken || null;
+  return result;
+}
+
 export const api = {
   put: (path: string, data: any) =>
     request<any>(path, { method: "PUT", body: JSON.stringify(data) }),
@@ -227,19 +241,9 @@ export const api = {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   },
   // Auth: token fields verified against the retained deployed JS bundle.
-  login: async (credentials: { username: string; password: string }) => {
-    const result = await request<{
-      message: string;
-      user: User;
-      csrfToken?: string;
-    }>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(credentials),
-    });
-    // Django rotates CSRF on login. Older servers may omit the new token.
-    csrfToken = result.csrfToken || null;
-    return result;
-  },
+  login: (credentials: { username: string; password: string }) =>
+    startSession("/auth/login", credentials),
+  demoLogin: () => startSession("/auth/demo"),
   logout: async () => {
     const result = await request<{ message: string; csrfToken?: string }>(
       "/auth/logout",

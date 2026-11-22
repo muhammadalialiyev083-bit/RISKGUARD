@@ -72,6 +72,8 @@ class ImprovementTask(BaseTenantModel):
 
 
 class ContinuityMap(models.Model):
+    """Historical regional plans retained after the module was retired."""
+
     organization = models.OneToOneField('organizations.Organization', on_delete=models.CASCADE)
     stops = models.JSONField(default=list)
     revision = models.PositiveIntegerField(default=0)

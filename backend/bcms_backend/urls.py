@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from apps.authentication.views import LoginView, LogoutView, MeView, UserViewSet, CSRFTokenView
+from apps.authentication.views import LoginView, DemoLoginView, LogoutView, MeView, UserViewSet, CSRFTokenView
 from apps.organizations.views import OrganizationViewSet, DepartmentViewSet, ServiceViewSet
 from apps.core.views import AuditLogViewSet
 from apps.processes.views import BusinessProcessViewSet, AssetViewSet, DependencyViewSet
@@ -13,7 +13,6 @@ from apps.simulation.views import ScenarioViewSet, ExerciseViewSet
 from apps.engine.views import PriorityAnalysisView, EvaluateRiskAlgorithmView, EvaluateStrategyView
 from apps.reports.views import OrganizationDashboardReportView
 from apps.reports.evidence import ISOEvidenceView
-from apps.operations.map_views import ContinuityMapView
 
 from apps.operations.views import ProviderViewSet, IncidentViewSet, ImprovementTaskViewSet, SimulationRunViewSet
 
@@ -52,6 +51,7 @@ urlpatterns = [
     # Autentifikatsiya (FR-01)
     path('api/v1/auth/csrf', CSRFTokenView.as_view(), name='auth-csrf'),
     path('api/v1/auth/login', LoginView.as_view(), name='auth-login'),
+    path('api/v1/auth/demo', DemoLoginView.as_view(), name='auth-demo'),
     path('api/v1/auth/logout', LogoutView.as_view(), name='auth-logout'),
     path('api/v1/auth/me', MeView.as_view(), name='auth-me'),
 
@@ -63,7 +63,6 @@ urlpatterns = [
     # Dashboard konsolidatsiyasi (FR-11)
     path('api/v1/reports/organization', OrganizationDashboardReportView.as_view(), name='report-dashboard'),
     path('api/v1/reports/iso22301', ISOEvidenceView.as_view(), name='iso-evidence'),
-    path('api/v1/continuity-map', ContinuityMapView.as_view(), name='continuity-map'),
 
     # Resurs routerlari
     path('api/v1/', include(router.urls)),

@@ -1,4 +1,5 @@
 from django.middleware.csrf import get_token
+from django.db import IntegrityError
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from rest_framework.authentication import SessionAuthentication
@@ -50,6 +51,39 @@ class LoginView(views.APIView):
 
 
 @method_decorator(never_cache, name='dispatch')
+class DemoLoginView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        from apps.core.demo_data import DemoUnavailable, demo_viewer
+
+        SessionAuthentication().enforce_csrf(request)
+        if request.user.is_authenticated:
+            if not request.user.is_demo_viewer:
+                return Response(
+                    {'detail': 'Demo rejimiga kirish uchun joriy hisobdan chiqing.'},
+                    status=status.HTTP_409_CONFLICT,
+                )
+            viewer = request.user
+        else:
+            rate_limit(request, 'demo-login', limit=20, seconds=900)
+            try:
+                viewer = demo_viewer()
+            except (DemoUnavailable, IntegrityError):
+                return Response(
+                    {'detail': 'Demo ish maydoni hozircha ochilmadi. Keyinroq qayta urinib ko‘ring.'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            login(request, viewer, backend='django.contrib.auth.backends.ModelBackend')
+
+        return Response({
+            'message': 'Demo ish maydoni ochildi.',
+            'user': UserSerializer(viewer).data,
+            'csrfToken': get_token(request),
+        })
+
+
+@method_decorator(never_cache, name='dispatch')
 class LogoutView(views.APIView):
     """
     FR-01: Tizimdan chiqish (Logout).
@@ -86,6 +120,8 @@ class MeView(views.APIView):
 
     def patch(self, request):
         from apps.authentication.security_views import ProfileSerializer
+        if request.user.is_demo_viewer:
+            return Response({'detail': 'Demo profili faqat ko‘rish uchun.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = ProfileSerializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()

@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { api } from "../api/client";
+import { recordSamples, sectorSamples } from "./recordSamples";
 import { DashboardReportExport } from "../reports/DashboardReportExport";
-import { MapDiscoveryCard } from "../maps/MapDiscoveryCard";
 import { SectionGuide } from "../experience/SectionGuide";
 import {
   PlanEvidence,
@@ -742,6 +742,23 @@ export function DomainPage({
       setBusy(false);
     }
   };
+  const viewDemoRun = async (scenario: number) => {
+    setBusy(true);
+    setOperationError("");
+    try {
+      const { results } = await api.list("simulation-runs", { scenario });
+      const run = results[0];
+      if (!run) {
+        setOperationError("Bu ssenariy uchun saqlangan natija topilmadi.");
+        return;
+      }
+      setResult({ ...run.result, simulation_run_id: run.id });
+    } catch (e) {
+      setOperationError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
   const group = groups.find((g) => g.includes(current));
   const rows = schema
     ? (data[schema.resource] || []).filter(
@@ -1026,9 +1043,6 @@ export function DomainPage({
                     else setNotice(message);
                   }}
                 />
-                {current === "dashboard" && (
-                  <MapDiscoveryCard onOpen={() => navigate("map")} />
-                )}
                 {current !== "dashboard" && (
                   <>
                     <div className="stat-grid">
@@ -1134,7 +1148,7 @@ export function DomainPage({
                 )}
               </>
             )}
-            {current === "engine" && readonly && (
+            {current === "engine" && readonly && !user.is_demo_viewer && (
               <section className="panel">
                 <h2>Faqat o‘qish rejimi</h2>
                 <p>
@@ -1143,9 +1157,9 @@ export function DomainPage({
                 </p>
               </section>
             )}
-            {current === "engine" && !readonly && (
+            {current === "engine" && (!readonly || user.is_demo_viewer) && (
               <>
-                <Engine data={data} onError={setError} />
+                <Engine data={data} demo={user.is_demo_viewer} onError={setError} />
                 <RiskEvaluation onError={setError} />
               </>
             )}
@@ -1518,6 +1532,11 @@ export function DomainPage({
                                       <UzHiIcon name="play" size={15} /> Sinash
                                     </button>
                                   )}
+                                  {current === "simulation" && user.is_demo_viewer && (
+                                    <button className="btn" disabled={busy} onClick={() => viewDemoRun(row.id)}>
+                                      Namuna natijasini ko‘rish
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -1856,6 +1875,8 @@ function RecordForm({
   onClose: () => void;
   onSave: (payload: Row) => Promise<any>;
 }) {
+  const sectorListId = useId();
+  const samples = recordSamples[module];
   const [values, setValues] = useState<Row>(() => {
     const params = new URLSearchParams(window.location.search);
     return Object.fromEntries(
@@ -2010,7 +2031,29 @@ function RecordForm({
           )}
           {(!bia || phase === 0) && (
             <div className="domain-form-grid">
+              {samples && (
+                <label className="field wide">
+                  Namunaviy nom
+                  <select
+                    value={samples.find((sample) =>
+                      sample.name === values.name && (!sample.sector || sample.sector === values.sector)
+                    )?.name ?? ""}
+                    onChange={(event) => {
+                      const sample = samples.find(({ name }) => name === event.target.value);
+                      if (sample) setValues((previous) => ({ ...previous, ...sample }));
+                    }}
+                  >
+                    <option value="">Namunani tanlang…</option>
+                    {samples.map(({ name, sector }) => (
+                      <option key={name} value={name}>
+                        {sector ? `${name} · ${sector}` : name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               {schema.fields.map((f) => {
+                const sectorInput = module === "organizations" && f.key === "sector";
                 const resource =
                   f.resource === "from-node"
                     ? values.from_type === "ASSET"
@@ -2096,9 +2139,15 @@ function RecordForm({
                         max={f.max}
                         step={f.type === "number" ? "any" : undefined}
                         value={values[f.key]}
+                        list={sectorInput ? sectorListId : undefined}
                         autoComplete={f.type === "email" ? "email" : "off"}
                         onChange={(e) => update(f.key, e.target.value)}
                       />
+                    )}
+                    {sectorInput && (
+                      <datalist id={sectorListId}>
+                        {sectorSamples.map((sector) => <option key={sector} value={sector} />)}
+                      </datalist>
                     )}
                     {bia &&
                       f.key === "rto_hours" &&
@@ -2506,9 +2555,11 @@ function SimulationResult({
 }
 function Engine({
   data,
+  demo,
   onError,
 }: {
   data: Record<string, Row[]>;
+  demo?: boolean;
   onError: (s: string) => void;
 }) {
   const [rank, setRank] = useState<Row[]>([]);
@@ -2526,7 +2577,7 @@ function Engine({
         onClick={async () => {
           setBusy(true);
           try {
-            const r = await api.post("/analyses/priority", {});
+            const r = demo ? await api.get("/analyses/priority") : await api.post("/analyses/priority", {});
             setRank(r.ranked_processes || []);
           } catch (e) {
             onError(errorText(e));
@@ -2535,7 +2586,7 @@ function Engine({
           }
         }}
       >
-        {busy ? "Hisoblanmoqda…" : "Haqiqiy ma’lumotlardan hisoblash"}
+        {busy ? "Hisoblanmoqda…" : demo ? "Demo jarayonlaridan hisoblash" : "Haqiqiy ma’lumotlardan hisoblash"}
       </button>
       {!rank.length ? (
         <p className="muted">

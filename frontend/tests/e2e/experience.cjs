@@ -215,16 +215,16 @@ const summary = {
       viewport: { width: 1600, height: 1100 },
     });
     const errors = [],
-      writes = [];
+      writes = [], apiPaths = [];
     let empty = false,
       failure = "",
       role = "ADMIN",
       authenticated = true;
     page.on("pageerror", (error) => errors.push(error.message));
-    let sharedMap = { version: 1, revision: 0, stops: [] };
     await page.route("**/api/v1/**", async (route) => {
       const request = route.request(),
         pathname = new URL(request.url()).pathname;
+      apiPaths.push(pathname);
       const resource = pathname.replace("/api/v1/", "").split("/")[0];
       if (request.method() !== "GET")
         writes.push(request.method() + " " + pathname);
@@ -244,12 +244,6 @@ const summary = {
         };
       if (pathname.endsWith("/auth/csrf")) {
         data = { csrfToken: "test-token" };
-      } else if (pathname.endsWith("/continuity-map")) {
-        if (route.request().method() === "PUT") {
-          const payload = route.request().postDataJSON();
-          sharedMap = { ...payload, revision: payload.revision + 1 };
-        }
-        data = sharedMap;
       } else if (pathname.endsWith("/auth/me")) {
         status = authenticated ? 200 : 403;
         data = authenticated
@@ -387,42 +381,35 @@ const summary = {
         .evaluate((input) => input === document.activeElement),
       true,
     );
-    await navigation
-      .getByRole("button", { name: "Hududiy xarita", exact: true })
-      .click();
-    await page.locator(".map-stage").waitFor();
-    await page.getByRole("button", { name: /^Tashkilot rejasi/ }).click();
-    await page
-      .getByRole("button", { name: "Xaritadan joy tanlash", exact: true })
-      .click();
-    await page.locator(".continuity-map").scrollIntoViewIfNeeded();
-    const latitudeBefore = await page
-      .getByLabel("Kenglik (latitude)", { exact: true })
-      .inputValue();
-    const point = await page.locator(".continuity-map").evaluate((svg) => {
-      const point = svg.createSVGPoint();
-      point.x = 530;
-      point.y = 280;
-      const screen = point.matrixTransform(svg.getScreenCTM());
-      return { x: screen.x, y: screen.y };
-    });
-    await page.mouse.click(point.x, point.y);
-    await page
-      .getByRole("button", { name: "Xaritadan joy tanlash", exact: true })
-      .waitFor();
-    const pickedLatitude = await page
-      .getByLabel("Kenglik (latitude)", { exact: true })
-      .inputValue();
-    assert.ok(Number.isFinite(Number(pickedLatitude)));
-    assert.notEqual(pickedLatitude, latitudeBefore);
-    await page
-      .getByLabel("Manzil nomi", { exact: true })
-      .fill("Xaritadan tanlangan ofis");
-    await page
-      .getByRole("button", { name: "Rejaga qo‘shish", exact: true })
-      .click();
-    await page.locator(".map-route-list").getByText("Xaritadan tanlangan ofis", {exact: true}).waitFor();
-    assert.equal(await page.locator(".map-route-list li").count(), 1);
+    await page.goto(base + "/map", { waitUntil: "networkidle" });
+    await page.waitForURL(base + "/dashboard");
+    assert.equal(await navigation.getByRole("button", { name: "Hududiy xarita", exact: true }).count(), 0);
+    await page.locator(".dependency-svg").waitFor();
+
+    await page.goto(base + "/organizations?action=edit", { waitUntil: "networkidle" });
+    const profile = page.getByRole("dialog", { name: "Tashkilot profili" });
+    const lossBefore = await profile.getByLabel("Maksimal qabul qilinadigan zarar", { exact: true }).inputValue();
+    await profile.getByLabel("Namunaviy nom").selectOption("Navro‘z universiteti");
+    assert.equal(await profile.getByLabel("Tashkilot nomi", { exact: true }).inputValue(), "Navro‘z universiteti");
+    assert.equal(await profile.getByLabel("Faoliyat sohasi", { exact: true }).inputValue(), "Oliy ta’lim");
+    assert.equal(await profile.getByLabel("Maksimal qabul qilinadigan zarar", { exact: true }).inputValue(), lossBefore);
+    await page.keyboard.press("Escape");
+    await profile.waitFor({ state: "hidden" });
+
+    for (const [section, label, sample] of [
+      ["departments", "Bo‘lim nomi", "Raqamli ta’lim markazi"],
+      ["services", "Xizmat nomi", "Elektron ta’lim xizmati"],
+    ]) {
+      await page.goto(base + "/" + section + "?action=create", { waitUntil: "networkidle" });
+      const form = page.getByRole("dialog");
+      await form.getByLabel("Namunaviy nom").selectOption(sample);
+      const name = form.getByLabel(label, { exact: true });
+      assert.equal(await name.inputValue(), sample);
+      await name.fill(sample + " 2");
+      assert.equal(await name.inputValue(), sample + " 2");
+      await page.keyboard.press("Escape");
+      await form.waitFor({ state: "hidden" });
+    }
     await page.locator(".sidebar-brand .brand-approved").click();
     await page.locator(".executive-dashboard").waitFor();
     assert.equal(new URL(page.url()).pathname, "/dashboard");
@@ -474,20 +461,9 @@ const summary = {
     await page
       .getByRole("button", { name: "Menyuni ochish", exact: true })
       .click();
-    await navigation
-      .getByRole("button", { name: "Hududiy xarita", exact: true })
-      .click();
-    await page.locator(".map-stage").waitFor();
-    assert.ok(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth + 1,
-      ),
-      "mobile map overflow",
-    );
-    await page.screenshot({
-      path: path.join(artifacts, "map-mobile.png"),
-      fullPage: true,
-    });
+    assert.equal(await navigation.getByRole("button", { name: "Hududiy xarita", exact: true }).count(), 0);
+    await navigation.getByRole("button", { name: "Tashkilot", exact: true }).click();
+    await page.getByRole("heading", { name: "Tashkilot profili", exact: true }).waitFor();
     await page.locator(".mobile-brand .brand-approved").click();
     await page.locator(".executive-dashboard").waitFor();
     assert.equal(new URL(page.url()).pathname, "/dashboard");
@@ -537,7 +513,8 @@ const summary = {
       fullPage: true,
     });
     assert.deepEqual(errors, []);
-    assert.deepEqual(writes, ["PUT /api/v1/continuity-map"]);
+    assert.deepEqual(writes, []);
+    assert.ok(!apiPaths.includes("/api/v1/continuity-map"));
     console.log(
       JSON.stringify(
         {
@@ -550,7 +527,8 @@ const summary = {
             "first task opens real editor",
             "all primary sections and collapsible help",
             "linked sections and risk filters",
-            "map coordinate picking",
+            "retired map links and API calls",
+            "editable organization, department and service presets",
             "static dashboard and reduced-motion preference",
             "mobile layout and branding",
             "API failure and recovery",
