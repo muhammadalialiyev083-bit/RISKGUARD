@@ -1,4 +1,7 @@
-export const BRAND_LOGO_URL = "/brand/uzhi-logo.webp";
+import "./brand.css";
+
+export const BRAND_LOGO_URL = "/brand/uzhi-logo.svg";
+
 export function Brand({
   compact = false,
   onHome,
@@ -18,13 +21,23 @@ export function Brand({
         }
       }}
     >
-      <img
-        src={BRAND_LOGO_URL}
-        alt="UzHi — Uzluksiz Himoya"
-        width="960"
-        height="320"
-        decoding="async"
-      />
+      <svg
+        className="uzhi-logo-svg"
+        viewBox={compact ? "14 5 182 182" : "0 0 550 186"}
+        width={compact ? 182 : 550}
+        height={compact ? 182 : 186}
+        aria-hidden="true"
+        focusable="false"
+      >
+        <use
+          className="group-primary"
+          href={`${BRAND_LOGO_URL}#${compact ? "uzhi-shield-primary" : "uzhi-primary"}`}
+        />
+        <use
+          className="group-secondary"
+          href={`${BRAND_LOGO_URL}#${compact ? "uzhi-shield-secondary" : "uzhi-secondary"}`}
+        />
+      </svg>
     </a>
   );
 }

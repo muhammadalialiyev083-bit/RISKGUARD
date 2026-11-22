@@ -162,6 +162,7 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
       </section>
       <section className="auth-form-side">
         <div className="auth-form-card">
+          <div className="auth-mobile-brand"><Brand /></div>
           {mode === "login" && (
             <div className="auth-demo-entry">
               <p className="auth-mobile-intro">Uzilish ta’sirini baholang va tiklanishni rejalang.</p>

@@ -342,7 +342,7 @@ export function App() {
       )}
       <aside className={`sidebar ${mobile ? "mobile-open" : ""}`}>
         <div className="sidebar-brand">
-          <Brand compact={collapsed} onHome={() => navigate("dashboard")} />
+          <Brand compact={collapsed && !mobile} onHome={() => navigate("dashboard")} />
           <button
             className="btn btn-icon collapse-btn"
             onClick={() => {

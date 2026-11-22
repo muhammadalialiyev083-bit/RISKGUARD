@@ -57,7 +57,7 @@ if (!username || !password)
     await page.locator(".stat-card").first().waitFor();
     await page.reload();
     await page.locator(".stat-card").first().waitFor();
-    assert.equal(await page.locator(".sidebar-brand .brand-approved img").count(), 1);
+    await page.waitForFunction(() => document.querySelector(".sidebar-brand .uzhi-logo-svg")?.getBBox().width > 450);
     assert.equal(
       await page
         .getByRole("combobox")

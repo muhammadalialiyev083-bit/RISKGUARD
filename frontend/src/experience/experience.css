@@ -32,20 +32,14 @@ html {
 }
 .brand-approved {
   display: flex;
+  justify-content: center;
   padding: 5px 7px;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--primitive-color-panel);
+  background: var(--panel);
   text-decoration: none;
   max-width: 100%;
   flex-shrink: 1;
-}
-.brand-approved img {
-  filter: grayscale(1);
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 74px;
-  object-fit: contain;
 }
 .sidebar-brand .brand-approved {
   width: 172px;

@@ -816,6 +816,9 @@ small {
   width: 100%;
   max-width: 390px;
 }
+.auth-mobile-brand {
+  display: none;
+}
 .auth-form-card h2 {
   font-size: clamp(28px, 2.4vw, 36px);
   letter-spacing: -0.035em;
@@ -1121,14 +1124,12 @@ small {
   .auth-form-side {
     padding: 42px 24px;
   }
-  .auth-form-card:before {
-    content: "UzHi.";
+  .auth-mobile-brand {
     display: block;
-    color: var(--accent);
-    font-size: 40px;
-    letter-spacing: -2px;
-    font-weight: 500;
-    margin-bottom: 45px;
+    margin-bottom: 24px;
+  }
+  .auth-mobile-brand .brand-approved {
+    width: 192px;
   }
   .auth-form-side {
     min-height: 100vh;

@@ -1,0 +1,66 @@
+.brand-approved {
+  --glow-mult: 0.15;
+  --pulse-speed: 2.2s;
+  --logo-primary: #261968;
+  --logo-secondary: #16e600;
+  --primary-glow-soft: rgb(58 36 178 / 45%);
+  --primary-glow-mid: rgb(38 25 104 / 32%);
+  --secondary-glow-soft: rgb(22 230 0 / 58%);
+  --secondary-glow-mid: rgb(22 230 0 / 35%);
+  --mode-glow-scale: 0.85;
+}
+
+:root:not([data-theme="light"]) .brand-approved {
+  --logo-primary: #24ff00;
+  --logo-secondary: #6b4cff;
+  --primary-glow-soft: rgb(36 255 0 / 92%);
+  --primary-glow-mid: rgb(36 255 0 / 55%);
+  --secondary-glow-soft: rgb(107 76 255 / 95%);
+  --secondary-glow-mid: rgb(76 45 255 / 70%);
+  --mode-glow-scale: 1.35;
+}
+
+.uzhi-logo-svg {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  overflow: visible;
+}
+
+.uzhi-logo-svg .group-primary {
+  color: var(--logo-primary);
+  --glow-soft: var(--primary-glow-soft);
+  --glow-mid: var(--primary-glow-mid);
+  --glow-peak: 20px;
+}
+
+.uzhi-logo-svg .group-secondary {
+  color: var(--logo-secondary);
+  --glow-soft: var(--secondary-glow-soft);
+  --glow-mid: var(--secondary-glow-mid);
+  --glow-peak: 22px;
+  --glow-delay: calc(var(--pulse-speed) * -0.42);
+}
+
+.uzhi-logo-svg :is(.group-primary, .group-secondary) {
+  fill: currentColor;
+  filter:
+    drop-shadow(0 0 calc(3px * var(--glow-mult) * var(--mode-glow-scale)) var(--glow-soft))
+    drop-shadow(0 0 calc(10px * var(--glow-mult) * var(--mode-glow-scale)) var(--glow-mid));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-ui-motion="on"] .uzhi-logo-svg :is(.group-primary, .group-secondary) {
+    transition: color 0.6s ease;
+    animation: uzhi-logo-pulse var(--pulse-speed) ease-in-out var(--glow-delay, 0s) infinite;
+  }
+}
+
+@keyframes uzhi-logo-pulse {
+  50% {
+    filter:
+      drop-shadow(0 0 calc(6px * var(--glow-mult) * var(--mode-glow-scale)) var(--glow-soft))
+      drop-shadow(0 0 calc(var(--glow-peak) * var(--glow-mult) * var(--mode-glow-scale)) var(--glow-mid));
+  }
+}

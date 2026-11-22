@@ -5,7 +5,7 @@ const [effectTemplate, backgroundTemplate, tokens, font, logo, fontLicense, effe
   readFile(new URL("src/experience/motion-background.template.html", root), "utf8"),
   readFile(new URL("src/styles/tokens.css", root), "utf8"),
   readFile(new URL("public/fonts/montserrat-medium.woff2", root)),
-  readFile(new URL("public/brand/uzhi-logo.webp", root)),
+  readFile(new URL("public/brand/uzhi-logo.svg", root)),
   readFile(new URL("public/fonts/Montserrat-OFL.txt", root), "utf8"),
   readFile(new URL("public/licenses/motion-effects.txt", root), "utf8"),
 ]);

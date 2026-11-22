@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 186" role="img" aria-labelledby="uzhi-logo-title">
+  <title id="uzhi-logo-title">UzHi — Uzluksiz Himoya logotipi</title>
+  <style>
+    .group-primary { color: #261968; }
+    .group-secondary { color: #16e600; }
+
+    @media (prefers-color-scheme: dark) {
+      .group-primary { color: #24ff00; }
+      .group-secondary { color: #6b4cff; }
+    }
+  </style>
+  <view id="shield" viewBox="14 5 182 182"/>
+  <defs>
+    <g id="uzhi-primary" fill="currentColor">
+      <g id="uzhi-shield-primary">
+        <path d="M32 39 Q68 20 105 13 Q142 20 178 39 V69 L165 60 V46 Q136 33 105 27 Q74 33 45 46 V60 L32 69 Z"/>
+        <path d="M53 51 Q78 39 105 35 Q132 39 157 51 V59 Q132 49 105 46 Q84 49 65 57 V95 C65 103 70 106 74 106 C78 106 81 103 81 96 V84 L93 93 V97 C93 111 85 118 73 118 C61 118 53 110 53 96 Z"/>
+        <path d="M121 83 L133 75 V88 H146 V76 L158 83 V124 C158 144 132 162 105 174 C78 162 55 147 47 128 L61 131 C69 144 86 154 105 161 C125 153 146 139 146 123 V100 H133 V109 L121 101 Z"/>
+        <path d="M71 129 L84 126 C90 134 97 139 105 143 C113 139 120 134 126 126 L138 129 C130 142 118 150 105 156 C92 150 80 142 71 129 Z"/>
+      </g>
+      <path d="M214 43 H242 V95 C242 108 249 114 259 114 C269 114 276 108 276 95 V43 H304 V96 C304 124 286 137 259 137 C232 137 214 124 214 96 Z"/>
+      <path d="M314 66 H379 V83 L343 115 H380 V134 H313 V117 L349 85 H314 Z"/>
+      <text x="215" y="163" font-family="Outfit, Plus Jakarta Sans, sans-serif"
+        font-weight="800" font-size="21.5" letter-spacing="4.6" textLength="315"
+        lengthAdjust="spacing">UZLUKSIZ HIMOYA</text>
+    </g>
+
+    <g id="uzhi-secondary" fill="currentColor">
+      <g id="uzhi-shield-secondary" fill="none" stroke="currentColor" stroke-width="13.5" stroke-linecap="butt">
+        <path d="M47 71 C32 76 26 84 26 93 C26 112 42 123 61 123 C75 123 86 114 96 103"/>
+        <path d="M69 65 C83 66 94 79 105 93 C116 107 126 121 141 122"/>
+        <path d="M114 82 C125 69 136 63 149 63 C169 63 184 75 184 93 C184 103 177 112 163 118"/>
+      </g>
+      <path d="M395 43 H423 V78 H457 V43 H485 V134 H457 V100 H423 V134 H395 Z"/>
+      <rect x="500" y="66" width="29" height="68" rx="1"/>
+      <circle cx="514.5" cy="44" r="15.8"/>
+    </g>
+  </defs>
+
+  <use class="group-primary" href="#uzhi-primary"/>
+  <use class="group-secondary" href="#uzhi-secondary"/>
+</svg>

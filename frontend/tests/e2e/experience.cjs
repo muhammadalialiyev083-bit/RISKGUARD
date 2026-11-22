@@ -296,11 +296,15 @@ const summary = {
       await page.locator(".getting-started .is-complete").count(),
       8,
     );
+    await page.waitForFunction(() => document.querySelector(".sidebar-brand .uzhi-logo-svg")?.getBBox().width > 450);
+    const sidebarLogo = page.locator(".sidebar-brand .uzhi-logo-svg");
+    assert.deepEqual(
+      await sidebarLogo.locator("use").evaluateAll((parts) => parts.map((part) => getComputedStyle(part).color)),
+      ["rgb(36, 255, 0)", "rgb(107, 76, 255)"],
+    );
     assert.equal(
-      await page
-        .locator(".sidebar-brand img")
-        .evaluate((img) => img.complete && img.naturalWidth > 0),
-      true,
+      await sidebarLogo.locator(".group-primary").evaluate((part) => getComputedStyle(part).animationDuration),
+      "2.2s",
     );
     const headerBefore = await page.locator(".shell-header").boundingBox();
     await page.evaluate(() => scrollTo(0, 900));
@@ -319,6 +323,13 @@ const summary = {
     await page
       .getByRole("button", { name: "Temani almashtirish", exact: true })
       .click();
+    await page.waitForFunction(() => {
+      const logo = document.querySelector(".sidebar-brand .uzhi-logo-svg");
+      const primary = logo?.querySelector(".group-primary");
+      const secondary = logo?.querySelector(".group-secondary");
+      return primary && secondary && getComputedStyle(primary).color === "rgb(38, 25, 104)"
+        && getComputedStyle(secondary).color === "rgb(22, 230, 0)";
+    });
     await page.screenshot({
       path: path.join(artifacts, "dashboard-light.png"),
       fullPage: true,
@@ -475,6 +486,10 @@ const summary = {
     });
     await reducedMotion.waitFor();
     assert.equal(await reducedMotion.isDisabled(), true);
+    assert.equal(
+      await page.locator(".mobile-brand .group-primary").evaluate((part) => getComputedStyle(part).animationName),
+      "none",
+    );
     assert.equal(await page.locator(".motion-background, .motion-controls, video").count(), 0);
     await page.emulateMedia({ reducedMotion: "no-preference" });
     empty = true;
@@ -502,11 +517,9 @@ const summary = {
     await page
       .getByRole("heading", { name: "Hisobingizga kirish", exact: true })
       .waitFor();
-    assert.equal(
-      await page
-        .locator(".brand-approved img")
-        .evaluate((img) => img.complete && img.naturalWidth > 0),
-      true,
+    await page.locator(".auth-mobile-brand .uzhi-logo-svg").waitFor();
+    await page.waitForFunction(() =>
+      document.querySelector(".auth-mobile-brand .uzhi-logo-svg")?.getBBox().width > 450
     );
     await page.screenshot({
       path: path.join(artifacts, "login-logo-mobile.png"),

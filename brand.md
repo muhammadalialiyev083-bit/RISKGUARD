@@ -2,7 +2,7 @@
 
 Existing application identity, recorded from the source rather than a new visual direction.
 
-- Logo: `frontend/public/brand/uzhi-logo.webp` (the approved mark).
+- Logo: `frontend/public/brand/uzhi-logo.svg` (the supplied shield and wordmark). The app adapts its colors and glow to the current theme and motion preferences.
 - Typeface: self-hosted Montserrat Medium (500). The dashboard’s primary action and active navigation item use Montserrat Semibold (600).
 - Language: Uzbek. Product name: UzHi. Repository: RISKGUARD.
 - Main palette and semantic light/dark roles: `frontend/design-tokens.json`.
