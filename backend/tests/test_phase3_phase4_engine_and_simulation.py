@@ -190,6 +190,7 @@ class TestPhase4SimulationAndReports:
                 process=p,
                 rto_hours=4.0,
                 mtpd_hours=12.0,
+                status='APPROVED',
                 rpo_minutes=60
             )
 
@@ -222,6 +223,8 @@ class TestPhase4SimulationAndReports:
         approver = test_setup['approver']
 
         proc = BusinessProcess.objects.create(organization=org, service=service, name="Kutubxona xizmati")
+        BIAAssessment.objects.create(organization=org, process=proc,
+                                     rto_hours=2, mtpd_hours=4, status='APPROVED')
         plan = ContinuityPlan.objects.create(
             organization=org,
             process=proc,

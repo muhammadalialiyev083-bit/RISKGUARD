@@ -68,6 +68,8 @@ def test_bia_nested_update_submit_approval_cannot_be_spoofed(domain):
 @pytest.mark.django_db
 def test_plan_nested_steps_tenant_approval_and_pdf(domain):
     c = domain['client']
+    BIAAssessment.objects.create(organization=domain['process'].organization, process=domain['process'],
+                                 rto_hours=2, mtpd_hours=4, status='APPROVED')
     payload = {'process': domain['process'].pk, 'title': 'O‘zbekcha tiklanish',
                'steps': [{'sequence': 1, 'title': 'Bog‘lanishni tiklash', 'assigned_to': domain['admin'].pk}]}
     response = c.post('/api/v1/plans/', payload, format='json')

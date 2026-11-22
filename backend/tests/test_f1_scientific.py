@@ -6,7 +6,7 @@ from apps.organizations.models import Organization, Service
 from apps.authentication.models import User
 from apps.processes.models import BusinessProcess, Asset, Dependency
 from apps.bia.models import BIAAssessment
-from apps.plans.models import ContinuityPlan
+from apps.plans.models import ContinuityPlan, PlanStep
 from apps.simulation.models import Scenario
 from apps.engine.sensitivity import (
     kendall_tau, sweep_weights, ablate_operands, sweep_tmax, sweep_thresholds,
@@ -107,6 +107,9 @@ class TestStateMachine:
     def test_plan_republish_and_archived_rejected(self, api_client, setup):
         proc = BusinessProcess.objects.create(organization=setup['org'], service=setup['service'], name="P2")
         plan = ContinuityPlan.objects.create(organization=setup['org'], process=proc, title="R1", status="DRAFT")
+        BIAAssessment.objects.create(organization=setup['org'], process=proc,
+                                     rto_hours=2, mtpd_hours=4, status='APPROVED')
+        PlanStep.objects.create(plan=plan, title="Tiklash", assigned_to=setup['approver'])
         api_client.force_authenticate(user=setup['approver'])
         url = reverse('plan-publish', kwargs={'pk': plan.id})
         assert api_client.post(url).status_code == 200

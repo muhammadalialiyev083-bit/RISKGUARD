@@ -221,6 +221,7 @@ const summary = {
       role = "ADMIN",
       authenticated = true;
     page.on("pageerror", (error) => errors.push(error.message));
+    let sharedMap = { version: 1, revision: 0, stops: [] };
     await page.route("**/api/v1/**", async (route) => {
       const request = route.request(),
         pathname = new URL(request.url()).pathname;
@@ -241,7 +242,15 @@ const summary = {
           next: null,
           previous: null,
         };
-      if (pathname.endsWith("/auth/me")) {
+      if (pathname.endsWith("/auth/csrf")) {
+        data = { csrfToken: "test-token" };
+      } else if (pathname.endsWith("/continuity-map")) {
+        if (route.request().method() === "PUT") {
+          const payload = route.request().postDataJSON();
+          sharedMap = { ...payload, revision: payload.revision + 1 };
+        }
+        data = sharedMap;
+      } else if (pathname.endsWith("/auth/me")) {
         status = authenticated ? 200 : 403;
         data = authenticated
           ? {
@@ -344,31 +353,21 @@ const summary = {
         .getByRole("button", { name: title, exact: true })
         .click();
       await page.waitForLoadState("networkidle");
-      await page.locator(".section-guide").waitFor();
-      assert.equal(
-        await page
-          .locator(".section-illustration")
-          .evaluate((img) => img.complete && img.naturalWidth > 0),
-        true,
-        "missing illustration: " + title,
-      );
-      assert.equal(
-        await page.locator(".section-guide li").count(),
-        3,
-        "missing guide steps: " + title,
-      );
-      assert.equal(
-        await page.locator('.section-mini-chart[role="img"]').count(),
-        1,
-      );
+      const help = page.locator(".module-help");
+      await help.waitFor();
+      assert.equal(await help.getAttribute("open"), null, "help is collapsed: " + title);
+      await help.locator("summary").click();
+      assert.equal(await help.locator("li").count(), 3, "missing help steps: " + title);
+      await help.locator("summary").click();
       assert.equal(
         await page.locator("main .alert.error").count(),
         0,
         "unexpected section error: " + title,
       );
     }
+    await page.locator(".module-help summary").click();
     await page
-      .locator(".section-guide")
+      .locator(".module-help")
       .getByRole("button", { name: "Profil formasi", exact: true })
       .click();
     assert.equal(
@@ -379,7 +378,7 @@ const summary = {
       true,
     );
     await page
-      .locator(".section-guide")
+      .locator(".module-help")
       .getByRole("button", { name: "Hisob xavfsizligi", exact: true })
       .click();
     assert.equal(
@@ -392,7 +391,7 @@ const summary = {
       .getByRole("button", { name: "Hududiy xarita", exact: true })
       .click();
     await page.locator(".map-stage").waitFor();
-    await page.getByRole("button", { name: /^Mening rejam/ }).click();
+    await page.getByRole("button", { name: /^Tashkilot rejasi/ }).click();
     await page
       .getByRole("button", { name: "Xaritadan joy tanlash", exact: true })
       .click();
@@ -422,6 +421,7 @@ const summary = {
     await page
       .getByRole("button", { name: "Rejaga qo‘shish", exact: true })
       .click();
+    await page.locator(".map-route-list").getByText("Xaritadan tanlangan ofis", {exact: true}).waitFor();
     assert.equal(await page.locator(".map-route-list li").count(), 1);
     await page.locator(".sidebar-brand .brand-approved").click();
     await page.locator(".executive-dashboard").waitFor();
@@ -440,9 +440,10 @@ const summary = {
       1,
       "matrix link should filter the matching risk",
     );
+    await page.locator(".module-help summary").click();
     await page
-      .locator(".section-guide")
-      .getByRole("button", { name: "Hisoblash", exact: true })
+      .locator(".module-help")
+      .getByRole("button", { name: "Hisoblash yadrosi", exact: true })
       .click();
     assert.equal(new URL(page.url()).pathname, "/engine");
     await page.waitForLoadState("networkidle");
@@ -512,16 +513,14 @@ const summary = {
     failure = "processes";
     await page.goto(base + "/processes", { waitUntil: "networkidle" });
     await page
-      .getByRole("img", { name: "Diagramma ma’lumotlari olinmadi" })
+      .getByRole("alert").filter({ hasText: "Sinov:" })
       .waitFor();
-    assert.equal(await page.locator(".mini-chart-row").count(), 0);
+    assert.equal(await page.locator(".domain-registry tbody tr").count(), 0);
     failure = "";
     await page
       .getByRole("button", { name: "Qayta urinish", exact: true })
       .click();
-    await page.waitForFunction(
-      () => document.querySelectorAll(".mini-chart-row").length > 0,
-    );
+    await page.locator(".domain-registry tbody tr").first().waitFor();
     authenticated = false;
     await page.goto(base + "/auth/login", { waitUntil: "networkidle" });
     await page
@@ -538,7 +537,7 @@ const summary = {
       fullPage: true,
     });
     assert.deepEqual(errors, []);
-    assert.deepEqual(writes, []);
+    assert.deepEqual(writes, ["PUT /api/v1/continuity-map"]);
     console.log(
       JSON.stringify(
         {
@@ -549,7 +548,7 @@ const summary = {
             "full logo/home link",
             "Fusion-style real-data dashboard",
             "first task opens real editor",
-            "all primary sections/guides/charts/illustrations",
+            "all primary sections and collapsible help",
             "linked sections and risk filters",
             "map coordinate picking",
             "static dashboard and reduced-motion preference",

@@ -1,3 +1,4 @@
+import { SimulationImpact } from "./ContinuityDetails";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -63,14 +64,6 @@ const titles: Record<Module, string> = {
   incidents: "Hodisalar markazi",
   tasks: "Yaxshilash vazifalari",
 };
-const descriptions: Record<Module, string> = {
-  providers:
-    "Hamkorlar, ularga bog‘liq xizmatlar va uzilish xavfini bir joyda boshqaring.",
-  incidents:
-    "Hodisani qayd etishdan tiklanish va yakuniy xulosagacha yagona ish jarayoni.",
-  tasks:
-    "Sinov va hodisalardan olingan xulosalarni mas’ul hamda muddatga ega vazifaga aylantiring.",
-};
 const names = (row: Row) =>
   row.name ||
   row.title ||
@@ -107,73 +100,36 @@ function Badge({ value }: { value: string }) {
   );
 }
 
-function RunResults({ run }: { run: Row }) {
+function RunResults({
+  run,
+  onNavigate,
+}: {
+  run: Row;
+  onNavigate: (page: string) => void;
+}) {
   const result = run.result || {};
+  const ids = (result.affected_processes || []).map(
+    (row: Row) => row.process_id,
+  );
   return (
     <div className="ops-run-result">
-      <div className="ops-run-metrics">
-        <span>
-          <strong>{result.estimated_outage_hours ?? "—"}</strong> soat uzilish
-        </span>
-        <span>
-          <strong>{result.affected_processes_count ?? "—"}</strong> ta’sirlangan
-          jarayon
-        </span>
-        <span>
-          <strong>{result.rto_breaches_count ?? "—"}</strong> RTO buzilishi
-        </span>
-        <span>
-          <strong>{result.missing_plans_count ?? "—"}</strong> rejasiz jarayon
-        </span>
-      </div>
-      {result.affected_processes?.length ? (
-        <div className="table-wrap">
-          <table className="ops-table">
-            <caption className="sr-only">
-              Provayder uzilishining jarayonlarga ta’siri
-            </caption>
-            <thead>
-              <tr>
-                <th>Jarayon</th>
-                <th>Xizmat</th>
-                <th>RTO / MTPD</th>
-                <th>Holat</th>
-                <th>Tiklanish rejasi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.affected_processes.map((process: any) => (
-                <tr key={process.process_id}>
-                  <td>{process.process_name}</td>
-                  <td>{process.service_name}</td>
-                  <td>
-                    {process.target_rto_hours} / {process.target_mtpd_hours}{" "}
-                    soat
-                  </td>
-                  <td>
-                    {process.mtpd_breached
-                      ? "MTPD chegarasi buzilgan"
-                      : process.rto_breached
-                        ? "RTO chegarasi buzilgan"
-                        : "Maqsad doirasida"}
-                  </td>
-                  <td>
-                    {process.has_published_plan
-                      ? "Mavjud"
-                      : "Nashr etilgan reja yo‘q"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="ops-help">
-          Amaldagi bog‘liqlik xaritasida ta’sirlangan jarayon topilmadi.
-          Provayder aktivlari va jarayon bog‘liqliklari to‘liq kiritilganini
-          tekshiring.
-        </p>
+      <p>
+        {result.estimated_outage_hours ?? "—"} soat ·{" "}
+        {result.affected_processes_count ?? "—"} ta’sirlangan jarayon
+        {" · "}
+        {result.rto_breaches_count ?? "—"} RTO buzilishi
+        {result.unassessed_count > 0 &&
+          ` · ${result.unassessed_count} baholanmagan`}
+      </p>
+      {!!ids.length && (
+        <button
+          className="btn"
+          onClick={() => onNavigate(`processes?ids=${ids.join(",")}`)}
+        >
+          Ta’sirlangan jarayonlar
+        </button>
       )}
+      <SimulationImpact result={result} onNavigate={onNavigate} />
     </div>
   );
 }
@@ -266,6 +222,12 @@ export function OperationsPage({
   const [success, setSuccess] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("");
+  const [linkedIds, setLinkedIds] = useState(() =>
+    new URLSearchParams(location.search).get("ids"),
+  );
+  const [overdueOnly, setOverdueOnly] = useState(false);
+  const go = (target: string) =>
+    onNavigate ? onNavigate(target) : window.location.assign("/" + target);
   const [selected, setSelected] = useState<number | null>(null);
   const [timeline, setTimeline] = useState<Row[]>([]);
   const [timelineError, setTimelineError] = useState("");
@@ -341,7 +303,9 @@ export function OperationsPage({
   useEffect(() => {
     setRows([]);
     setRelations({});
-    setSelected(null);
+    setSelected(
+      Number(new URLSearchParams(location.search).get("record")) || null,
+    );
     setQuery(new URLSearchParams(window.location.search).get("q") || "");
     setFilter("");
     setDialog(null);
@@ -463,6 +427,11 @@ export function OperationsPage({
           {
             title: form.title,
             estimated_outage_hours: Number(form.estimated_outage_hours),
+            backup_assets: Object.fromEntries(
+              (editing?.assets || [])
+                .filter((id: number) => form[`backup_${id}`])
+                .map((id: number) => [id, Number(form[`backup_${id}`])]),
+            ),
           },
         );
         if (currentScope.current !== ticket) return;
@@ -476,6 +445,7 @@ export function OperationsPage({
           description: form.description,
           owner: form.owner ? Number(form.owner) : null,
           due_date: form.due_date || null,
+          process: form.process ? Number(form.process) : null,
         };
         await client.action("simulation-runs", run!.id, "improvements", body);
         if (currentScope.current !== ticket) return;
@@ -657,10 +627,21 @@ export function OperationsPage({
     window.history.replaceState({}, "", url.pathname + url.search);
   }, [loading, error, writable, module]);
 
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tashkent",
+    dateStyle: "short",
+  }).format(new Date());
+  const isOverdue = (row: Row) => {
+    const deadline =
+      module === "providers" ? row.next_review_date : row.due_date;
+    return deadline && deadline < today && row.status !== "DONE";
+  };
   const filtered = rows.filter((row) => {
     const term = `${names(row)} ${row.description || ""}`.toLocaleLowerCase();
     return (
       term.includes(query.toLocaleLowerCase()) &&
+      (linkedIds === null || linkedIds.split(",").includes(String(row.id))) &&
+      (!overdueOnly || isOverdue(row)) &&
       (!filter ||
         (module === "providers" ? row.risk_rating : row.status) === filter)
     );
@@ -674,22 +655,13 @@ export function OperationsPage({
   const complete = rows.filter((row) =>
     ["CLOSED", "RESOLVED", "DONE"].includes(row.status),
   ).length;
-  const overdue = rows.filter((row) => {
-    const date = module === "providers" ? row.next_review_date : row.due_date;
-    return (
-      date &&
-      date < new Date().toISOString().slice(0, 10) &&
-      row.status !== "DONE"
-    );
-  }).length;
+  const overdue = rows.filter(isOverdue).length;
 
   return (
     <section className="operations-page" aria-label={titles[module]}>
       <div className="page-header">
         <div>
-          <p className="ops-eyebrow">Hodisalar va tiklanish</p>
           <h1>{titles[module]}</h1>
-          <p>{descriptions[module]}</p>
         </div>
         <div className="ops-actions">
           <button
@@ -718,10 +690,7 @@ export function OperationsPage({
       </div>
       <SectionGuide
         module={module}
-        rows={rows}
         user={user}
-        loading={loading}
-        unavailable={Boolean(error)}
         onNavigate={(target) =>
           onNavigate ? onNavigate(target) : window.location.assign("/" + target)
         }
@@ -764,6 +733,22 @@ export function OperationsPage({
       ) : (
         !error && (
           <>
+            <div className="ops-actions">
+              {module === "tasks" && (
+                <button
+                  className="btn"
+                  aria-pressed={overdueOnly}
+                  onClick={() => setOverdueOnly(!overdueOnly)}
+                >
+                  Muddati o‘tgan vazifalar · {overdue}
+                </button>
+              )}
+              {linkedIds !== null && (
+                <button className="btn" onClick={() => setLinkedIds(null)}>
+                  Bog‘langan filtrni tozalash
+                </button>
+              )}
+            </div>
             <div className="stat-grid ops-stats">
               <div className="stat-card">
                 <span>
@@ -1076,11 +1061,15 @@ export function OperationsPage({
                         <dt>Xizmatlar</dt>
                         <dd>
                           {selectedRow.services?.length
-                            ? selectedRow.services
-                                .map((id: number) =>
-                                  relatedName("services", id),
-                                )
-                                .join(", ")
+                            ? selectedRow.services.map((id: number) => (
+                                <button
+                                  className="text-button"
+                                  key={id}
+                                  onClick={() => go(`services?record=${id}`)}
+                                >
+                                  {relatedName("services", id)}
+                                </button>
+                              ))
                             : "Bog‘lanmagan"}
                         </dd>
                       </div>
@@ -1133,7 +1122,20 @@ export function OperationsPage({
                       ].map(([label, resource, key]) => (
                         <div key={key}>
                           <dt>{label}</dt>
-                          <dd>{relatedName(resource, selectedRow[key])}</dd>
+                          <dd>
+                            {selectedRow[key] ? (
+                              <button
+                                className="text-button"
+                                onClick={() =>
+                                  go(`${resource}?record=${selectedRow[key]}`)
+                                }
+                              >
+                                {relatedName(resource, selectedRow[key])}
+                              </button>
+                            ) : (
+                              "Belgilanmagan"
+                            )}
+                          </dd>
                         </div>
                       ))}
                     </dl>
@@ -1291,10 +1293,25 @@ export function OperationsPage({
                       ["Hodisa", "incidents", "incident"],
                       ["Ssenariy", "scenarios", "scenario"],
                       ["Jarayon", "processes", "process"],
+                      ["Reja", "plans", "plan"],
+                      ["Mashq", "exercises", "exercise"],
                     ].map(([label, resource, key]) => (
                       <div key={key}>
                         <dt>{label}</dt>
-                        <dd>{relatedName(resource, selectedRow[key])}</dd>
+                        <dd>
+                          {selectedRow[key] ? (
+                            <button
+                              className="text-button"
+                              onClick={() =>
+                                go(`${resource}?record=${selectedRow[key]}`)
+                              }
+                            >
+                              {relatedName(resource, selectedRow[key])}
+                            </button>
+                          ) : (
+                            "Belgilanmagan"
+                          )}
+                        </dd>
                       </div>
                     ))}
                   </dl>
@@ -1336,11 +1353,7 @@ export function OperationsPage({
                     <X size={16} />
                   </button>
                 </div>
-                <p>
-                  Provayder uzilishi bo‘yicha natija bazaga yozildi. Aniqlangan
-                  kamchilikni mas’ulga biriktirish mumkin.
-                </p>
-                <RunResults run={run} />
+                <RunResults run={run} onNavigate={go} />
                 {writable && (
                   <button
                     className="btn btn-primary"
@@ -1350,6 +1363,13 @@ export function OperationsPage({
                         description: "",
                         owner: "",
                         due_date: "",
+                        process: String(
+                          run.result?.affected_processes?.find(
+                            (row: Row) => row.rto_breached,
+                          )?.process_id ||
+                            run.result?.affected_processes?.[0]?.process_id ||
+                            "",
+                        ),
                       });
                       setFormError("");
                       setDialog("improvement");
@@ -1414,16 +1434,53 @@ export function OperationsPage({
                     "Kutilayotgan uzilish (soat)",
                     { required: true, type: "number" },
                   )}
-                  <p className="ops-help ops-full">
-                    Provayderga bog‘langan aktivlar asosida ta’sir tahlili
-                    bajariladi. Bu amal bazadagi xizmatlarni o‘chirmaydi.
-                  </p>
+                  {(editing?.assets || []).map((id: number) => (
+                    <label className="field" key={id}>
+                      {relatedName("assets", id)} uchun zaxira
+                      <select
+                        value={String(form[`backup_${id}`] || "")}
+                        onChange={(event) =>
+                          change(`backup_${id}`, event.target.value)
+                        }
+                      >
+                        <option value="">Zaxira mavjud emas</option>
+                        {(relations.assets || [])
+                          .filter(
+                            (asset) => !editing?.assets?.includes(asset.id),
+                          )
+                          .map((asset) => (
+                            <option key={asset.id} value={asset.id}>
+                              {asset.name}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                  ))}
                 </>
               ) : dialog === "improvement" || dialog === "incidentTask" ? (
                 <>
                   {field("title", "Vazifa nomi", { required: true })}
                   {field("owner", "Mas’ul", { relation: "users" })}
                   {field("due_date", "Muddat", { type: "date" })}
+                  {dialog === "improvement" &&
+                    !!run?.result?.affected_processes?.length && (
+                      <label className="field">
+                        Ta’sirlangan jarayon
+                        <select
+                          value={String(form.process || "")}
+                          onChange={(event) =>
+                            change("process", event.target.value)
+                          }
+                          required
+                        >
+                          {run.result.affected_processes.map((row: Row) => (
+                            <option key={row.process_id} value={row.process_id}>
+                              {row.process_name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
                   {field("description", "Xulosa va rejalashtirilgan chora", {
                     area: true,
                   })}

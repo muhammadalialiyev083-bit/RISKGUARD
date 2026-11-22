@@ -5,6 +5,8 @@ import {
   RefreshCw,
   Download,
   ArrowUpRight,
+  ArrowUp,
+  ArrowDown,
   X,
   Check,
   Play,
@@ -16,7 +18,13 @@ import { DashboardReportExport } from "../reports/DashboardReportExport";
 import { MapDiscoveryCard } from "../maps/MapDiscoveryCard";
 import { SectionGuide } from "../experience/SectionGuide";
 import {
+  PlanEvidence,
+  ServiceContinuity,
+  SimulationImpact,
+} from "./ContinuityDetails";
+import {
   DashboardWelcome,
+  metricTarget,
   ExecutiveDashboard,
 } from "../experience/ExecutiveDashboard";
 import { MotionNav } from "../experience/MotionEffects";
@@ -141,6 +149,7 @@ const schemas: Record<string, Schema> = {
     fields: [
       text("name", "Jarayon nomi"),
       select("service", "Xizmat", "services"),
+      select("department", "Bo‘lim", "departments", false),
       select("owner", "Mas’ul", "users", false),
       choice("criticality", "Kritiklik", [
         ["HIGH", "Yuqori"],
@@ -316,6 +325,11 @@ const schemas: Record<string, Schema> = {
       text("title", "Reja nomi"),
       { ...text("version", "Versiya"), value: "1.0" },
       { ...text("scope", "Qamrov", false), type: "textarea" },
+      {
+        key: "review_due_date",
+        label: "Qayta ko‘rib chiqish sanasi",
+        type: "date",
+      },
     ],
     columns: [
       "title",
@@ -489,13 +503,18 @@ function badgeClass(column: string, row: Row) {
     case "risk_score": {
       const score = Number(value);
       if (!Number.isFinite(score) || score < 1 || score > 25) return "badge";
-      const status = score >= 15 ? "danger" : score >= 7 ? "status-warning" : "status-ok";
+      const status =
+        score >= 15 ? "danger" : score >= 7 ? "status-warning" : "status-ok";
       return "badge " + status;
     }
     case "criticality":
       return value === "CRITICAL" ? "badge danger" : "badge";
     case "has_rpo_gap":
-      return value === true ? "badge status-warning" : value === false ? "badge status-ok" : "badge";
+      return value === true
+        ? "badge status-warning"
+        : value === false
+          ? "badge status-ok"
+          : "badge";
     case "outcome_display":
       if (row.outcome === "SUCCESS") return "badge status-ok";
       if (row.outcome === "PARTIAL") return "badge status-warning";
@@ -548,6 +567,7 @@ export function DomainPage({
   const [summary, setSummary] = useState<Row | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [operationError, setOperationError] = useState("");
   const [notice, setNotice] = useState("");
   const [query, setQuery] = useState(
     () => new URLSearchParams(window.location.search).get("q") || "",
@@ -555,12 +575,31 @@ export function DomainPage({
   const [filter, setFilter] = useState("");
   const [period, setPeriod] = useState("");
   const [endPeriod, setEndPeriod] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(module === "reports");
   const [serviceFilter, setServiceFilter] = useState("");
   const [matrix, setMatrix] = useState<[number, number] | null>(null);
   const [editing, setEditing] = useState<Row | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Row | null>(null);
   const [selected, setSelected] = useState<Row | null>(null);
+  const [initialParams] = useState(
+    () => new URLSearchParams(window.location.search),
+  );
+  const [linkedRecord, setLinkedRecord] = useState(
+    Number(initialParams.get("record")),
+  );
+  const [linkedIds, setLinkedIds] = useState<string | null>(
+    initialParams.get("ids"),
+  );
+  const [processScope, setProcessScope] = useState(
+    initialParams.get("process") || "",
+  );
+  const [serviceScope, setServiceScope] = useState(
+    initialParams.get("service") || "",
+  );
+  const [departmentScope, setDepartmentScope] = useState(
+    initialParams.get("department") || "",
+  );
   const generation = useRef(0);
   const schema = schemas[current];
   const reportQuery = new URLSearchParams(
@@ -617,13 +656,14 @@ export function DomainPage({
         "dependencies",
         "strategies",
       ].forEach((r) => resources.add(r));
-    if (["plans", "simulation"].includes(current)) resources.add("users");
+    if (["plans", "simulation", "exercises"].includes(current))
+      resources.add("users");
     if (["dashboard", "reports"].includes(current)) resources.add("services");
     if (current === "dashboard") {
       resources.add("organizations");
       resources.add("exercises");
     }
-    if (["dependencies", "simulation"].includes(current))
+    if (["assets", "dependencies", "simulation"].includes(current))
       ["processes", "assets", "dependencies"].forEach((r) => resources.add(r));
     try {
       const entries = await Promise.all(
@@ -683,14 +723,14 @@ export function DomainPage({
   const mutate = async (work: () => Promise<any>, success: string) => {
     if (busy) return;
     setBusy(true);
-    setError("");
+    setOperationError("");
     try {
       const response = await work();
       setNotice(success);
       await load();
       return response;
     } catch (e) {
-      setError(errorText(e));
+      setOperationError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -710,7 +750,7 @@ export function DomainPage({
       setBusy(true);
       await api.download(path, filename);
     } catch (e) {
-      setError(errorText(e));
+      setOperationError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -726,6 +766,15 @@ export function DomainPage({
                 .includes(query.toLocaleLowerCase()),
             )) &&
           (!filter || Object.values(row).includes(filter)) &&
+          (linkedIds === null ||
+            linkedIds.split(",").includes(String(row.id))) &&
+          (!processScope ||
+            !["bia", "risks", "plans", "strategies"].includes(current) ||
+            String(row.process) === processScope) &&
+          (current !== "processes" ||
+            ((!serviceScope || String(row.service) === serviceScope) &&
+              (!departmentScope ||
+                String(row.department) === departmentScope))) &&
           (!matrix ||
             (row.likelihood === matrix[0] && row.impact === matrix[1])),
       )
@@ -783,6 +832,13 @@ export function DomainPage({
     );
     return () => cancelAnimationFrame(frame);
   }, [loading, error, current, data, canEdit]);
+  useEffect(() => {
+    if (!loading && linkedRecord) {
+      document
+        .getElementById(`record-${linkedRecord}`)
+        ?.scrollIntoView({ block: "nearest" });
+    }
+  }, [loading, linkedRecord]);
   return (
     <div
       className={`domain-page ${current === "dashboard" ? "dashboard-domain" : ""}`}
@@ -824,17 +880,18 @@ export function DomainPage({
       {current !== "dashboard" && (
         <SectionGuide
           module={current}
-          rows={data[schema?.resource || current] || []}
           user={user}
-          loading={loading}
-          unavailable={Boolean(error)}
           onNavigate={navigate}
           onStart={begin}
         />
       )}
       <div id="module-workspace" />
       {group && (
-        <MotionNav activeKey={current} className="tabs" label="Modul bo‘limlari">
+        <MotionNav
+          activeKey={current}
+          className="tabs"
+          label="Modul bo‘limlari"
+        >
           {group.map((key) => (
             <button
               key={key}
@@ -868,6 +925,11 @@ export function DomainPage({
           </button>
         </div>
       )}
+      {operationError && (
+        <div className="alert error" role="alert">
+          {operationError}
+        </div>
+      )}
       {loading ? (
         <div className="panel loading" role="status">
           <RefreshCw className="spin" size={22} /> Ma’lumotlar yuklanmoqda…
@@ -885,73 +947,80 @@ export function DomainPage({
                     onNavigate={navigate}
                   />
                 )}
-                <div className="domain-toolbar">
-                  <label className="field">
-                    Jarayon yaratilgan davr · dan
-                    <input
-                      type="date"
-                      value={period}
-                      onChange={(e) => setPeriod(e.target.value)}
-                    />
-                  </label>
-                  <label className="field">
-                    Davr · gacha
-                    <input
-                      type="date"
-                      value={endPeriod}
-                      min={period || undefined}
-                      onChange={(e) => setEndPeriod(e.target.value)}
-                    />
-                  </label>
-                  <label className="field">
-                    Xizmat
-                    <select
-                      aria-label="Xizmat"
-                      value={serviceFilter}
-                      onChange={(e) => setServiceFilter(e.target.value)}
-                    >
-                      <option value="">Barcha xizmatlar</option>
-                      {(data.services || []).map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <span className="muted">
-                    {summary?.organization || user.organization_detail?.name}
-                  </span>
-                  {current === "reports" && (
-                    <>
-                      <button
-                        className="btn"
-                        disabled={busy}
-                        onClick={() =>
-                          download(
-                            "/reports/organization?export=pdf" +
-                              (reportQuery ? "&" + reportQuery : ""),
-                            "UzHi-hisobot.pdf",
-                          )
-                        }
+                <details
+                  className="report-filters"
+                  open={filtersOpen}
+                  onToggle={(event) => setFiltersOpen(event.currentTarget.open)}
+                >
+                  <summary>Hisobot filtrlari</summary>
+                  <div className="domain-toolbar">
+                    <label className="field">
+                      Jarayon yaratilgan davr · dan
+                      <input
+                        type="date"
+                        value={period}
+                        onChange={(e) => setPeriod(e.target.value)}
+                      />
+                    </label>
+                    <label className="field">
+                      Davr · gacha
+                      <input
+                        type="date"
+                        value={endPeriod}
+                        min={period || undefined}
+                        onChange={(e) => setEndPeriod(e.target.value)}
+                      />
+                    </label>
+                    <label className="field">
+                      Xizmat
+                      <select
+                        aria-label="Xizmat"
+                        value={serviceFilter}
+                        onChange={(e) => setServiceFilter(e.target.value)}
                       >
-                        <Download size={16} /> PDF hisobot
-                      </button>
-                      <button
-                        className="btn"
-                        disabled={busy}
-                        onClick={() =>
-                          download(
-                            "/reports/organization?export=csv" +
-                              (reportQuery ? "&" + reportQuery : ""),
-                            "UzHi-hisobot.csv",
-                          )
-                        }
-                      >
-                        <Download size={16} /> CSV hisobot
-                      </button>
-                    </>
-                  )}
-                </div>
+                        <option value="">Barcha xizmatlar</option>
+                        {(data.services || []).map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <span className="muted">
+                      {summary?.organization || user.organization_detail?.name}
+                    </span>
+                    {current === "reports" && (
+                      <>
+                        <button
+                          className="btn"
+                          disabled={busy}
+                          onClick={() =>
+                            download(
+                              "/reports/organization?export=pdf" +
+                                (reportQuery ? "&" + reportQuery : ""),
+                              "UzHi-hisobot.pdf",
+                            )
+                          }
+                        >
+                          <Download size={16} /> PDF hisobot
+                        </button>
+                        <button
+                          className="btn"
+                          disabled={busy}
+                          onClick={() =>
+                            download(
+                              "/reports/organization?export=csv" +
+                                (reportQuery ? "&" + reportQuery : ""),
+                              "UzHi-hisobot.csv",
+                            )
+                          }
+                        >
+                          <Download size={16} /> CSV hisobot
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </details>
                 {current === "dashboard" && (
                   <ExecutiveDashboard
                     data={data}
@@ -983,7 +1052,7 @@ export function DomainPage({
                         [
                           "unplanned_processes_count",
                           "Rejasiz jarayonlar",
-                          "plans",
+                          "processes",
                         ],
                         [
                           "published_plans_count",
@@ -995,7 +1064,9 @@ export function DomainPage({
                         <button
                           key={key}
                           className="stat-card"
-                          onClick={() => navigate(target)}
+                          onClick={() =>
+                            navigate(metricTarget(summary, key, target))
+                          }
                         >
                           <span>
                             {label}
@@ -1006,6 +1077,40 @@ export function DomainPage({
                         </button>
                       ))}
                     </div>
+                    {!!Object.keys(summary?.plan_readiness ?? {}).length && (
+                      <section className="panel">
+                        <h2>Reja dalillari</h2>
+                        <ul className="report-evidence">
+                          {(data.processes || []).map((process) => {
+                            const evidence =
+                              summary?.plan_readiness?.[process.id];
+                            if (!evidence) return null;
+                            return (
+                              <li key={process.id}>
+                                <button
+                                  className="text-button"
+                                  onClick={() =>
+                                    navigate(
+                                      evidence.plan_id
+                                        ? `plans?record=${evidence.plan_id}`
+                                        : `processes?record=${process.id}`,
+                                    )
+                                  }
+                                >
+                                  {process.name}
+                                </button>
+                                <span>{evidence.label}</span>
+                                {!!evidence.missing_evidence.length && (
+                                  <small>
+                                    {evidence.missing_evidence.join(" · ")}
+                                  </small>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    )}
                     {!(data.processes || []).length ? (
                       <Empty
                         title="Birinchi xizmatni bog‘lashdan boshlang"
@@ -1069,11 +1174,16 @@ export function DomainPage({
                 }
               />
             )}
-            {current === "dependencies" && (
+            {["assets", "dependencies"].includes(current) && (
               <DependencyMap
                 processes={data.processes || []}
                 assets={data.assets || []}
                 dependencies={data.dependencies || []}
+                onSelect={(kind, id) =>
+                  navigate(
+                    `${kind === "PROCESS" ? "processes" : "assets"}?record=${id}`,
+                  )
+                }
               />
             )}
             {schema && (
@@ -1113,6 +1223,45 @@ export function DomainPage({
                     </select>
                   )}
                   <span className="muted">{rows.length} yozuv</span>
+                  {current === "processes" && (
+                    <>
+                      <select
+                        aria-label="Xizmat bo‘yicha filtr"
+                        value={serviceScope}
+                        onChange={(e) => setServiceScope(e.target.value)}
+                      >
+                        <option value="">Barcha xizmatlar</option>
+                        {(data.services || []).map((row) => (
+                          <option key={row.id} value={row.id}>
+                            {row.name}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        aria-label="Bo‘lim bo‘yicha filtr"
+                        value={departmentScope}
+                        onChange={(e) => setDepartmentScope(e.target.value)}
+                      >
+                        <option value="">Barcha bo‘limlar</option>
+                        {(data.departments || []).map((row) => (
+                          <option key={row.id} value={row.id}>
+                            {row.name}
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+                  {(linkedIds !== null || processScope) && (
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        setLinkedIds(null);
+                        setProcessScope("");
+                      }}
+                    >
+                      Bog‘langan filtrni tozalash
+                    </button>
+                  )}
                   {matrix && (
                     <button className="btn" onClick={() => setMatrix(null)}>
                       Matritsa filtrini tozalash
@@ -1122,12 +1271,24 @@ export function DomainPage({
                 {!rows.length ? (
                   <Empty
                     title={
-                      query || filter || matrix
+                      query ||
+                      filter ||
+                      matrix ||
+                      linkedIds !== null ||
+                      processScope ||
+                      serviceScope ||
+                      departmentScope
                         ? "Mos yozuv topilmadi"
                         : "Hali yozuv yaratilmagan"
                     }
                     text={
-                      query || filter || matrix
+                      query ||
+                      filter ||
+                      matrix ||
+                      linkedIds !== null ||
+                      processScope ||
+                      serviceScope ||
+                      departmentScope
                         ? "Qidiruv yoki filtrni o‘zgartiring."
                         : "Birinchi yozuvni kiriting. Ma’lumotlar serverda saqlanadi."
                     }
@@ -1157,16 +1318,24 @@ export function DomainPage({
                       <tbody>
                         {rows.map((row) => (
                           <React.Fragment key={row.id}>
-                            <tr>
+                            <tr id={`record-${row.id}`}>
                               {schema.columns.map((c) => (
                                 <td key={c}>
                                   {c === "timestamp" ? (
                                     new Date(row[c]).toLocaleString("uz-UZ")
                                   ) : (
                                     <span className={badgeClass(c, row)}>
-                                      {c === "from_id" || c === "to_id"
-                                        ? `${(data[row[c === "from_id" ? "from_type" : "to_type"] === "PROCESS" ? "processes" : "assets"] || []).find((n) => n.id === row[c])?.name || row[c]}`
-                                        : display(row[c])}
+                                      {c === "status_display" &&
+                                      current === "plans" &&
+                                      row.readiness?.needs_review
+                                        ? "Qayta ko‘rib chiqish kerak"
+                                        : c === "status_display" &&
+                                            current === "plans" &&
+                                            row.readiness?.exercise_verified
+                                          ? "Mashqda tekshirilgan"
+                                          : c === "from_id" || c === "to_id"
+                                            ? `${(data[row[c === "from_id" ? "from_type" : "to_type"] === "PROCESS" ? "processes" : "assets"] || []).find((n) => n.id === row[c])?.name || row[c]}`
+                                            : display(row[c])}
                                     </span>
                                   )}
                                 </td>
@@ -1175,11 +1344,15 @@ export function DomainPage({
                                 <div className="row-actions">
                                   <button
                                     className="btn"
-                                    onClick={() =>
+                                    onClick={() => {
                                       setSelected(
-                                        selected?.id === row.id ? null : row,
-                                      )
-                                    }
+                                        selected?.id === row.id ||
+                                          linkedRecord === row.id
+                                          ? null
+                                          : row,
+                                      );
+                                      setLinkedRecord(0);
+                                    }}
                                   >
                                     Tafsilot
                                   </button>
@@ -1361,10 +1534,57 @@ export function DomainPage({
                                 </div>
                               </td>
                             </tr>
-                            {selected?.id === row.id && (
+                            {(selected?.id === row.id ||
+                              linkedRecord === row.id) && (
                               <tr>
                                 <td colSpan={schema.columns.length + 1}>
-                                  <Details row={row} module={current} />
+                                  {current === "services" ? (
+                                    <ServiceContinuity
+                                      id={row.id}
+                                      name={row.name}
+                                      readonly={readonly}
+                                      onNavigate={navigate}
+                                    />
+                                  ) : (
+                                    <Details
+                                      row={row}
+                                      module={current}
+                                      onNavigate={navigate}
+                                    />
+                                  )}
+                                  {current === "exercises" &&
+                                    (row.findings ||
+                                      row.outcome !== "SUCCESS") &&
+                                    [
+                                      "ADMIN",
+                                      "BCMS_MANAGER",
+                                      "RISK_ANALYST",
+                                    ].includes(user.role) && (
+                                      <SimulationImprovement
+                                        runId={row.id}
+                                        users={data.users || []}
+                                        exercise
+                                      />
+                                    )}
+                                  {current === "simulation" && !readonly && (
+                                    <ScenarioDuration
+                                      row={row}
+                                      busy={busy}
+                                      onRun={async (hours) => {
+                                        const response = await mutate(
+                                          () =>
+                                            api.action(
+                                              "scenarios",
+                                              row.id,
+                                              "simulate",
+                                              { estimated_outage_hours: hours },
+                                            ),
+                                          "Simulyatsiya bajarildi.",
+                                        );
+                                        if (response) setResult(response);
+                                      }}
+                                    />
+                                  )}
                                 </td>
                               </tr>
                             )}
@@ -1446,11 +1666,92 @@ function Empty({
     </div>
   );
 }
-function Details({ row, module }: { row: Row; module: string }) {
+function Details({
+  row,
+  module,
+  onNavigate,
+}: {
+  row: Row;
+  module: string;
+  onNavigate: (key: string) => void;
+}) {
+  if (module === "departments")
+    return (
+      <div className="domain-detail">
+        <p>Rahbar · {row.head_name || "Belgilanmagan"}</p>
+        <button
+          className="btn"
+          onClick={() => onNavigate(`processes?department=${row.id}`)}
+        >
+          Bo‘lim jarayonlari
+        </button>
+      </div>
+    );
+  if (module === "processes")
+    return (
+      <div className="domain-detail">
+        <p>Mas’ul · {row.owner_name || "Belgilanmagan"}</p>
+        {row.description && <p>{row.description}</p>}
+        <div className="domain-actions">
+          <button
+            className="btn"
+            onClick={() => onNavigate(`services?record=${row.service}`)}
+          >
+            Xizmat kartasi
+          </button>
+          <button
+            className="btn"
+            onClick={() => onNavigate(`bia?process=${row.id}`)}
+          >
+            BIA
+          </button>
+          <button
+            className="btn"
+            onClick={() => onNavigate(`risks?process=${row.id}`)}
+          >
+            Risklar
+          </button>
+          <button
+            className="btn"
+            onClick={() => onNavigate(`plans?process=${row.id}`)}
+          >
+            Rejalar
+          </button>
+        </div>
+      </div>
+    );
+  if (module === "assets")
+    return (
+      <div className="domain-detail">
+        <p>{row.description || row.type_display}</p>
+        <button
+          className="btn"
+          onClick={() => onNavigate(`dependencies?node=ASSET:${row.id}`)}
+        >
+          Bog‘liqliklarni ochish
+        </button>
+      </div>
+    );
+  if (module === "audit")
+    return (
+      <div className="domain-detail audit-diff">
+        <p>
+          {row.actor_username || "Tizim"} · {row.action} · {row.entity} #
+          {row.entity_id}
+        </p>
+        {["before_state", "after_state"].map((key, index) => (
+          <details key={key}>
+            <summary>{index ? "Amaldan keyin" : "Amaldan oldin"}</summary>
+            <pre>{JSON.stringify(row[key] || {}, null, 2)}</pre>
+          </details>
+        ))}
+      </div>
+    );
   if (module === "plans")
     return (
       <div className="domain-detail">
         <h3>Tiklanish ketma-ketligi</h3>
+        <PlanEvidence row={row} />
         {!(row.steps || []).length ? (
           <p>Reja qadamlarini tahrirlash orqali kiriting.</p>
         ) : (
@@ -1568,14 +1869,33 @@ function RecordForm({
   onClose: () => void;
   onSave: (payload: Row) => Promise<any>;
 }) {
-  const [values, setValues] = useState<Row>(() =>
-    Object.fromEntries(
-      schema.fields.map((f) => [
-        f.key,
-        row?.[f.key] ?? f.value ?? (f.type === "checkbox" ? false : ""),
-      ]),
-    ),
+  const [values, setValues] = useState<Row>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return Object.fromEntries(
+      schema.fields.map((field) => {
+        const prefill =
+          field.resource &&
+          data[field.resource]?.find(
+            (item) => String(item.id) === params.get(field.key),
+          )?.id;
+        return [
+          field.key,
+          row?.[field.key] ??
+            (prefill || undefined) ??
+            field.value ??
+            (field.type === "checkbox" ? false : ""),
+        ];
+      }),
+    );
+  });
+  const [phase, setPhase] = useState(0);
+  const [backups, setBackups] = useState<Record<string, number>>(
+    row?.backup_assets || {},
   );
+  const bia = module === "bia";
+  const rtoInvalid = Number(values.rto_hours) > Number(values.mtpd_hours);
+  const rpoGap =
+    Number(values.backup_interval_minutes) > Number(values.rpo_minutes);
   const [steps, setSteps] = useState<Row[]>(row?.steps || []);
   const [impacts, setImpacts] = useState<Row[]>(row?.impacts || []);
   const [busy, setBusy] = useState(false);
@@ -1623,10 +1943,26 @@ function RecordForm({
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (busy) return;
+    if (bia && phase < 2) {
+      if (rtoInvalid) return;
+      setPhase(phase + 1);
+      return;
+    }
     setBusy(true);
     setError("");
     try {
       const payload = { ...values };
+      if (module === "plans" && !payload.review_due_date)
+        payload.review_due_date = null;
+      if (module === "simulation")
+        payload.backup_assets = Object.fromEntries(
+          Object.entries(backups).filter(
+            ([key, value]) =>
+              payload.disrupted_asset_ids.includes(Number(key)) &&
+              value &&
+              !payload.disrupted_asset_ids.includes(value),
+          ),
+        );
       schema.fields.forEach((f) => {
         if (f.type === "number") payload[f.key] = Number(payload[f.key]);
         if (f.resource && f.type !== "multiselect")
@@ -1657,8 +1993,18 @@ function RecordForm({
         <form onSubmit={submit}>
           <div className="domain-modal-header">
             <div>
-              <p className="eyebrow">{row ? "TAHRIRLASH" : "YANGI YOZUV"}</p>
               <h2 id="record-form-title">{schema.title}</h2>
+              {bia && (
+                <p>
+                  {
+                    [
+                      "1 / 3 · Tiklanish chegaralari",
+                      "2 / 3 · Biznesga ta’sir",
+                      "3 / 3 · Ko‘rib chiqish",
+                    ][phase]
+                  }
+                </p>
+              )}
             </div>
             <button
               type="button"
@@ -1675,102 +2021,182 @@ function RecordForm({
               {error}
             </div>
           )}
-          <div className="domain-form-grid">
-            {schema.fields.map((f) => {
-              const resource =
-                f.resource === "from-node"
-                  ? values.from_type === "ASSET"
-                    ? "assets"
-                    : "processes"
-                  : f.resource === "to-node"
-                    ? values.to_type === "PROCESS"
-                      ? "processes"
-                      : "assets"
-                    : f.resource;
-              const options = resource
-                ? (data[resource] || []).map((r) => [
-                    String(r.id),
-                    r.name ||
-                      r.title ||
-                      r.threat ||
-                      `${r.first_name || ""} ${r.last_name || ""}`.trim() ||
-                      r.username,
-                  ])
-                : f.options;
-              return (
-                <label
-                  className={`field ${f.type === "textarea" ? "wide" : ""}`}
-                  key={f.key}
-                >
-                  {f.label}
-                  {f.required ? " *" : ""}
-                  {f.type === "checkbox" ? (
-                    <input
-                      type="checkbox"
-                      checked={Boolean(values[f.key])}
-                      onChange={(e) => update(f.key, e.target.checked)}
-                    />
-                  ) : options ? (
-                    <select
-                      aria-label={f.label}
-                      required={f.required}
-                      multiple={f.type === "multiselect"}
-                      value={
-                        f.type === "multiselect"
-                          ? (values[f.key] || []).map(String)
-                          : String(values[f.key] ?? "")
-                      }
-                      onChange={(e) =>
-                        update(
-                          f.key,
+          {(!bia || phase === 0) && (
+            <div className="domain-form-grid">
+              {schema.fields.map((f) => {
+                const resource =
+                  f.resource === "from-node"
+                    ? values.from_type === "ASSET"
+                      ? "assets"
+                      : "processes"
+                    : f.resource === "to-node"
+                      ? values.to_type === "PROCESS"
+                        ? "processes"
+                        : "assets"
+                      : f.resource;
+                const options = resource
+                  ? (data[resource] || []).map((r) => [
+                      String(r.id),
+                      r.name ||
+                        r.title ||
+                        r.threat ||
+                        `${r.first_name || ""} ${r.last_name || ""}`.trim() ||
+                        r.username,
+                    ])
+                  : f.options;
+                return (
+                  <label
+                    className={`field ${f.type === "textarea" ? "wide" : ""}`}
+                    key={f.key}
+                  >
+                    {f.label}
+                    {f.required ? " *" : ""}
+                    {f.type === "checkbox" ? (
+                      <input
+                        type="checkbox"
+                        checked={Boolean(values[f.key])}
+                        onChange={(e) => update(f.key, e.target.checked)}
+                      />
+                    ) : options ? (
+                      <select
+                        aria-label={f.label}
+                        required={f.required}
+                        multiple={f.type === "multiselect"}
+                        value={
                           f.type === "multiselect"
-                            ? Array.from(e.target.selectedOptions, (o) =>
-                                Number(o.value),
-                              )
-                            : e.target.value,
-                        )
-                      }
-                    >
-                      {f.type !== "multiselect" && (
-                        <option value="">Tanlang…</option>
+                            ? (values[f.key] || []).map(String)
+                            : String(values[f.key] ?? "")
+                        }
+                        onChange={(e) =>
+                          update(
+                            f.key,
+                            f.type === "multiselect"
+                              ? Array.from(e.target.selectedOptions, (o) =>
+                                  Number(o.value),
+                                )
+                              : e.target.value,
+                          )
+                        }
+                      >
+                        {f.type !== "multiselect" && (
+                          <option value="">Tanlang…</option>
+                        )}
+                        {options.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : f.type === "textarea" ? (
+                      <textarea
+                        rows={3}
+                        required={f.required}
+                        value={values[f.key]}
+                        onChange={(e) => update(f.key, e.target.value)}
+                      />
+                    ) : (
+                      <input
+                        aria-label={f.label}
+                        aria-invalid={bia && f.key === "rto_hours" && rtoInvalid ? true : undefined}
+                        aria-describedby={bia && f.key === "rto_hours" && rtoInvalid
+                          ? "bia-rto-error"
+                          : bia && f.key === "backup_interval_minutes" && rpoGap
+                            ? "bia-backup-warning"
+                            : undefined}
+                        type={f.type || "text"}
+                        required={f.required}
+                        min={f.min}
+                        max={f.max}
+                        step={f.type === "number" ? "any" : undefined}
+                        value={values[f.key]}
+                        autoComplete={f.type === "email" ? "email" : "off"}
+                        onChange={(e) => update(f.key, e.target.value)}
+                      />
+                    )}
+                    {bia &&
+                      f.key === "rto_hours" &&
+                      rtoInvalid && (
+                        <small id="bia-rto-error" className="danger-text" role="status">
+                          RTO MTPD qiymatidan oshmasligi kerak.
+                        </small>
                       )}
-                      {options.map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
+                    {bia &&
+                      f.key === "backup_interval_minutes" &&
+                      rpoGap && (
+                        <small id="bia-backup-warning" className="danger-text">
+                          Zaxiralash oralig‘i RPO maqsadidan katta.
+                        </small>
+                      )}
+                    {resource && !(data[resource] || []).length && (
+                      <small>Avval tegishli reestrga yozuv kiriting.</small>
+                    )}
+                    {f.type === "multiselect" && (
+                      <small>
+                        Bir nechta aktiv uchun Ctrl / Cmd tugmasidan
+                        foydalaning.
+                      </small>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+          {module === "simulation" && !!values.disrupted_asset_ids?.length && (
+            <fieldset className="nested-fields">
+              <legend>Mavjud zaxira aktivlari</legend>
+              {values.disrupted_asset_ids.map((id: number) => (
+                <label key={id} className="field">
+                  {data.assets?.find((asset) => asset.id === id)?.name || id}
+                  <select
+                    value={
+                      values.disrupted_asset_ids.includes(backups[id])
+                        ? ""
+                        : backups[id] || ""
+                    }
+                    onChange={(event) =>
+                      setBackups({
+                        ...backups,
+                        [id]: Number(event.target.value),
+                      })
+                    }
+                  >
+                    <option value="">Zaxira mavjud emas</option>
+                    {(data.assets || [])
+                      .filter(
+                        (asset) =>
+                          !values.disrupted_asset_ids.includes(asset.id),
+                      )
+                      .map((asset) => (
+                        <option key={asset.id} value={asset.id}>
+                          {asset.name}
                         </option>
                       ))}
-                    </select>
-                  ) : f.type === "textarea" ? (
-                    <textarea
-                      rows={3}
-                      required={f.required}
-                      value={values[f.key]}
-                      onChange={(e) => update(f.key, e.target.value)}
-                    />
-                  ) : (
-                    <input
-                      type={f.type || "text"}
-                      required={f.required}
-                      min={f.min}
-                      max={f.max}
-                      step={f.type === "number" ? "any" : undefined}
-                      value={values[f.key]}
-                      autoComplete={f.type === "email" ? "email" : "off"}
-                      onChange={(e) => update(f.key, e.target.value)}
-                    />
-                  )}
-                  {resource && !(data[resource] || []).length && (
-                    <small>Avval tegishli reestrga yozuv kiriting.</small>
-                  )}
-                  {f.type === "multiselect" && (
-                    <small>
-                      Bir nechta aktiv uchun Ctrl / Cmd tugmasidan foydalaning.
-                    </small>
-                  )}
+                  </select>
                 </label>
-              );
-            })}
-          </div>
+              ))}
+            </fieldset>
+          )}
+          {bia && phase === 2 && (
+            <div className="domain-detail">
+              <p>
+                {
+                  data.processes?.find(
+                    (process) => process.id === Number(values.process),
+                  )?.name
+                }{" "}
+                · v{values.revision}
+              </p>
+              <p>
+                RTO {values.rto_hours} soat · MTPD {values.mtpd_hours} soat
+              </p>
+              <p>
+                RPO {values.rpo_minutes} daqiqa · Zaxiralash har{" "}
+                {values.backup_interval_minutes} daqiqada
+              </p>
+              <p>{impacts.length} ta ta’sir nuqtasi</p>
+              {rpoGap && <p className="danger-text">RPO tafovuti bor.</p>}
+            </div>
+          )}
           {module === "plans" && (
             <fieldset className="nested-fields">
               <legend>Tiklanish qadamlari</legend>
@@ -1859,6 +2285,32 @@ function RecordForm({
                   >
                     <X size={16} />
                   </button>
+                  {[-1, 1].map((direction) => (
+                    <button
+                      key={direction}
+                      type="button"
+                      className="btn"
+                      disabled={
+                        i + direction < 0 || i + direction >= steps.length
+                      }
+                      aria-label={`Qadam ${i + 1}: ${direction < 0 ? "yuqoriga" : "pastga"}`}
+                      onClick={() =>
+                        setSteps((previous) => {
+                          const next = [...previous];
+                          [next[i], next[i + direction]] = [
+                            next[i + direction],
+                            next[i],
+                          ];
+                          return next.map((item, index) => ({
+                            ...item,
+                            sequence: index + 1,
+                          }));
+                        })
+                      }
+                    >
+                      {direction < 0 ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                    </button>
+                  ))}
                 </div>
               ))}
               <button
@@ -1881,7 +2333,7 @@ function RecordForm({
               </button>
             </fieldset>
           )}
-          {module === "bia" && (
+          {bia && phase === 1 && (
             <fieldset className="nested-fields">
               <legend>Vaqt bo‘yicha ta’sir</legend>
               {impacts.map((impact, i) => (
@@ -1955,8 +2407,26 @@ function RecordForm({
             >
               Bekor qilish
             </button>
-            <button className="btn btn-primary" type="submit" disabled={busy}>
-              {busy ? "Saqlanmoqda…" : "Saqlash"}
+            {bia && phase > 0 && (
+              <button
+                className="btn"
+                type="button"
+                disabled={busy}
+                onClick={() => setPhase(phase - 1)}
+              >
+                Orqaga
+              </button>
+            )}
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={busy || (bia && phase === 0 && rtoInvalid)}
+            >
+              {busy
+                ? "Saqlanmoqda…"
+                : bia && phase < 2
+                  ? "Davom etish"
+                  : "Saqlash"}
             </button>
           </div>
         </form>
@@ -2024,46 +2494,17 @@ function SimulationResult({
         <p>
           {result.estimated_outage_hours} soat uzilish ·{" "}
           {result.affected_processes_count} jarayonga ta’sir ·{" "}
-          {result.rto_breaches_count} RTO buzilishi · {result.missing_plans_count}{" "}
-          rejasiz jarayon
+          {result.rto_breaches_count} RTO buzilishi ·{" "}
+          {result.missing_plans_count} rejasiz jarayon
         </p>
       </header>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Jarayon</th>
-              <th>Xizmat</th>
-              <th>RTO · soat</th>
-              <th>MTPD · soat</th>
-              <th>Natija</th>
-              <th>Reja</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(result.affected_processes || []).map((p: Row) => (
-              <tr key={p.process_id}>
-                <td>{p.process_name}</td>
-                <td>{p.service_name}</td>
-                <td>{p.target_rto_hours}</td>
-                <td>{p.target_mtpd_hours}</td>
-                <td>
-                  <span className={`badge ${p.mtpd_breached || p.rto_breached ? "danger" : "status-ok"}`}>
-                    {p.mtpd_breached
-                      ? "MTPD buziladi"
-                      : p.rto_breached
-                        ? "RTO buziladi"
-                        : "Maqsadga mos"}
-                  </span>
-                </td>
-                <td>{p.has_published_plan ? "Mavjud" : "Yetishmaydi"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <SimulationImpact result={result} onNavigate={onNavigate} />
       {canImprove && result.simulation_run_id && (
-        <SimulationImprovement runId={result.simulation_run_id} users={users} />
+        <SimulationImprovement
+          runId={result.simulation_run_id}
+          users={users}
+          processes={result.affected_processes || []}
+        />
       )}
       <div className="domain-actions">
         <button className="btn" onClick={() => onNavigate("tasks")}>
@@ -2179,7 +2620,9 @@ function StrategyComparison({
               setProcess(e.target.value);
               setResult(null);
               const bia = (data.bia || []).find(
-                (b) => b.process === Number(e.target.value),
+                (b) =>
+                  b.process === Number(e.target.value) &&
+                  b.status === "APPROVED",
               );
               if (bia) {
                 setRto(Number(bia.rto_hours));
@@ -2242,6 +2685,37 @@ function StrategyComparison({
           Solishtirish
         </button>
       </div>
+      {!!candidates.length && (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Variant</th>
+                <th>RTO · soat</th>
+                <th>RPO · daqiqa</th>
+                <th>Xarajat</th>
+                <th>Maqsadga mosligi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {candidates.map((variant) => (
+                <tr key={variant.id}>
+                  <th scope="row">{variant.name}</th>
+                  <td>{variant.estimated_rto_hours}</td>
+                  <td>{variant.estimated_rpo_minutes}</td>
+                  <td>{variant.estimated_cost}</td>
+                  <td>
+                    {Number(variant.estimated_rto_hours) <= rto &&
+                    Number(variant.estimated_rpo_minutes) <= rpo
+                      ? "Mos"
+                      : "Chegaradan oshadi"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       {result && (
         <div role="status" className="strategy-result">
           <h3>
@@ -2397,12 +2871,19 @@ function RiskEvaluation({ onError }: { onError: (s: string) => void }) {
 function SimulationImprovement({
   runId,
   users,
+  exercise = false,
+  processes = [],
 }: {
   runId: number;
   users: Row[];
+  exercise?: boolean;
+  processes?: Row[];
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [process, setProcess] = useState(
+    String(processes[0]?.process_id || ""),
+  );
   const [owner, setOwner] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [busy, setBusy] = useState(false);
@@ -2418,16 +2899,26 @@ function SimulationImprovement({
         setError("");
         setMessage("");
         try {
-          await api.action("simulation-runs", runId, "improvements", {
-            title,
-            description,
-            owner: owner ? Number(owner) : null,
-            due_date: dueDate || null,
-          });
+          await api.action(
+            exercise ? "exercises" : "simulation-runs",
+            runId,
+            "improvements",
+            {
+              title,
+              owner: owner ? Number(owner) : null,
+              due_date: dueDate || null,
+              ...(!exercise && {
+                description,
+                process: process ? Number(process) : null,
+              }),
+            },
+          );
           setTitle("");
           setDescription("");
           setMessage(
-            "Vazifa yaratildi va saqlangan simulyatsiya natijasiga bog‘landi.",
+            exercise
+              ? "Vazifa mashq daliliga bog‘landi."
+              : "Vazifa yaratildi va saqlangan simulyatsiya natijasiga bog‘landi.",
           );
         } catch (error) {
           setError(errorText(error));
@@ -2436,8 +2927,11 @@ function SimulationImprovement({
         }
       }}
     >
-      <h3>Natijadan yaxshilash vazifasi yarating</h3>
-      <p className="muted">Bu vazifa aynan ushbu sinov daliliga bog‘lanadi.</p>
+      <h3>
+        {exercise
+          ? "Mashqdan yaxshilash vazifasi"
+          : "Natijadan yaxshilash vazifasi yarating"}
+      </h3>
       {message && (
         <p role="status" className="success alert">
           {message}
@@ -2459,7 +2953,11 @@ function SimulationImprovement({
         </label>
         <label className="field">
           Mas’ul
-          <select value={owner} onChange={(e) => setOwner(e.target.value)}>
+          <select
+            required={exercise}
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+          >
             <option value="">Belgilanmagan</option>
             {users.map((u) => (
               <option key={u.id} value={u.id}>
@@ -2472,24 +2970,79 @@ function SimulationImprovement({
           Bajarish sanasi
           <input
             type="date"
+            required={exercise}
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
           />
         </label>
-        <label className="field">
-          Xulosa va taklif
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={2}
-          />
-        </label>
+        {!exercise && !!processes.length && (
+          <label className="field">
+            Ta’sirlangan jarayon
+            <select
+              value={process}
+              onChange={(event) => setProcess(event.target.value)}
+            >
+              {processes.map((row) => (
+                <option key={row.process_id} value={row.process_id}>
+                  {row.process_name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {!exercise && (
+          <label className="field">
+            Xulosa va taklif
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
+          </label>
+        )}
       </div>
       <div className="domain-form-footer">
         <button type="submit" className="btn btn-primary" disabled={busy}>
           {busy ? "Saqlanmoqda…" : "Yaxshilash vazifasini saqlash"}
         </button>
       </div>
+    </form>
+  );
+}
+
+function ScenarioDuration({
+  row,
+  busy,
+  onRun,
+}: {
+  row: Row;
+  busy: boolean;
+  onRun: (hours: number) => Promise<void>;
+}) {
+  const [hours, setHours] = useState(String(row.estimated_outage_hours));
+  return (
+    <form
+      className="domain-toolbar"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void onRun(Number(hours));
+      }}
+    >
+      <label className="field">
+        Uzilish davomiyligi · soat
+        <input
+          type="number"
+          required
+          min="0.01"
+          max="9999.99"
+          step="0.01"
+          value={hours}
+          onChange={(event) => setHours(event.target.value)}
+        />
+      </label>
+      <button className="btn btn-primary" disabled={busy}>
+        Ta’sirni hisoblash
+      </button>
     </form>
   );
 }

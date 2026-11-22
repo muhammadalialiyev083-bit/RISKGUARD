@@ -1,10 +1,11 @@
+import { api } from "../api/client";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
   Download,
-  Globe2,
   MapPin,
+  Globe2,
   Pause,
   Pencil,
   Play,
@@ -31,7 +32,7 @@ import {
   toGeoJSON,
   validateStop,
 } from "./model";
-import type { MapPlan, MapStop, StopKind } from "./model";
+import type { MapLink, MapPlan, MapStop, StopKind } from "./model";
 import "./map.css";
 
 function readPlan(key: string): { plan: MapPlan; error: string } {
@@ -55,23 +56,38 @@ const emptyDraft = () => ({
   longitude: "69.2401",
   latitude: "41.2995",
   city: "0",
+  linkResource: "" as MapLink["resource"] | "",
+  linkId: "",
 });
 
 export default function ContinuityMapPage({
   user,
   onNavigate,
 }: {
-  user: { id: number; organization: number | null };
+  user: {
+    id: number;
+    organization: number | null;
+    role: string;
+    is_superuser?: boolean;
+  };
   onNavigate?: (target: string) => void;
 }) {
   const key = storageKey(user.organization, user.id);
   const [initial] = useState(() => readPlan(key));
-  const [plan, setPlan] = useState(initial.plan);
-  const [error, setError] = useState(initial.error);
+  const [plan, setPlan] = useState<MapPlan>({ version: 1, stops: [] });
+  const [revision, setRevision] = useState<number | null>(null);
+  const [reload, setReload] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [mode, setMode] = useState<"demo" | "plan">(
-    initial.plan.stops.length ? "plan" : "demo",
-  );
+  const [mode, setMode] = useState<"demo" | "plan">("demo");
+  const [linkOptions, setLinkOptions] = useState<
+    { id: number; name?: string; title?: string }[]
+  >([]);
+  const [linkError, setLinkError] = useState("");
+  const writable =
+    user.is_superuser || ["ADMIN", "BCMS_MANAGER"].includes(user.role);
+  const canSave = writable && revision !== null && !saving;
   const [candidate, setCandidate] = useState<MapPlan | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState(emptyDraft);
@@ -129,32 +145,64 @@ export default function ContinuityMapPage({
     return () => cancelAnimationFrame(request);
   }, [playing, reducedMotion, duration]);
   useEffect(() => {
-    const sync = (event: StorageEvent) => {
-      if (event.key !== key) return;
-      const loaded = readPlan(key);
-      if (loaded.error) setError(loaded.error);
-      else {
-        setPlan(loaded.plan);
-        setNotice("Reja boshqa oynadagi o‘zgarish bilan yangilandi.");
-      }
+    let active = true;
+    setRevision(null);
+    api
+      .get("/continuity-map")
+      .then((data) => {
+        const next = parsePlan(data);
+        if (!active) return;
+        setPlan(next);
+        setRevision(data.revision);
+        if (next.stops.length) setMode("plan");
+        setError("");
+      })
+      .catch((failure) => {
+        if (active) setError(failure.message);
+      });
+    return () => {
+      active = false;
     };
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
-  }, [key]);
+  }, [key, reload]);
+  useEffect(() => {
+    let active = true;
+    setLinkOptions([]);
+    setLinkError("");
+    async function loadLinks(resource: string) {
+      const rows = [];
+      for (let page = 1; ; page++) {
+        const result = await api.list(resource, { page });
+        rows.push(...result.results);
+        if (!result.next || !active) break;
+      }
+      if (active) setLinkOptions(rows);
+    }
+    if (draft.linkResource)
+      loadLinks(draft.linkResource).catch((failure) => {
+        if (active) setLinkError(failure.message);
+      });
+    return () => {
+      active = false;
+    };
+  }, [draft.linkResource]);
 
-  function commit(stops: MapStop[], message: string) {
-    const next = parsePlan({ version: 1, stops });
-    setPlan(next);
-    setMode("plan");
+  async function commit(stops: MapStop[], message: string) {
+    if (!canSave) return false;
+    setSaving(true);
     setError("");
-    setNotice(message);
     try {
-      localStorage.setItem(key, JSON.stringify(next));
-    } catch {
-      setError(
-        "Reja ochiq oynada yangilandi, lekin brauzerda saqlanmadi. Oynani yopishdan oldin GeoJSON nusxasini yuklab oling.",
-      );
-      setNotice("");
+      const next = parsePlan({ version: 1, stops });
+      const saved = await api.put("/continuity-map", { ...next, revision });
+      setPlan(parsePlan(saved));
+      setRevision(saved.revision);
+      setMode("plan");
+      setNotice(message);
+      return true;
+    } catch (failure) {
+      setError((failure as Error).message);
+      return false;
+    } finally {
+      setSaving(false);
     }
   }
   function focusStop(id: string) {
@@ -183,6 +231,8 @@ export default function ContinuityMapPage({
       longitude: String(stop.longitude),
       latitude: String(stop.latitude),
       city: city < 0 ? "custom" : String(city),
+      linkResource: stop.link?.resource || "",
+      linkId: String(stop.link?.id || ""),
     });
     nameInput.current?.focus();
   }
@@ -211,22 +261,21 @@ export default function ContinuityMapPage({
     <section className="map-page">
       <header className="map-page-heading">
         <div>
-          <p className="map-eyebrow">
-            <Globe2 size={15} aria-hidden="true" /> JOYLASHUV VA TIKLANISH
-          </p>
           <h1>Hududiy tiklanish xaritasi</h1>
-          <p className="muted">
-            Manzillarni belgilang. Yo‘nalish tuzing. Harakatda ko‘ring.
-          </p>
         </div>
         <div className="map-file-actions">
           <button
             className="btn btn-primary"
+            disabled={!canSave}
             onClick={() => nameInput.current?.focus()}
           >
             <Plus size={16} /> Manzil qo‘shish
           </button>
-          <button className="btn" onClick={() => uploadInput.current?.click()}>
+          <button
+            className="btn"
+            disabled={!canSave}
+            onClick={() => uploadInput.current?.click()}
+          >
             <Upload size={16} /> Rejani yuklash
           </button>
           <button
@@ -265,9 +314,7 @@ export default function ContinuityMapPage({
       </header>
       <SectionGuide
         module="map"
-        rows={stops}
         user={user}
-        sample={mode === "demo"}
         onNavigate={(target) =>
           target.startsWith("map")
             ? nameInput.current?.focus()
@@ -277,14 +324,17 @@ export default function ContinuityMapPage({
         }
         onStart={() => nameInput.current?.focus()}
       />
-      <p className="map-storage-note">
-        <span aria-hidden="true">◈</span> Shaxsiy reja · shu brauzerda
-        hisobingiz uchun saqlanadi. Boshqa qurilmaga o‘tishda GeoJSON nusxadan
-        foydalaning.
-      </p>
+      {!!initial.plan.stops.length && !plan.stops.length && canSave && (
+        <button className="btn" onClick={() => setCandidate(initial.plan)}>
+          Shaxsiy rejani ko‘chirish
+        </button>
+      )}
       {error && (
         <div className="alert error" role="alert">
           {error}
+          <button className="btn" onClick={() => setReload(reload + 1)}>
+            Qayta yuklash
+          </button>
         </div>
       )}
       {notice && (
@@ -308,16 +358,17 @@ export default function ContinuityMapPage({
           <div>
             <h2>{candidate.stops.length} ta manzilli reja tayyor</h2>
             <p className="muted">
-              Yuklash hozirgi shaxsiy rejangizni almashtiradi. Avval kerak
-              bo‘lsa GeoJSON nusxasini oling.
+              Yuklash tashkilot xaritasidagi manzillarni almashtiradi.
             </p>
           </div>
           <button
             className="btn btn-primary"
-            onClick={() => {
-              commit(candidate.stops, "GeoJSON rejasi saqlandi.");
-              setCandidate(null);
-              resetDraft();
+            disabled={!canSave}
+            onClick={async () => {
+              if (await commit(candidate.stops, "Xarita rejasi saqlandi.")) {
+                setCandidate(null);
+                resetDraft();
+              }
             }}
           >
             Rejani almashtirish
@@ -350,7 +401,7 @@ export default function ContinuityMapPage({
                   aria-pressed={mode === "plan"}
                   onClick={() => setMode("plan")}
                 >
-                  Mening rejam <span>{plan.stops.length}</span>
+                  Tashkilot rejasi <span>{plan.stops.length}</span>
                 </button>
                 <button
                   aria-pressed={mode === "demo"}
@@ -506,10 +557,7 @@ export default function ContinuityMapPage({
                 <small> km</small>
               </strong>
             </div>
-            <p>
-              Masofa nuqtalar orasidagi havo yo‘li bo‘yicha hisoblanadi. Bu
-              avtomobil yo‘li yoki yetib borish vaqti hisoblanmaydi.
-            </p>
+            <p>Masofa havo yo‘li bo‘yicha.</p>
           </div>
           <section
             className="panel map-route-list"
@@ -525,7 +573,7 @@ export default function ContinuityMapPage({
                 </p>
               </div>
               <span className="map-count">
-                {mode === "demo" ? "NAMUNA" : "SHAXSIY REJA"}
+                {mode === "demo" ? "Namuna" : "Tashkilot rejasi"}
               </span>
             </div>
             {!stops.length ? (
@@ -553,12 +601,24 @@ export default function ContinuityMapPage({
                         </small>
                       </span>
                     </button>
-                    {mode === "plan" && (
+                    {selectedId === stop.id && stop.link && (
+                      <button
+                        className="text-button"
+                        onClick={() =>
+                          onNavigate?.(
+                            `${stop.link!.resource}?record=${stop.link!.id}`,
+                          )
+                        }
+                      >
+                        Bog‘langan yozuvni ochish
+                      </button>
+                    )}
+                    {mode === "plan" && writable && (
                       <div className="map-stop-actions">
                         <button
                           className="btn btn-icon"
                           aria-label={`${stop.name}: yuqoriga`}
-                          disabled={index === 0}
+                          disabled={!canSave || index === 0}
                           onClick={() => move(index, -1)}
                         >
                           <ArrowUp size={15} />
@@ -566,7 +626,7 @@ export default function ContinuityMapPage({
                         <button
                           className="btn btn-icon"
                           aria-label={`${stop.name}: pastga`}
-                          disabled={index === stops.length - 1}
+                          disabled={!canSave || index === stops.length - 1}
                           onClick={() => move(index, 1)}
                         >
                           <ArrowDown size={15} />
@@ -599,170 +659,231 @@ export default function ContinuityMapPage({
             )}
           </section>
         </div>
-        <aside className="panel map-editor" aria-labelledby="map-editor-title">
-          <p className="map-eyebrow">
-            <MapPin size={14} aria-hidden="true" /> REJANGIZNI TUZING
-          </p>
-          <h2 id="map-editor-title">
-            {editing ? "Manzilni tahrirlash" : "Manzil qo‘shish"}
-          </h2>
-          <p className="muted">
-            Ofis, zaxira markaz yoki hamkorning joylashuvini kiriting.
-          </p>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              setError("");
-              try {
-                if (!draft.latitude.trim() || !draft.longitude.trim())
-                  throw new Error("Kenglik va uzunlikni kiriting.");
-                if (!editing && plan.stops.length >= MAX_STOPS)
-                  throw new Error(
-                    `Bir rejada ko‘pi bilan ${MAX_STOPS} ta manzil bo‘lishi mumkin.`,
-                  );
-                const stop = validateStop({
-                  id: editing || crypto.randomUUID(),
-                  name: draft.name,
-                  kind: draft.kind,
-                  latitude: Number(draft.latitude),
-                  longitude: Number(draft.longitude),
-                });
-                commit(
-                  editing
-                    ? plan.stops.map((item) =>
-                        item.id === editing ? stop : item,
-                      )
-                    : [...plan.stops, stop],
-                  editing
-                    ? "Manzil o‘zgarishlari saqlandi."
-                    : "Manzil shaxsiy rejangizga qo‘shildi.",
-                );
-                resetDraft();
-                nameInput.current?.focus();
-              } catch (error) {
-                setError((error as Error).message);
-              }
-            }}
+        {writable && (
+          <aside
+            className="panel map-editor"
+            aria-labelledby="map-editor-title"
           >
-            <label className="field">
-              Manzil nomi
-              <input
-                ref={nameInput}
-                required
-                maxLength={60}
-                value={draft.name}
-                placeholder="Masalan, Toshkent bosh ofisi"
-                onChange={(event) =>
-                  setDraft({ ...draft, name: event.target.value })
-                }
-              />
-            </label>
-            <label className="field">
-              Manzil turi
-              <select
-                aria-label="Manzil turi"
-                value={draft.kind}
-                onChange={(event) =>
-                  setDraft({ ...draft, kind: event.target.value as StopKind })
-                }
-              >
-                {Object.entries(kinds).map(([kind, label]) => (
-                  <option key={kind} value={kind}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              Shahar markazi
-              <select
-                aria-label="Shahar markazi"
-                value={draft.city}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (value === "custom")
-                    return setDraft({ ...draft, city: value });
-                  const city = cities[Number(value)];
-                  setDraft({
-                    ...draft,
-                    city: value,
-                    longitude: String(city.longitude),
-                    latitude: String(city.latitude),
+            <h2 id="map-editor-title">
+              {editing ? "Manzilni tahrirlash" : "Manzil qo‘shish"}
+            </h2>
+            <p className="muted">
+              Ofis, zaxira markaz yoki hamkorning joylashuvini kiriting.
+            </p>
+            <form
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setError("");
+                try {
+                  if (!draft.latitude.trim() || !draft.longitude.trim())
+                    throw new Error("Kenglik va uzunlikni kiriting.");
+                  if (!editing && plan.stops.length >= MAX_STOPS)
+                    throw new Error(
+                      `Bir rejada ko‘pi bilan ${MAX_STOPS} ta manzil bo‘lishi mumkin.`,
+                    );
+                  const stop = validateStop({
+                    id: editing || crypto.randomUUID(),
+                    name: draft.name,
+                    kind: draft.kind,
+                    latitude: Number(draft.latitude),
+                    longitude: Number(draft.longitude),
+                    link:
+                      draft.linkResource && draft.linkId
+                        ? {
+                            resource: draft.linkResource,
+                            id: Number(draft.linkId),
+                          }
+                        : undefined,
                   });
-                }}
-              >
-                <option value="custom">Koordinatani qo‘lda kiritish</option>
-                {cities.map((city, index) => (
-                  <option key={city.name} value={index}>
-                    {city.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="map-field-help">
-              Shahar tanlash taxminiy markaz koordinatasini qo‘yadi. Aniq manzil
-              uchun uni tahrirlang.
-            </p>
-            <div className="map-coordinate-fields">
+                  const saved = await commit(
+                    editing
+                      ? plan.stops.map((item) =>
+                          item.id === editing ? stop : item,
+                        )
+                      : [...plan.stops, stop],
+                    editing
+                      ? "Manzil o‘zgarishlari saqlandi."
+                      : "Manzil tashkilot rejasiga qo‘shildi.",
+                  );
+                  if (saved) {
+                    resetDraft();
+                    nameInput.current?.focus();
+                  }
+                } catch (error) {
+                  setError((error as Error).message);
+                }
+              }}
+            >
               <label className="field">
-                Kenglik (latitude)
+                Manzil nomi
                 <input
-                  type="number"
+                  ref={nameInput}
                   required
-                  min="-85"
-                  max="85"
-                  step="any"
-                  value={draft.latitude}
+                  maxLength={60}
+                  value={draft.name}
+                  placeholder="Masalan, Toshkent bosh ofisi"
                   onChange={(event) =>
-                    setDraft({
-                      ...draft,
-                      city: "custom",
-                      latitude: event.target.value,
-                    })
+                    setDraft({ ...draft, name: event.target.value })
                   }
                 />
               </label>
               <label className="field">
-                Uzunlik (longitude)
-                <input
-                  type="number"
-                  required
-                  min="-180"
-                  max="180"
-                  step="any"
-                  value={draft.longitude}
+                Manzil turi
+                <select
+                  aria-label="Manzil turi"
+                  value={draft.kind}
                   onChange={(event) =>
+                    setDraft({ ...draft, kind: event.target.value as StopKind })
+                  }
+                >
+                  {Object.entries(kinds).map(([kind, label]) => (
+                    <option key={kind} value={kind}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                Shahar markazi
+                <select
+                  aria-label="Shahar markazi"
+                  value={draft.city}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (value === "custom")
+                      return setDraft({ ...draft, city: value });
+                    const city = cities[Number(value)];
                     setDraft({
                       ...draft,
-                      city: "custom",
-                      longitude: event.target.value,
-                    })
-                  }
-                />
+                      city: value,
+                      longitude: String(city.longitude),
+                      latitude: String(city.latitude),
+                    });
+                  }}
+                >
+                  <option value="custom">Koordinatani qo‘lda kiritish</option>
+                  {cities.map((city, index) => (
+                    <option key={city.name} value={index}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
               </label>
-            </div>
-            <button className="btn btn-primary map-save" type="submit">
-              <Plus size={16} />{" "}
-              {editing ? "O‘zgarishni saqlash" : "Rejaga qo‘shish"}
-            </button>
-            {editing && (
+              <p className="map-field-help">
+                Shahar tanlash taxminiy markaz koordinatasini qo‘yadi. Aniq
+                manzil uchun uni tahrirlang.
+              </p>
+              <div className="map-coordinate-fields">
+                <label className="field">
+                  Kenglik (latitude)
+                  <input
+                    type="number"
+                    required
+                    min="-85"
+                    max="85"
+                    step="any"
+                    value={draft.latitude}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        city: "custom",
+                        latitude: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label className="field">
+                  Uzunlik (longitude)
+                  <input
+                    type="number"
+                    required
+                    min="-180"
+                    max="180"
+                    step="any"
+                    value={draft.longitude}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        city: "custom",
+                        longitude: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              {writable && (
+                <label className="field">
+                  Bog‘lanish turi
+                  <select
+                    value={draft.linkResource}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        linkResource: event.target
+                          .value as typeof draft.linkResource,
+                        linkId: "",
+                      })
+                    }
+                  >
+                    <option value="">Bog‘lanishsiz</option>
+                    <option value="assets">Aktiv</option>
+                    <option value="providers">Provayder</option>
+                    <option value="plans">Tiklanish rejasi</option>
+                  </select>
+                </label>
+              )}
+              {draft.linkResource && (
+                <label className="field">
+                  Bog‘langan yozuv
+                  <select
+                    value={draft.linkId}
+                    onChange={(event) =>
+                      setDraft({ ...draft, linkId: event.target.value })
+                    }
+                  >
+                    <option value="">Tanlang…</option>
+                    {!linkOptions.some(
+                      (option) => String(option.id) === draft.linkId,
+                    ) &&
+                      draft.linkId && (
+                        <option value={draft.linkId}>#{draft.linkId}</option>
+                      )}
+                    {linkOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name || option.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {linkError && <p role="alert">{linkError}</p>}
               <button
-                type="button"
-                className="btn map-save"
-                onClick={resetDraft}
+                disabled={!canSave}
+                className="btn btn-primary map-save"
+                type="submit"
               >
-                Tahrirlashni bekor qilish
+                <Plus size={16} />{" "}
+                {editing ? "O‘zgarishni saqlash" : "Rejaga qo‘shish"}
               </button>
-            )}
-          </form>
-          <div className="map-editor-note">
-            <strong>Manzildan yo‘nalishgacha</strong>
-            <p>
-              Ikkinchi manzilni qo‘shganingizda bog‘lanish chiziladi. Ijro etish
-              tugmasi yo‘nalishni bosqichma-bosqich ochadi.
-            </p>
-          </div>
-        </aside>
+              {editing && (
+                <button
+                  type="button"
+                  className="btn map-save"
+                  onClick={resetDraft}
+                >
+                  Tahrirlashni bekor qilish
+                </button>
+              )}
+            </form>
+            <div className="map-editor-note">
+              <strong>Manzildan yo‘nalishgacha</strong>
+              <p>
+                Ikkinchi manzilni qo‘shganingizda bog‘lanish chiziladi. Ijro
+                etish tugmasi yo‘nalishni bosqichma-bosqich ochadi.
+              </p>
+            </div>
+          </aside>
+        )}
       </div>
     </section>
   );

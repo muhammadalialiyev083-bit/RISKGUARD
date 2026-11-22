@@ -128,7 +128,7 @@
     },
     "font": {
       "family": {
-        "$value": "\"IBM Plex Sans\", ui-sans-serif, system-ui, sans-serif",
+        "$value": "\"Montserrat\", ui-sans-serif, system-ui, sans-serif",
         "$description": "Self-hosted Latin variable font"
       },
       "small": {

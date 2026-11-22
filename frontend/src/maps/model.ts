@@ -10,12 +10,14 @@ export const kinds = {
   partner: "Hamkor manzili",
 } as const;
 export type StopKind = keyof typeof kinds;
+export type MapLink = { resource: "assets" | "providers" | "plans"; id: number };
 export type MapStop = {
   id: string;
   name: string;
   kind: StopKind;
   longitude: number;
   latitude: number;
+  link?: MapLink;
 };
 export type MapPlan = { version: 1; stops: MapStop[] };
 
@@ -88,12 +90,18 @@ export function validateStop(value: unknown): MapStop {
     Math.abs(stop.latitude) > 85
   )
     return invalid("Kenglik −85 va 85 oralig‘ida bo‘lsin.");
+  const link = stop.link as MapLink | null | undefined;
+  if (link != null && (!["assets", "providers", "plans"].includes(link.resource) ||
+      !Number.isSafeInteger(link.id) || link.id < 1)) {
+    return invalid("Bog‘langan yozuv formati noto‘g‘ri.");
+  }
   return {
     id: stop.id,
     name: stop.name.trim(),
     kind: stop.kind as StopKind,
     longitude: stop.longitude,
     latitude: stop.latitude,
+    ...(link && { link: { resource: link.resource, id: link.id } }),
   };
 }
 
@@ -127,6 +135,7 @@ export function toGeoJSON(plan: MapPlan) {
         name: stop.name,
         kind: stop.kind,
         order: order + 1,
+        ...(stop.link && { link: stop.link }),
       },
     })),
   };
@@ -162,6 +171,7 @@ export function fromGeoJSON(value: unknown): MapPlan {
         id: feature.properties?.id,
         name: feature.properties?.name,
         kind: feature.properties?.kind,
+        link: feature.properties?.link,
         longitude: feature.geometry.coordinates[0],
         latitude: feature.geometry.coordinates[1],
       };

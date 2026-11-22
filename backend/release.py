@@ -19,6 +19,7 @@ from apps.core.legacy_schema import ADOPTION_MIGRATIONS, RETAINED_HISTORY
 ALLOWED = ADOPTION_MIGRATIONS | {
     ('authentication', '0003_authratelimit_user_preferences_googleidentity'),
     ('operations', '0001_initial'),
+    ('operations', '0002_continuity_workflow'),
 }
 # Retain only observed history whose source was lost. Never replay or delete it.
 RETAINED_ONLY_HISTORY = RETAINED_HISTORY
@@ -27,6 +28,7 @@ NEW_MODELS = {
     ('operations', 'provider'), ('operations', 'incident'),
     ('operations', 'incidentevent'), ('operations', 'simulationrun'),
     ('operations', 'improvementtask'),
+    ('operations', 'continuitymap'),
 }
 NEW_TABLES = {f'{app}_{model}' for app, model in NEW_MODELS} | {
     'operations_provider_assets', 'operations_provider_services',
@@ -178,7 +180,7 @@ def verify_preserved_rows(connection, snapshots, key):
 
 
 def verify_metadata(connection, snapshots, pending):
-    """Allow post_migrate to add only the seven new content types and permissions."""
+    """Allow post_migrate to add only reviewed content types and permissions."""
     quote = connection.ops.quote_name
     with connection.cursor() as cursor:
         def additions(table, columns):

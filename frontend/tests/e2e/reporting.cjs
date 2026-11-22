@@ -9,7 +9,7 @@ const summary = {
   total_processes: 1234, critical_processes: 12, total_assets: 38,
   total_risks: 22, high_risks_count: 3, unplanned_processes_count: 6,
   rpo_gap_count: 2, approved_bias_count: 8, published_plans_count: 14,
-  completed_exercises_count: 0,
+  completed_exercises_count: 0, ready_plans_count: 12, verified_plans_count: 0, plans_needing_review_count: 2,
 };
 
 (async () => {
@@ -59,9 +59,10 @@ const summary = {
     assert.equal(requests, before + 1);
     assert.equal(report.metrics.find(metric => metric.key === 'total_processes').value, 4321);
     assert.equal(report.metrics.find(metric => metric.key === 'completed_exercises_count').value, 0);
-    assert.equal(report.metrics.length, 10);
+    assert.equal(report.metrics.length, Object.keys(summary).length);
     assert.equal(report.organization, 'Sinov tashkiloti');
 
+    await page.locator(".report-filters summary").click();
     await page.getByLabel('Jarayon yaratilgan davr · dan').fill('2026-11-01');
     await json.waitFor({ state: 'visible' });
     await page.getByLabel('Davr · gacha').fill('2026-11-16');

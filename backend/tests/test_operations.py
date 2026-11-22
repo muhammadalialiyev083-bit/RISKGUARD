@@ -7,6 +7,7 @@ from apps.organizations.models import Organization, Service
 from apps.processes.models import Asset, BusinessProcess, Dependency
 from apps.operations.models import Provider, Incident, ImprovementTask, SimulationRun, IncidentEvent
 from apps.core.models import AuditLog
+from apps.bia.models import BIAAssessment
 
 
 @pytest.fixture
@@ -31,6 +32,8 @@ def setup_ops(db):
 def test_provider_disruption_saved_simulation_improvement_and_audit(setup_ops):
     s = setup_ops
     c = s['client']
+    BIAAssessment.objects.create(organization=s['org'], process=s['process'],
+                                 rto_hours=2, mtpd_hours=4, status='APPROVED')
     created = c.post(reverse('provider-list'), {'name': 'Internet hamkori', 'assets': [s['asset'].pk],
                      'services': [s['service'].pk], 'risk_rating': 'HIGH', 'next_review_date': '2027-02-01'}, format='json')
     assert created.status_code == 201, created.data

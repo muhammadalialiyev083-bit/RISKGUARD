@@ -1,4 +1,4 @@
-import React, { useId, useRef } from "react";
+import React, { useId, useRef, useState } from "react";
 import { useMotion, useSceneClock } from "../experience/MotionEffects";
 import "./domain-charts.css";
 
@@ -16,7 +16,9 @@ export function RiskMatrix({
   const id = useId();
   return (
     <section className="panel chart-panel" aria-labelledby={id}>
-      <div className={featured ? "chart-heading feature-summary" : "chart-heading"}>
+      <div
+        className={featured ? "chart-heading feature-summary" : "chart-heading"}
+      >
         <div>
           <h3 id={id}>Risklar xaritasi</h3>
           <p>Ehtimollik × ta’sir. Katakni tanlab risklarni ko‘ring.</p>
@@ -112,15 +114,28 @@ export function DependencyMap({
   const titleId = useId(),
     descId = useId();
   const flowRoot = useRef<SVGSVGElement>(null);
+  const [focused, setFocused] = useState(
+    () => new URLSearchParams(location.search).get("node") || "",
+  );
   const { enabled } = useMotion();
-  useSceneClock(flowRoot, (seconds) => {
-    const stage = seconds < 6.6 ? Math.min(1, seconds / 2.2) : (8 - seconds) / 1.4;
-    flowRoot.current?.querySelectorAll<SVGPathElement>(".dependency-pulse").forEach((pulse, index) => {
-      const progress = ((seconds - index * .14) % 3.1 + 3.1) % 3.1 / 3.1;
-      pulse.style.strokeDashoffset = String(.08 - progress * 1.08);
-      pulse.style.opacity = String(enabled && progress > 0 && progress < .96 ? stage * .8 : 0);
-    });
-  }, `${processes.length}-${assets.length}-${dependencies.length}`);
+  useSceneClock(
+    flowRoot,
+    (seconds) => {
+      const stage =
+        seconds < 6.6 ? Math.min(1, seconds / 2.2) : (8 - seconds) / 1.4;
+      flowRoot.current
+        ?.querySelectorAll<SVGPathElement>(".dependency-pulse")
+        .forEach((pulse, index) => {
+          const progress =
+            ((((seconds - index * 0.14) % 3.1) + 3.1) % 3.1) / 3.1;
+          pulse.style.strokeDashoffset = String(0.08 - progress * 1.08);
+          pulse.style.opacity = String(
+            enabled && progress > 0 && progress < 0.96 ? stage * 0.8 : 0,
+          );
+        });
+    },
+    `${processes.length}-${assets.length}-${dependencies.length}`,
+  );
   const processNodes = processes.map((r, i) => ({
     ...r,
     id: Number(r.id),
@@ -147,6 +162,19 @@ export function DependencyMap({
   }
   const label = (type: string, id: number) =>
     node(type, id)?.name || `${type} #${id}`;
+  const connected = dependencies.filter(
+    (edge) =>
+      focused === `${edge.from_type}:${edge.from_id}` ||
+      focused === `${edge.to_type}:${edge.to_id}`,
+  );
+  const highlighted = new Set([
+    focused,
+    ...connected.flatMap((edge) => [
+      `${edge.from_type}:${edge.from_id}`,
+      `${edge.to_type}:${edge.to_id}`,
+    ]),
+  ]);
+  const active = nodes.find((item) => `${item.kind}:${item.id}` === focused);
   return (
     <section className="panel chart-panel" aria-labelledby={titleId}>
       <div className="chart-heading">
@@ -156,6 +184,52 @@ export function DependencyMap({
         </div>
         <span className="badge">{dependencies.length} aloqa</span>
       </div>
+      {!!nodes.length && (
+        <div className="domain-toolbar">
+          <label className="field">
+            Tugunni tanlash
+            <select
+              value={focused}
+              onChange={(event) => setFocused(event.target.value)}
+            >
+              <option value="">Barcha bog‘liqliklar</option>
+              {nodes.map((item) => (
+                <option
+                  key={`${item.kind}:${item.id}`}
+                  value={`${item.kind}:${item.id}`}
+                >
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {active && onSelect && (
+            <button
+              className="btn"
+              onClick={() => onSelect(active.kind, active.id)}
+            >
+              Yozuvni ochish
+            </button>
+          )}
+        </div>
+      )}
+      {active && (
+        <div role="status">
+          <p>
+            {active.name} · {connected.length} ta aloqa
+          </p>
+          {!!connected.length && (
+            <ul>
+              {connected.map((edge) => (
+                <li key={edge.id}>
+                  {label(edge.from_type, edge.from_id)} →{" "}
+                  {label(edge.to_type, edge.to_id)}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       {!nodes.length ? (
         <p>Jarayon yoki aktiv yarating, so‘ng ularni bog‘lang.</p>
       ) : (
@@ -164,7 +238,7 @@ export function DependencyMap({
             ref={flowRoot}
             viewBox={`0 0 670 ${height}`}
             className="dependency-svg"
-            role="img"
+            role="group"
             aria-labelledby={`${titleId} ${descId}`}
           >
             <desc id={descId}>
@@ -188,23 +262,36 @@ export function DependencyMap({
                 b = node(d.to_type, d.to_id);
               if (!a || !b) return null;
               return (
-                <g key={d.id}>
-                <path
-                  d={`M${a.x + 250} ${a.y + 18} C${a.x + 295} ${a.y + 18},${b.x - 45} ${b.y + 18},${b.x} ${b.y + 18}`}
-                  fill="none"
-                  stroke="currentColor"
-                  opacity=".45"
-                  strokeWidth="1.7"
-                  markerEnd={`url(#${titleId}-arrow)`}
+                <g
+                  key={d.id}
+                  opacity={focused && !connected.includes(d) ? 0.2 : 1}
                 >
-                  <title>
-                    {a.name} → {b.name}
-                  </title>
-                </path>
-                {index < 24 && <path className="dependency-pulse" aria-hidden="true"
-                  d={`M${a.x + 250} ${a.y + 18} C${a.x + 295} ${a.y + 18},${b.x - 45} ${b.y + 18},${b.x} ${b.y + 18}`}
-                  fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"
-                  pathLength="1" strokeDasharray=".08 1" opacity="0" />}
+                  <path
+                    d={`M${a.x + 250} ${a.y + 18} C${a.x + 295} ${a.y + 18},${b.x - 45} ${b.y + 18},${b.x} ${b.y + 18}`}
+                    fill="none"
+                    stroke="currentColor"
+                    opacity=".45"
+                    strokeWidth="1.7"
+                    markerEnd={`url(#${titleId}-arrow)`}
+                  >
+                    <title>
+                      {a.name} → {b.name}
+                    </title>
+                  </path>
+                  {index < 24 && (
+                    <path
+                      className="dependency-pulse"
+                      aria-hidden="true"
+                      d={`M${a.x + 250} ${a.y + 18} C${a.x + 295} ${a.y + 18},${b.x - 45} ${b.y + 18},${b.x} ${b.y + 18}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      pathLength="1"
+                      strokeDasharray=".08 1"
+                      opacity="0"
+                    />
+                  )}
                 </g>
               );
             })}
@@ -212,14 +299,18 @@ export function DependencyMap({
               <g
                 key={`${n.kind}-${n.id}`}
                 transform={`translate(${n.x},${n.y})`}
-                role={onSelect ? "button" : undefined}
-                tabIndex={onSelect ? 0 : undefined}
+                role="button"
+                tabIndex={0}
+                aria-pressed={focused === `${n.kind}:${n.id}`}
+                opacity={
+                  focused && !highlighted.has(`${n.kind}:${n.id}`) ? 0.25 : 1
+                }
                 aria-label={`${n.kind === "PROCESS" ? "Jarayon" : "Aktiv"}: ${n.name}`}
-                onClick={() => onSelect?.(n.kind, n.id)}
+                onClick={() => setFocused(`${n.kind}:${n.id}`)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onSelect?.(n.kind, n.id);
+                    setFocused(`${n.kind}:${n.id}`);
                   }
                 }}
               >

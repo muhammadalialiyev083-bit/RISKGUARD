@@ -13,6 +13,28 @@ import { ProcessDistribution } from "./ProcessDistribution";
 import { ProductWalkthrough } from "./ProductWalkthrough";
 import { MetricFocus } from "./MetricFocus";
 
+const metricIds: Record<string, string> = {
+  total_processes: "process_ids",
+  high_risks_count: "high_risk_ids",
+  rpo_gap_count: "rpo_gap_bia_ids",
+  unplanned_processes_count: "unplanned_process_ids",
+  published_plans_count: "published_plan_ids",
+  approved_bias_count: "approved_bia_ids",
+  verified_plans_count: "verified_plan_ids",
+  plans_needing_review_count: "review_plan_ids",
+  critical_readiness_count: "critical_unplanned_process_ids",
+  overdue_tasks_count: "overdue_task_ids",
+};
+
+export function metricTarget(
+  report: RecordRow | null,
+  key: string,
+  target: string,
+) {
+  const ids = report?.[metricIds[key]];
+  return Array.isArray(ids) ? `${target}?ids=${ids.join(",")}` : target;
+}
+
 export function DashboardWelcome({
   user,
   workspace,
@@ -25,56 +47,64 @@ export function DashboardWelcome({
   onNavigate: (target: string) => void;
 }) {
   const steps = startingSteps(workspace, summary, user);
-  const completed = steps.filter((step) => step.complete).length;
   const next = steps.find((step) => !step.complete);
+  const completed = steps.filter((step) => step.complete).length;
   return (
-    <section className="dashboard-welcome">
-      <div className="welcome-copy">
-        <p>Xush kelibsiz, {user.first_name || user.username}</p>
-        <h1>Boshqaruv markazi</h1>
-        <p>Xizmatlar, risklar va tiklanish uchun yagona ishchi ko‘rinish.</p>
+    <section className="dashboard-overview">
+      <h1>Boshqaruv markazi</h1>
+      <div className="dashboard-priorities">
+        <button
+          className="btn"
+          onClick={() =>
+            onNavigate(
+              metricTarget(summary, "critical_readiness_count", "processes"),
+            )
+          }
+        >
+          <strong>{summary?.summary?.critical_readiness_count ?? "—"}</strong>{" "}
+          Amaldagi rejasi yo‘q kritik jarayonlar
+        </button>
+        <button
+          className="btn"
+          onClick={() =>
+            onNavigate(metricTarget(summary, "overdue_tasks_count", "tasks"))
+          }
+        >
+          <strong>{summary?.summary?.overdue_tasks_count ?? "—"}</strong>{" "}
+          Muddati o‘tgan vazifalar
+        </button>
         <button
           className="btn btn-primary"
           onClick={() =>
             onNavigate(
-              user.role === "AUDITOR"
-                ? "dashboard?guide=1"
-                : next?.target || "reports",
+              user.role === "AUDITOR" ? "iso22301" : next?.target || "reports",
             )
           }
         >
           {user.role === "AUDITOR"
-            ? "Tayyorgarlik qadamlarini ko‘rish"
+            ? "Audit dalillarini ochish"
             : next
               ? "Boshlash: " + next.title
-              : "Natijalarni hisobotda ko‘rish"}
+              : "Hisobotni ochish"}
           <ArrowRight size={16} />
         </button>
-        <ProductWalkthrough />
       </div>
-      <div className="welcome-progress">
-        <ShieldCheck size={24} />
-        <strong>
-          {completed}
-          <span> / {steps.length}</span>
-        </strong>
-        <span>Dastlabki sozlash qadamlari bajarilgan</span>
+      <details className="dashboard-intro">
+        <summary>
+          Tanishtiruv va dastlabki sozlash · {completed}/{steps.length}
+        </summary>
+        <ProductWalkthrough />
         <button
+          className="btn"
           onClick={() =>
             document
               .getElementById("getting-started")
-              ?.scrollIntoView({
-                behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
-                  .matches
-                  ? "auto"
-                  : "smooth",
-                block: "start",
-              })
+              ?.scrollIntoView({ block: "start" })
           }
         >
           Qadamlarni ko‘rish <ChevronRight size={14} />
         </button>
-      </div>
+      </details>
     </section>
   );
 }
@@ -138,7 +168,12 @@ export function ExecutiveDashboard({
     bias.filter((row) => row.status === "APPROVED").map((row) => row.process),
   );
   const published = new Set(
-    plans.filter((row) => row.status === "PUBLISHED").map((row) => row.process),
+    plans
+      .filter(
+        (row) =>
+          row.status === "PUBLISHED" && row.readiness?.needs_review === false,
+      )
+      .map((row) => row.process),
   );
   const steps = startingSteps(workspace, summary, user);
   const visibleProcesses = processes.slice(0, 8),
@@ -158,36 +193,54 @@ export function ExecutiveDashboard({
     ["total_processes", "Jarayonlar", "processes", Layers],
     ["high_risks_count", "Yuqori risklar", "risks", ShieldCheck],
     ["rpo_gap_count", "RPO tafovutlari", "bia", Target],
-    ["unplanned_processes_count", "Rejasiz jarayonlar", "plans", Layers],
+    ["unplanned_processes_count", "Rejasiz jarayonlar", "processes", Layers],
     ["published_plans_count", "E’lon qilingan rejalar", "plans", ShieldCheck],
     ["approved_bias_count", "Tasdiqlangan BIA", "bia", Target],
+    ["verified_plans_count", "Mashqda tekshirilgan", "plans", ShieldCheck],
+    [
+      "plans_needing_review_count",
+      "Qayta ko‘rib chiqish kerak",
+      "plans",
+      Target,
+    ],
   ] as const;
   const descriptions: Record<string, string> = {
-    total_processes: "Hisobot doirasidagi biznes jarayonlari. Reestrda ularning muhimligi, mas’uli va bog‘liqliklarini ko‘ring.",
-    high_risks_count: "Yuqori darajali risklar: ehtimollik × ta’sir bo‘yicha 15–25 ball olgan yozuvlar.",
-    rpo_gap_count: "Zaxiralash oralig‘i belgilangan RPO muddatidan oshib ketgan jarayonlar.",
-    unplanned_processes_count: "Hali e’lon qilingan tiklanish rejasi yo‘q jarayonlar. Reestrdan kerakli rejani tekshiring.",
-    published_plans_count: "Rasmiy e’lon qilingan BCP / DRP rejalari. Rejalar reestrida mas’ullar va qadamlarni ko‘ring.",
-    approved_bias_count: "Tasdiqlangan biznes ta’siri baholashlari. BIA reestrida RTO, RPO va MTPD talablarini tekshiring.",
+    total_processes:
+      "Hisobot doirasidagi biznes jarayonlari. Reestrda ularning muhimligi, mas’uli va bog‘liqliklarini ko‘ring.",
+    high_risks_count:
+      "Yuqori darajali risklar: ehtimollik × ta’sir bo‘yicha 15–25 ball olgan yozuvlar.",
+    rpo_gap_count:
+      "Zaxiralash oralig‘i belgilangan RPO muddatidan oshib ketgan jarayonlar.",
+    unplanned_processes_count:
+      "Amaldagi BIA va tiklanish qadamlari bilan tasdiqlangan rejasi yo‘q jarayonlar.",
+    published_plans_count:
+      "E’lon qilingan BCP / DRP rejalariga ega jarayonlar.",
+    approved_bias_count:
+      "Tasdiqlangan biznes ta’siri baholashlari. BIA reestrida RTO, RPO va MTPD talablarini tekshiring.",
   };
   return (
     <div className="executive-dashboard">
       <div className="executive-kpis stat-grid">
         {counts.map(([key, label, target, Icon]) => (
-          <MetricFocus key={key} label={label} value={metric(key)} description={descriptions[key]} onNavigate={() => onNavigate(target)}>
-          <button
-            className={`stat-card executive-kpi metric-${key}`}
+          <MetricFocus
             key={key}
-            onClick={() => onNavigate(target)}
+            label={label}
+            value={metric(key)}
+            description={descriptions[key] || label}
+            onNavigate={() => onNavigate(metricTarget(summary, key, target))}
           >
-            <span>
-              <Icon size={17} />
-              {label}
-              <ChevronRight size={14} />
-            </span>
-            <strong>{metric(key)}</strong>
-            <small>Tegishli reestrni ochish</small>
-          </button>
+            <button
+              className={`stat-card executive-kpi metric-${key}`}
+              key={key}
+              onClick={() => onNavigate(metricTarget(summary, key, target))}
+            >
+              <span>
+                <Icon size={17} />
+                {label}
+                <ChevronRight size={14} />
+              </span>
+              <strong>{metric(key)}</strong>
+            </button>
           </MetricFocus>
         ))}
       </div>
@@ -217,7 +270,7 @@ export function ExecutiveDashboard({
             title="Reja qamrovi"
             complete={processes.filter((row) => published.has(row.id)).length}
             total={processes.length}
-            label="E’lon qilingan reja mavjud"
+            label="Amaldagi reja mavjud"
             onClick={() => onNavigate("plans")}
           />
           <ProcessDistribution processes={processes} onNavigate={onNavigate} />

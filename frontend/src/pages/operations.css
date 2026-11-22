@@ -30,7 +30,7 @@
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 10px !important;
-  font-weight: 750;
+  font-weight: 500;
   color: var(--accent) !important;
   margin: 0 0 7px !important;
 }
@@ -188,7 +188,7 @@
 .ops-table th {
   padding: 13px 22px;
   color: var(--muted);
-  font-weight: 550;
+  font-weight: 500;
   white-space: nowrap;
   font-size: 11px;
 }
@@ -208,7 +208,7 @@
   text-align: left;
   color: var(--text);
   font: inherit;
-  font-weight: 650;
+  font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -228,7 +228,7 @@
   display: inline-block;
   font-size: 10px;
   line-height: 1.5;
-  font-weight: 600;
+  font-weight: 500;
   padding: 4px 9px;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -461,7 +461,7 @@
   font-size: 12px;
 }
 .ops-form .field span {
-  font-weight: 600;
+  font-weight: 500;
 }
 .ops-form .field small {
   font-size: 10px;
@@ -659,7 +659,7 @@
   display: block;
   color: var(--text);
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .ops-run-history {
   display: flex;

@@ -6,10 +6,13 @@ const METRICS: { key: keyof DashboardSummary; label: string; unit: string }[] = 
   { key: 'total_assets', label: 'Jami aktivlar', unit: 'aktiv' },
   { key: 'total_risks', label: 'Jami xavflar', unit: 'xavf' },
   { key: 'high_risks_count', label: 'Yuqori xavflar', unit: 'xavf' },
-  { key: 'unplanned_processes_count', label: "E'lon qilingan rejasi yo'q jarayonlar", unit: 'jarayon' },
+  { key: 'unplanned_processes_count', label: 'Amaldagi rejasi yo‘q jarayonlar', unit: 'jarayon' },
   { key: 'rpo_gap_count', label: "RPO bo'shliqlari", unit: 'baholash' },
   { key: 'approved_bias_count', label: 'Tasdiqlangan BIA', unit: 'baholash' },
   { key: 'published_plans_count', label: "E'lon qilingan rejalar", unit: 'reja' },
+  { key: 'ready_plans_count', label: 'Amaldagi rejaga ega jarayonlar', unit: 'jarayon' },
+  { key: 'verified_plans_count', label: 'Mashqda tekshirilgan rejaga ega jarayonlar', unit: 'jarayon' },
+  { key: 'plans_needing_review_count', label: 'Qayta ko‘rib chiqish kerak bo‘lgan rejalar', unit: 'reja' },
   { key: 'completed_exercises_count', label: "O'tkazilgan mashqlar", unit: 'mashq' },
 ];
 

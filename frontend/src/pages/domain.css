@@ -6,7 +6,7 @@
   font-size: clamp(25px, 3vw, 34px);
   letter-spacing: -0.04em;
   margin: 4px 0 10px;
-  font-weight: 550;
+  font-weight: 500;
 }
 .domain-page h2 {
   font-size: 18px;
@@ -32,7 +32,7 @@
 .eyebrow {
   font-size: 10px !important;
   letter-spacing: normal;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--accent) !important;
 }
 .domain-actions,
@@ -106,11 +106,11 @@
   flex-direction: column;
   gap: 8px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .domain-page .field small {
   font-size: 11px;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--muted);
 }
 .domain-page .tabs {

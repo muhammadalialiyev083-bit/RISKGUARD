@@ -1,94 +1,85 @@
 import networkx as nx
-from typing import Dict, Any, List
-from apps.simulation.models import Scenario
-from apps.processes.models import BusinessProcess, Asset, Dependency
+
 from apps.engine.calculator import DependencyAnalyzer
+from apps.plans.readiness import approved_assessments, current_plan, published_plan_readiness
+from apps.processes.models import Asset, BusinessProcess
 
 
 class ScenarioSimulator:
-    """
-    FR-10: Ssenariy simulyatsiyasi va zanjirsimon ta'sir tahlili (T-06).
-    Aktivlar ishdan chiqqanda ularga bog'liq barcha jarayonlarni aniqlaydi va
-    RTO/MTPD buzilishlarini bashorat qiladi.
-    """
     @classmethod
-    def simulate(cls, scenario: Scenario) -> Dict[str, Any]:
-        org = scenario.organization
-        g = DependencyAnalyzer.build_graph(org)
-        
-        disrupted_asset_ids = scenario.disrupted_asset_ids or []
-        affected_processes_ids = set()
+    def simulate(cls, scenario):
+        organization = scenario.organization
+        graph = DependencyAnalyzer.build_graph(organization)
+        reverse = graph.reverse(copy=False)
+        disrupted = sorted(set(scenario.disrupted_asset_ids or []))
+        paths_by_asset = {
+            asset: nx.single_source_shortest_path(reverse, f'ASSET:{asset}')
+            for asset in disrupted if f'ASSET:{asset}' in graph
+        }
+        resources = scenario.available_resources
+        backup_assets = resources.get('backup_assets', {}) if isinstance(resources, dict) else {}
+        if not isinstance(backup_assets, dict):
+            backup_assets = {}
+        backups = Asset.objects.active().filter(
+            organization=organization, pk__in=backup_assets.values(),
+        ).in_bulk()
+        paths = {}
+        backup_results = []
+        for asset_id in disrupted:
+            backup = backups.get(backup_assets.get(str(asset_id)))
+            if str(asset_id) in backup_assets:
+                available = bool(backup and backup.pk not in disrupted and not any(
+                    f'ASSET:{backup.pk}' in reached for reached in paths_by_asset.values()
+                ))
+                backup_results.append({'asset_id': asset_id, 'backup_asset_id': backup_assets[str(asset_id)],
+                                       'available': available})
+                if available:
+                    continue
+            for node, path in paths_by_asset.get(asset_id, {}).items():
+                if node.startswith('PROCESS:'):
+                    paths.setdefault(int(node.split(':')[1]), []).append(path)
 
-        # Har bir nosoz aktiv uchun unga qaram bo'lgan tugunlarni topish
-        for asset_id in disrupted_asset_ids:
-            asset_node = f"ASSET:{asset_id}"
-            if asset_node in g:
-                # In-edges or ancestors: kim ushbu aktivga bog'langan
-                dependents = nx.ancestors(g, asset_node)
-                for dep in dependents:
-                    if dep.startswith('PROCESS:'):
-                        proc_id = int(dep.split(':')[1])
-                        affected_processes_ids.add(proc_id)
-
-            # Shuningdek, to'g'ridan-to'g'ri bog'liqliklar
-            direct_deps = Dependency.objects.filter(
-                organization=org,
-                to_type='ASSET',
-                to_id=asset_id,
-                from_type='PROCESS'
-            )
-            for d in direct_deps:
-                affected_processes_ids.add(d.from_id)
-
-        affected_processes_data = []
-        rto_breaches = 0
-        mtpd_breaches = 0
-        missing_plans = 0
-
-        outage_hours = float(scenario.estimated_outage_hours)
-
-        for pid in affected_processes_ids:
-            try:
-                proc = BusinessProcess.objects.get(id=pid, organization=org)
-            except BusinessProcess.DoesNotExist:
-                continue
-
-            latest_bia = proc.bia_assessments.order_by('-revision').first()
-            rto_h = float(latest_bia.rto_hours) if latest_bia else 24.0
-            mtpd_h = float(latest_bia.mtpd_hours) if latest_bia else 48.0
-
-            rto_breached = outage_hours > rto_h
-            mtpd_breached = outage_hours > mtpd_h
-
-            if rto_breached:
-                rto_breaches += 1
-            if mtpd_breached:
-                mtpd_breaches += 1
-
-            has_published_plan = proc.continuity_plans.filter(status='PUBLISHED').exists()
-            if not has_published_plan:
-                missing_plans += 1
-
-            affected_processes_data.append({
-                'process_id': proc.id,
-                'process_name': proc.name,
-                'service_name': proc.service.name,
-                'criticality': proc.criticality,
-                'target_rto_hours': rto_h,
-                'target_mtpd_hours': mtpd_h,
-                'rto_breached': rto_breached,
-                'mtpd_breached': mtpd_breached,
-                'has_published_plan': has_published_plan
+        processes = BusinessProcess.objects.active().filter(organization=organization, pk__in=paths).select_related('service')
+        assessments = approved_assessments(paths)
+        plans = published_plan_readiness(paths, assessments)
+        affected = []
+        for process in processes.order_by('pk'):
+            bia = assessments.get(process.pk)
+            outage = scenario.estimated_outage_hours
+            plan, readiness = current_plan(plans.get(process.pk, []))
+            affected.append({
+                'process_id': process.pk, 'process_name': process.name,
+                'service_name': process.service.name, 'criticality': process.criticality,
+                'assessment_status': 'APPROVED' if bia else 'UNASSESSED',
+                'bia_id': bia.pk if bia else None, 'bia_revision': bia.revision if bia else None,
+                'target_rto_hours': float(bia.rto_hours) if bia else None,
+                'target_mtpd_hours': float(bia.mtpd_hours) if bia else None,
+                'target_rpo_minutes': bia.rpo_minutes if bia else None,
+                'rpo_gap': bia.has_rpo_gap if bia else None,
+                'rto_breached': outage > bia.rto_hours if bia else None,
+                'mtpd_breached': outage > bia.mtpd_hours if bia else None,
+                'dependency_paths': paths[process.pk],
+                'has_published_plan': bool(plan and not readiness['needs_review']),
+                'plan_id': plan.pk if plan else None,
+                'plan_version': plan.version if plan else None,
+                'plan_needs_review': bool(readiness and readiness['needs_review']),
             })
 
+        node_ids = {node for person in affected for path in person['dependency_paths'] for node in path}
+        names = {}
+        for kind, model in (('ASSET', Asset), ('PROCESS', BusinessProcess)):
+            ids = [int(node.split(':')[1]) for node in node_ids if node.startswith(kind + ':')]
+            for pk, name in model.objects.filter(organization=organization, pk__in=ids).values_list('pk', 'name'):
+                names[f'{kind}:{pk}'] = name
+
         return {
-            'scenario_id': scenario.id,
-            'scenario_title': scenario.title,
-            'estimated_outage_hours': outage_hours,
-            'disrupted_assets_count': len(disrupted_asset_ids),
-            'affected_processes_count': len(affected_processes_data),
-            'rto_breaches_count': rto_breaches,
-            'mtpd_breaches_count': mtpd_breaches,
-            'missing_plans_count': missing_plans,
-            'affected_processes': affected_processes_data
+            'scenario_id': scenario.id, 'scenario_title': scenario.title,
+            'estimated_outage_hours': float(scenario.estimated_outage_hours),
+            'disrupted_assets_count': len(disrupted),
+            'affected_processes_count': len(affected),
+            'rto_breaches_count': sum(row['rto_breached'] is True for row in affected),
+            'mtpd_breaches_count': sum(row['mtpd_breached'] is True for row in affected),
+            'unassessed_count': sum(row['bia_id'] is None for row in affected),
+            'missing_plans_count': sum(not row['has_published_plan'] for row in affected),
+            'affected_processes': affected, 'dependency_names': names, 'backup_results': backup_results,
         }

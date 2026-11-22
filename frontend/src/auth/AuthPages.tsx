@@ -1,3 +1,4 @@
+import { PublicScenario } from "./PublicScenario";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   ArrowRight,
@@ -144,34 +145,18 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
       <section className="auth-story">
         <Brand />
         <div className="auth-story-content">
-          <div className="auth-story-intro">
-            Biznes uzluksizligini boshqarish
-          </div>
           <h1>{titles[mode][0]}</h1>
-          <p>
-            Muhim jarayonlar, risklar va tiklanish rejalarini bir joyda boshqaring.
-          </p>
-          <ol className="continuity-flow" aria-label="Uzluksizlikni boshqarish bosqichlari">
-            <li>
-              <span className="continuity-flow-index" aria-hidden="true">01</span>
-              <div><h3>Jarayonni aniqlang</h3><p>Muhim xizmatlar va ularga bog‘liq resurslarni belgilang.</p></div>
-            </li>
-            <li>
-              <span className="continuity-flow-index" aria-hidden="true">02</span>
-              <div><h3>Riskni baholang</h3><p>Uzilish ta’siri va tiklanish talablarini aniqlang.</p></div>
-            </li>
-            <li>
-              <span className="continuity-flow-index" aria-hidden="true">03</span>
-              <div><h3>Tiklanishni rejalang</h3><p>Reja, mas’ul va amaliy qadamlarni bir-biriga bog‘lang.</p></div>
-            </li>
-          </ol>
+          {mode === "login" && <p>Uzilish qaysi xizmatlarga ta’sir qilishini biling va tiklanish rejasini tayyorlang.</p>}
         </div>
-        <p className="muted small">
-          Uzluksiz Himoya. Biznesingiz davom etishi uchun.
-        </p>
       </section>
       <section className="auth-form-side">
         <div className="auth-form-card">
+          {mode === "login" && (
+            <div className="auth-demo-entry">
+              <p className="auth-mobile-intro">Uzilish ta’sirini baholang va tiklanishni rejalang.</p>
+              <PublicScenario />
+            </div>
+          )}
           <h2>
             {sent
               ? "Elektron pochtangizni tekshiring"

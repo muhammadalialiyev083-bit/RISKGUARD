@@ -158,7 +158,7 @@ html {
   border-radius: 50%;
   color: var(--accent);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .section-guide li p {
   font-size: 12px;
@@ -419,7 +419,7 @@ html {
 }
 .coverage-widget strong {
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
 }
 .coverage-widget > div:nth-child(2) > span {
   color: var(--muted);
@@ -565,7 +565,7 @@ html {
 .getting-started strong {
   display: block;
   font-size: 12px;
-  font-weight: 550;
+  font-weight: 500;
 }
 .getting-started small {
   display: block;
@@ -756,4 +756,175 @@ html {
   .sidebar.mobile-open { visibility: visible; }
   .sidebar-collapsed .sidebar.mobile-open .sidebar-brand { flex-direction: row; height: 91px; padding: 0 12px 0 16px; }
   .sidebar-collapsed .sidebar.mobile-open .brand-approved { width: 172px; }
+}
+
+.module-help {
+  margin-block: 0 16px;
+  max-width: 68ch;
+}
+.module-help > summary,
+.public-demo > summary {
+  cursor: pointer;
+  color: var(--text);
+}
+.module-help > summary svg {
+  vertical-align: middle;
+  margin-inline: 5px;
+}
+.module-help[open] {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.module-help li + li {
+  margin-top: 8px;
+}
+.auth-demo-entry {
+  margin-bottom: 22px;
+}
+.auth-mobile-intro {
+  display: none;
+}
+.public-demo {
+  padding: 12px;
+  border: 1px solid var(--color-control-border);
+  border-radius: 10px;
+}
+.public-demo form {
+  margin-block: 8px;
+}
+.demo-impact {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.demo-impact li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+  padding-block: 6px;
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 760px) {
+  .auth-mobile-intro {
+    display: block;
+    margin: 0 0 8px;
+  }
+}
+
+.dashboard-overview {
+  margin: 0 0 14px;
+}
+.dashboard-overview h1 {
+  margin: 0 0 12px;
+  font-size: clamp(24px, 3vw, 34px);
+}
+.dashboard-priorities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dashboard-priorities .btn {
+  white-space: normal;
+  text-align: start;
+  justify-content: flex-start;
+}
+.dashboard-priorities strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-intro,
+.report-filters {
+  padding: 8px 0;
+}
+.dashboard-intro summary,
+.report-filters summary {
+  cursor: pointer;
+}
+.dashboard-intro[open] button {
+  margin: 8px 6px 0 0;
+}
+.report-filters > .domain-toolbar {
+  margin-top: 10px;
+}
+.continuity-processes,
+.report-evidence {
+  list-style: none;
+  padding: 0;
+}
+.continuity-processes > li,
+.report-evidence > li {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.continuity-processes dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: 8px;
+}
+.continuity-processes dd {
+  margin: 2px 0;
+  overflow-wrap: anywhere;
+}
+.continuity-processes dd button,
+.report-evidence small {
+  display: block;
+}
+.report-evidence > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+}
+.report-evidence small {
+  grid-column: 1 / -1;
+}
+.plan-evidence p {
+  margin: 3px 0;
+}
+.audit-diff pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 760px) {
+  .dashboard-priorities { display: grid; }
+}
+
+@media (max-width: 760px) {
+  .simulation-impact-table {
+    overflow: visible;
+    border: 0;
+  }
+  .simulation-impact-table table,
+  .simulation-impact-table tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .simulation-impact-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+    overflow: hidden;
+  }
+  .simulation-impact-table tr {
+    display: grid;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .simulation-impact-table tr + tr {
+    margin-top: 8px;
+  }
+  .simulation-impact-table td {
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .simulation-impact-table td > p {
+    margin: 4px 0 0;
+  }
 }

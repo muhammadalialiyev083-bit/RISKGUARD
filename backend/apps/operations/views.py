@@ -14,7 +14,9 @@ from apps.operations.serializers import (
     IncidentEventSerializer, TimelineMessageSerializer, ProviderDisruptionSerializer, IncidentEscalationSerializer,
 )
 from apps.simulation.models import Scenario
+from apps.simulation.serializers import ScenarioSerializer
 from apps.simulation.simulator import ScenarioSimulator
+from apps.plans.models import ContinuityPlan
 
 
 class OperationsPermission(permissions.BasePermission):
@@ -92,10 +94,13 @@ class ProviderViewSet(TenantOperationsViewSet):
         assets = list(provider.assets.filter(organization=provider.organization, is_deleted=False).values_list('id', flat=True))
         if not assets:
             raise ValidationError({'assets': 'Avval provayderga bog‘liq aktivlarni belgilang.'})
+        scenario_form = ScenarioSerializer(
+            data={**data.validated_data, 'description': f'Provayder uzilishi: {provider.name}',
+                  'disrupted_asset_ids': assets}, context={'request': request},
+        )
+        scenario_form.is_valid(raise_exception=True)
         with transaction.atomic():
-            scenario = Scenario.objects.create(organization=provider.organization, title=data.validated_data['title'],
-                description=f'Provayder uzilishi: {provider.name}', disrupted_asset_ids=assets,
-                estimated_outage_hours=data.validated_data['estimated_outage_hours'])
+            scenario = scenario_form.save(organization=provider.organization)
             result = ScenarioSimulator.simulate(scenario)
             run = SimulationRun.objects.create(organization=provider.organization, scenario=scenario,
                                               created_by=request.user, result=result)
@@ -227,8 +232,14 @@ class SimulationRunViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
         payload['scenario'] = run.scenario_id
         serializer = ImprovementTaskSerializer(data=payload, context={'request': request})
         serializer.is_valid(raise_exception=True)
+        process = serializer.validated_data.get('process')
+        impact = next((row for row in run.result.get('affected_processes', [])
+                       if process and row['process_id'] == process.pk), {})
+        plan = ContinuityPlan.objects.filter(
+            organization=run.organization, process=process, pk=impact.get('plan_id'),
+        ).first() if impact.get('plan_id') else None
         with transaction.atomic():
-            task = serializer.save(organization=request.user.organization)
+            task = serializer.save(organization=request.user.organization, plan=plan)
             record_audit(request=request, action='CREATE', entity='ImprovementTask', entity_id=task.pk,
                          after_state=serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

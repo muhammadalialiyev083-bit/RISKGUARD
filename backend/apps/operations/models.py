@@ -60,9 +60,21 @@ class ImprovementTask(BaseTenantModel):
     scenario = models.ForeignKey('simulation.Scenario', null=True, blank=True, on_delete=models.PROTECT, related_name='improvements')
     simulation_run = models.ForeignKey(SimulationRun, null=True, blank=True, on_delete=models.PROTECT, related_name='improvements')
     process = models.ForeignKey('processes.BusinessProcess', null=True, blank=True, on_delete=models.SET_NULL, related_name='improvements')
+    plan = models.ForeignKey('plans.ContinuityPlan', null=True, blank=True, on_delete=models.SET_NULL,
+                             related_name='review_tasks')
+    exercise = models.ForeignKey('simulation.Exercise', null=True, blank=True, on_delete=models.SET_NULL,
+                                 related_name='improvements')
+    source_key = models.CharField(max_length=100, null=True, editable=False)
 
     class Meta:
         ordering = ['status', 'due_date', '-created_at']
+        constraints = [models.UniqueConstraint(fields=['organization', 'source_key'], name='unique_improvement_source')]
+
+
+class ContinuityMap(models.Model):
+    organization = models.OneToOneField('organizations.Organization', on_delete=models.CASCADE)
+    stops = models.JSONField(default=list)
+    revision = models.PositiveIntegerField(default=0)
 
 
 class IncidentEvent(models.Model):

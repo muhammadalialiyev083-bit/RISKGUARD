@@ -1,4 +1,5 @@
 from apps.core.viewsets import AuditedModelViewSet
+from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from apps.organizations.models import Organization, Department, Service
@@ -83,15 +84,22 @@ class DepartmentViewSet(AuditedModelViewSet):
 
 
 class ServiceViewSet(AuditedModelViewSet):
-    """
-    Tashkilot taqdim etadigan xizmatlar (Services) reestri.
-    """
+    """Tashkilot taqdim etadigan xizmatlar reestri."""
+
+    @action(detail=True, methods=['get'])
+    def continuity(self, request, pk=None):
+        from apps.reports.evidence import process_continuity
+
+        service = self.get_object()
+        return Response({'service': service.pk, 'name': service.name,
+                         'processes': list(process_continuity(service.organization, service))})
+
     serializer_class = ServiceSerializer
     permission_classes = [IsTenantMember, IsAuditorReadOnly]
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser:
+        if user.is_superuser and self.action != 'continuity':
             return Service.objects.all()
         return Service.objects.filter(organization=user.organization)
 

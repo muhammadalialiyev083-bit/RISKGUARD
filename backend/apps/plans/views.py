@@ -11,6 +11,8 @@ from rest_framework.exceptions import ValidationError
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from apps.plans.models import Strategy, ContinuityPlan, PlanStep
+from apps.plans.readiness import approved_assessments, bia_basis, readiness_label, step_issues
+from apps.processes.models import BusinessProcess
 from apps.plans.serializers import StrategySerializer, ContinuityPlanSerializer, PlanStepSerializer
 from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, IsApproverRole
 from apps.core.audit import record_audit
@@ -49,9 +51,12 @@ class ContinuityPlanViewSet(AuditedModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser:
-            return ContinuityPlan.objects.all().prefetch_related('steps')
-        return ContinuityPlan.objects.filter(organization=user.organization).prefetch_related('steps')
+        queryset = ContinuityPlan.objects.prefetch_related('steps__assigned_to', 'exercises')
+        if not user.is_superuser:
+            queryset = queryset.filter(organization=user.organization)
+        if self.action in ('publish', 'submit', 'update', 'partial_update', 'destroy'):
+            queryset = queryset.select_for_update()
+        return queryset
 
     def perform_create(self, serializer):
         plan = serializer.save(organization=self.request.user.organization)
@@ -104,6 +109,7 @@ class ContinuityPlanViewSet(AuditedModelViewSet):
         return Response(self.get_serializer(plan).data, status=201)
 
     @action(detail=True, methods=['post'])
+    @transaction.atomic
     def submit(self, request, pk=None):
         plan = self.get_object()
         if plan.status != 'DRAFT' or plan.is_frozen:
@@ -127,6 +133,14 @@ class ContinuityPlanViewSet(AuditedModelViewSet):
             return Response({
                 'error': f"Reja {plan.status} holatidan e'lon qilinmaydi. Faqat DRAFT/IN_REVIEW/APPROVED -> PUBLISHED."
             }, status=status.HTTP_400_BAD_REQUEST)
+        BusinessProcess.objects.select_for_update().get(pk=plan.process_id)
+        assessment = approved_assessments([plan.process_id]).get(plan.process_id)
+        issues = step_issues(plan, list(plan.steps.all()))
+        if assessment is None:
+            issues.append('Avval jarayonning BIA baholashini tasdiqlang.')
+        if issues:
+            raise ValidationError({'detail': ' '.join(issues)})
+        basis = bia_basis(assessment)
         before_status = plan.status
         plan.status = 'PUBLISHED'
         plan.approved_by = request.user
@@ -135,6 +149,7 @@ class ContinuityPlanViewSet(AuditedModelViewSet):
             plan.snapshot = {'title': plan.title, 'version': plan.version, 'scope': plan.scope,
                              'steps': list(plan.steps.values('sequence', 'title', 'description',
                                          'assigned_to_id', 'expected_duration_minutes'))}
+        plan.snapshot = {**plan.snapshot, 'bia': basis}
         plan.save()
 
         record_audit(
@@ -143,12 +158,12 @@ class ContinuityPlanViewSet(AuditedModelViewSet):
             entity='ContinuityPlan',
             entity_id=plan.id,
             before_state={'status': before_status},
-            after_state={'status': 'PUBLISHED', 'approved_by': request.user.username}
+            after_state={'status': 'PUBLISHED', 'approved_by': request.user.username, 'bia': basis}
         )
 
         return Response({
             'message': 'Reja rasmiy e\'lon qilindi.',
-            'plan': ContinuityPlanSerializer(plan).data
+            'plan': self.get_serializer(plan).data
         }, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
@@ -180,6 +195,14 @@ class ContinuityPlanViewSet(AuditedModelViewSet):
         paragraph(plan.title, 'Heading2')
         paragraph(f'Jarayon: {plan.process.name}')
         paragraph(f'Versiya: {plan.version} | Holat: {plan.get_status_display()}')
+        readiness = self.get_serializer(plan).data['readiness']
+        paragraph(readiness_label(readiness))
+        if readiness['bia_basis']:
+            basis = readiness['bia_basis']
+            paragraph(f"BIA v{basis['revision']} · RTO {basis['rto_hours']} soat · "
+                      f"MTPD {basis['mtpd_hours']} soat · RPO {basis['rpo_minutes']} daqiqa")
+        for missing in readiness['missing_evidence']:
+            paragraph(missing)
         paragraph(f'Tashkilot: {plan.organization.name}')
         paragraph(f"Tasdiqlovchi: {plan.approved_by.username if plan.approved_by else 'Tasdiqlanmagan'}")
         paragraph(plan.scope)

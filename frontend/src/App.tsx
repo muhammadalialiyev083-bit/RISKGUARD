@@ -35,6 +35,7 @@ import { Brand } from "./components/Brand";
 import { AuthPages, AccountPage } from "./auth/AuthPages";
 import { DomainPage } from "./pages/DomainPage";
 import { OperationsPage } from "./pages/OperationsPage";
+import { ISOEvidence } from "./pages/ContinuityDetails";
 import { SectionGuide } from "./experience/SectionGuide";
 import { MotionNav, MotionToggle } from "./experience/MotionEffects";
 
@@ -80,6 +81,7 @@ const groups = [
     name: "Nazorat va sozlamalar",
     items: [
       ["audit", "Audit jurnali", ClipboardList],
+      ["iso22301", "ISO 22301 dalillari", FileText],
       ["settings", "Profil va xavfsizlik", Settings],
     ],
   },
@@ -379,11 +381,6 @@ export function App() {
             <PanelLeftClose size={17} />
           </button>
         </div>
-        <div className="workspace-label">
-          <span className="workspace-dot" />
-          <span>Ishchi maydon</span>
-          <span className="workspace-tier">BCMS</span>
-        </div>
         <MotionNav activeKey={`${active}-${collapsed}-${mobile}`} label="Asosiy navigatsiya" className="motion-sidebar-nav">
           {groups.map((g) => (
             <div className="nav-group" key={g.name}>
@@ -404,10 +401,6 @@ export function App() {
           ))}
         </MotionNav>
         <div className="sidebar-bottom">
-          <div className="system-state">
-            <span className="live-dot" />
-            <span>Joriy sessiya faol</span>
-          </div>
           <button
             className="profile-card"
             onClick={() => navigate("settings")}
@@ -642,6 +635,8 @@ export function App() {
                 }}
               />
             </>
+          ) : page === "iso22301" ? (
+            <ISOEvidence onNavigate={navigate} />
           ) : ["providers", "incidents", "tasks"].includes(page) ? (
             <OperationsPage module={page} user={user} onNavigate={navigate} />
           ) : (

@@ -7,6 +7,10 @@ from apps.bia.models import BIAAssessment, BIAImpact
 from apps.bia.serializers import BIAAssessmentSerializer, BIAImpactSerializer
 from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, IsApproverRole
 from apps.core.audit import record_audit
+from django.db import transaction
+from apps.operations.improvements import review_plans_for_bia
+from apps.plans.readiness import approved_assessments
+from apps.processes.models import BusinessProcess
 
 
 class BIAAssessmentViewSet(AuditedModelViewSet):
@@ -57,13 +61,16 @@ class BIAAssessmentViewSet(AuditedModelViewSet):
         return Response(self.get_serializer(bia).data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsTenantMember, IsApproverRole])
+    @transaction.atomic
     def approve(self, request, pk=None):
         """
         FR-05 va FR-12: Rahbariyat / Tasdiqlovchi tomonidan BIA tasdiqlash.
         Holat mashinasi (F1): faqat DRAFT/SUBMITTED -> APPROVED.
         REJECTED avval update orqali DRAFT ga qaytarilishi shart.
         """
-        bia = self.get_object()
+        candidate = self.get_object()
+        BusinessProcess.objects.select_for_update().get(pk=candidate.process_id)
+        bia = BIAAssessment.objects.select_for_update().get(pk=candidate.pk)
         if bia.status not in ('DRAFT', 'SUBMITTED'):
             return Response({
                 'error': f"BIA {bia.status} holatidan tasdiqlanmaydi. Faqat DRAFT/SUBMITTED -> APPROVED."
@@ -80,6 +87,8 @@ class BIAAssessmentViewSet(AuditedModelViewSet):
             entity_id=bia.id,
             after_state={'status': 'APPROVED', 'approved_by': request.user.username}
         )
+        if approved_assessments([bia.process_id]).get(bia.process_id) == bia:
+            review_plans_for_bia(request, bia)
 
         return Response({
             'message': 'BIA baholashi muvaffaqiyatli tasdiqlandi.',

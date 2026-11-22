@@ -3,12 +3,14 @@ from rest_framework.response import Response
 from apps.processes.models import BusinessProcess, Asset
 from apps.bia.models import BIAAssessment
 from apps.risks.models import Risk
-from apps.plans.models import ContinuityPlan
+from apps.plans.readiness import approved_assessments, current_plan, published_plan_readiness, readiness_label
+from apps.operations.models import ImprovementTask
 from apps.simulation.models import Exercise
 from apps.authentication.permissions import IsTenantMember
 from apps.core.audit import record_audit
 from django.http import HttpResponse
 from django.utils.dateparse import parse_date
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework.renderers import JSONRenderer, BaseRenderer
 from collections import Counter
@@ -22,15 +24,20 @@ SUMMARY_LABELS = {
     'total_assets': 'Tashkilotdagi jami aktivlar',
     'total_risks': 'Jami risklar',
     'high_risks_count': 'Yuqori risklar',
-    'unplanned_processes_count': 'E’lon qilingan rejasi yo‘q jarayonlar',
+    'unplanned_processes_count': 'Amaldagi rejasi yo‘q jarayonlar',
     'rpo_gap_count': 'RPO tafovutlari',
     'approved_bias_count': 'Tasdiqlangan BIA baholashlari',
     'published_plans_count': 'E’lon qilingan rejaga ega jarayonlar',
+    'ready_plans_count': 'Amaldagi rejaga ega jarayonlar',
+    'verified_plans_count': 'Mashqda tekshirilgan rejaga ega jarayonlar',
+    'plans_needing_review_count': 'Qayta ko‘rib chiqish kerak bo‘lgan rejalar',
+    'overdue_tasks_count': 'Muddati o‘tgan vazifalar',
+    'critical_readiness_count': 'Amaldagi rejasi yo‘q kritik jarayonlar',
     'completed_exercises_count': 'Qayd etilgan mashqlar',
 }
 
 
-def report_pdf(organization, summary, processes, start, end):
+def report_pdf(organization, summary, processes, readiness, start, end):
     from pathlib import Path
     from xml.sax.saxutils import escape
     import reportlab
@@ -67,12 +74,16 @@ def report_pdf(organization, summary, processes, start, end):
                                ('TOPPADDING', (0, 0), (-1, -1), 7),
                                ('BOTTOMPADDING', (0, 0), (-1, -1), 7)]))
     story.extend([table, Spacer(1, 20), Paragraph('Jarayonlar reestri', styles['Heading2'])])
-    rows = [[paragraph('Jarayon'), paragraph('Kritiklik'), paragraph('Holat')]]
-    rows += [[paragraph(p.name), paragraph(p.get_criticality_display()), paragraph(p.get_status_display())] for p in processes]
+    rows = [[paragraph('Jarayon'), paragraph('Kritiklik'), paragraph('Reja dalili')]]
+    rows += [
+        [paragraph(p.name), paragraph(p.get_criticality_display()),
+         paragraph(' · '.join([readiness[p.pk]['label'], *readiness[p.pk]['missing_evidence']]))]
+        for p in processes
+    ]
     if len(rows) == 1:
         story.append(paragraph('Tanlangan filtrlar bo‘yicha jarayonlar mavjud emas.'))
     else:
-        records = Table(rows, colWidths=[250, 105, 95], repeatRows=1)
+        records = Table(rows, colWidths=[170, 65, 215], repeatRows=1)
         records.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'),
                                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e2f4f1')),
                                     ('GRID', (0, 0), (-1, -1), .3, colors.HexColor('#b9c8d2'))]))
@@ -137,12 +148,21 @@ class OrganizationDashboardReportView(views.APIView):
         high_risks = sum(1 for r in risks if r.risk_score >= high_risk_threshold)
 
         # Rejasi yo'q jarayonlar
-        processes_with_plans = ContinuityPlan.objects.filter(
-            organization=org,
-            process_id__in=process_ids,
-            status='PUBLISHED'
-        ).values_list('process_id', flat=True).distinct()
-        unplanned_processes = total_processes - len(processes_with_plans)
+        assessments = approved_assessments(process_ids)
+        published = published_plan_readiness(process_ids, assessments)
+        readiness = {}
+        for process_id in process_ids:
+            plan, state = current_plan(published.get(process_id, []))
+            readiness[process_id] = {
+                'plan_id': plan.pk if plan else None,
+                'label': readiness_label(state) if state else 'Reja e’lon qilinmagan',
+                'missing_evidence': state['missing_evidence'] if state else ['Amaldagi reja mavjud emas.'],
+            }
+        ready_ids = {process_id for process_id, entries in published.items()
+                     if any(not state['needs_review'] for _, state in entries)}
+        unplanned_ids = [process_id for process_id in process_ids if process_id not in ready_ids]
+        overdue = list(ImprovementTask.objects.active().filter(organization=org, due_date__lt=timezone.localdate())
+                       .exclude(status='DONE').values_list('pk', flat=True))
 
         # BIA va RPO gap statistikasi
         bias = BIAAssessment.objects.filter(organization=org, process_id__in=process_ids)
@@ -158,14 +178,21 @@ class OrganizationDashboardReportView(views.APIView):
             'total_assets': Asset.objects.filter(organization=org).count(),
             'total_risks': total_risks,
             'high_risks_count': high_risks,
-            'unplanned_processes_count': max(0, unplanned_processes),
+            'unplanned_processes_count': len(unplanned_ids),
             'rpo_gap_count': rpo_gap_count,
             'approved_bias_count': approved_bias_count,
-            'published_plans_count': len(processes_with_plans),
+            'published_plans_count': len(published),
+            'ready_plans_count': len(ready_ids),
+            'verified_plans_count': sum(any(state['exercise_verified'] for _, state in entries)
+                                        for entries in published.values()),
+            'plans_needing_review_count': sum(state['needs_review']
+                                              for entries in published.values() for _, state in entries),
+            'critical_readiness_count': processes.filter(pk__in=unplanned_ids, criticality='CRITICAL').count(),
+            'overdue_tasks_count': len(overdue),
             'completed_exercises_count': exercises_count,
         }
         if request.query_params.get('export') == 'pdf':
-            response = report_pdf(org, summary, processes, start, end)
+            response = report_pdf(org, summary, processes, readiness, start, end)
             record_audit(request=request, action='EXPORT', entity='OrganizationReport',
                          entity_id=org.id if org else '', after_state={'export_type': 'PDF', 'from': start, 'to': end})
             return response
@@ -183,6 +210,10 @@ class OrganizationDashboardReportView(views.APIView):
                 # Prevent spreadsheet formula execution in user-controlled strings.
                 safe_name = "'" + process.name if process.name.startswith(('=', '+', '-', '@')) else process.name
                 writer.writerow([safe_name, process.criticality, process.status])
+            writer.writerow([])
+            writer.writerow(['Jarayon ID', 'Reja holati', 'Yetishmayotgan dalil'])
+            for process_id, data in readiness.items():
+                writer.writerow([process_id, data['label'], ' · '.join(data['missing_evidence'])])
             record_audit(request=request, action='EXPORT', entity='OrganizationReport',
                          entity_id=org.id if org else '', after_state={'export_type': 'CSV', 'from': start, 'to': end})
             return response
@@ -194,7 +225,17 @@ class OrganizationDashboardReportView(views.APIView):
                 low_thresh=org.risk_low_threshold if org else 6,
                 med_thresh=org.risk_medium_threshold if org else 14) for r in risks)),
             'criticality_distribution': dict(Counter(processes.values_list('criticality', flat=True))),
-            'unplanned_process_ids': list(processes.exclude(pk__in=processes_with_plans).values_list('pk', flat=True)),
+            'unplanned_process_ids': unplanned_ids,
+            'critical_unplanned_process_ids': list(processes.filter(
+                pk__in=unplanned_ids, criticality='CRITICAL').values_list('pk', flat=True)),
+            'plan_readiness': readiness,
+            'overdue_task_ids': overdue,
+            'published_plan_ids': [plan.pk for entries in published.values() for plan, _ in entries],
+            'verified_plan_ids': [plan.pk for entries in published.values()
+                                  for plan, state in entries if state['exercise_verified']],
+            'review_plan_ids': [plan.pk for entries in published.values()
+                                for plan, state in entries if state['needs_review']],
+            'approved_bia_ids': list(bias.filter(status='APPROVED').values_list('pk', flat=True)),
             'rpo_gap_bia_ids': [b.pk for b in bias if b.has_rpo_gap],
             'high_risk_ids': [r.pk for r in risks if r.risk_score >= high_risk_threshold],
             'summary': summary,

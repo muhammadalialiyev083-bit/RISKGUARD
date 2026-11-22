@@ -2,6 +2,7 @@ from apps.core.serializers import TenantModelSerializer
 from rest_framework import serializers
 from django.db import transaction
 from apps.plans.models import Strategy, ContinuityPlan, PlanStep
+from apps.plans.readiness import approved_assessments, plan_readiness
 
 
 class StrategySerializer(TenantModelSerializer):
@@ -31,14 +32,19 @@ class ContinuityPlanSerializer(TenantModelSerializer):
     approved_by_name = serializers.CharField(source='approved_by.get_full_name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     is_frozen = serializers.BooleanField(read_only=True)
+    readiness = serializers.SerializerMethodField()
     steps = PlanStepSerializer(many=True, required=False)
+
+    def get_readiness(self, obj):
+        return plan_readiness(obj, approved_assessments([obj.process_id]).get(obj.process_id))
 
     class Meta:
         model = ContinuityPlan
         fields = [
             'id', 'organization', 'process', 'process_name', 'title', 'version',
             'scope', 'status', 'status_display', 'approved_by', 'approved_by_name',
-            'approved_at', 'steps', 'is_frozen', 'previous_version', 'created_at', 'updated_at'
+            'approved_at', 'steps', 'is_frozen', 'previous_version', 'review_due_date',
+            'readiness', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'organization', 'approved_by', 'approved_at', 'previous_version', 'created_at', 'updated_at']
 

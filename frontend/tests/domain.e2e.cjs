@@ -181,10 +181,12 @@ const artifactDir =
       await d.getByLabel("RTO · soat").fill("2");
       await d.getByLabel("RPO · daqiqa").fill("30");
       await d.getByLabel("Zaxiralash oralig‘i").fill("60");
+      await d.getByRole("button", { name: "Davom etish" }).click();
       await d.getByRole("button", { name: "Ta’sir nuqtasi" }).click();
       await d.getByLabel("Gorizont · soat").fill("4");
       await d.getByLabel("Moliyaviy zarar").fill("100000");
       await d.getByLabel("Operatsion · 1–5").fill("4");
+      await d.getByRole("button", { name: "Davom etish" }).click();
     });
     await action(names.process, "Yuborish", "Yuborilgan");
     await action(names.process, "Tasdiqlash", "Tasdiqlangan");
@@ -262,6 +264,7 @@ const artifactDir =
         .getByRole("button", { name: "Qadam qo‘shish", exact: true })
         .click();
       await d.getByLabel("Qadam nomi").fill("Zaxira serverga o‘tish");
+      await d.locator("fieldset").getByLabel("Mas’ul").selectOption({ index: 1 });
     });
     await action(names.plan, "Yuborish", /Tekshiruvda|Ko.rib chiqilmoqda/);
     await action(names.plan, "E’lon qilish", /E.lon qilingan/);

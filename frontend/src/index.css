@@ -3,6 +3,7 @@
 
 :root {
   font-family: var(--font-family);
+  font-weight: 500;
   color-scheme: dark;
   --bg: var(--color-background);
   --panel: var(--color-surface);
@@ -30,6 +31,12 @@ body {
   color: var(--text);
   font-size: var(--primitive-font-body);
   line-height: 1.55;
+}
+:where(h1, h2, h3, h4, h5, h6, strong, b, th, optgroup) {
+  font-weight: 500;
+}
+:where(code, pre, kbd, samp, svg text) {
+  font-family: inherit;
 }
 button,
 input,
@@ -62,7 +69,7 @@ p {
 }
 h1 {
   font-size: var(--primitive-font-title);
-  font-weight: 550;
+  font-weight: 500;
   line-height: 1.2;
   letter-spacing: -1px;
   margin-bottom: 10px;
@@ -71,7 +78,7 @@ h2 {
   font-size: 19px;
   letter-spacing: -0.4px;
   margin-bottom: 12px;
-  font-weight: 550;
+  font-weight: 500;
 }
 h3 {
   font-size: 14px;
@@ -134,7 +141,7 @@ table {
 th {
   font-size: var(--primitive-font-small);
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 500;
   background: var(--panel-2);
 }
 th,
@@ -163,7 +170,7 @@ small {
 .eyebrow {
   color: var(--accent);
   font-size: 10px;
-  font-weight: 750;
+  font-weight: 500;
   letter-spacing: normal;
   margin-bottom: 12px;
 }
@@ -178,7 +185,7 @@ small {
   border-radius: var(--button-radius);
   background: var(--panel);
   color: var(--text);
-  font-weight: 550;
+  font-weight: 500;
   font-size: var(--primitive-font-label);
   text-decoration: none;
   transition:
@@ -198,7 +205,7 @@ small {
   background: var(--button-bg);
   border-color: var(--button-bg);
   color: var(--button-fg);
-  font-weight: 600;
+  font-weight: 500;
   transition: border-color var(--duration-fast), transform 0.1s;
 }
 .btn-primary:hover {
@@ -241,12 +248,12 @@ small {
   gap: 7px;
   color: var(--muted);
   font-size: var(--primitive-font-label);
-  font-weight: 550;
+  font-weight: 500;
 }
 .field input,
 .field select,
 .field textarea {
-  font-weight: 400;
+  font-weight: 500;
   min-height: var(--input-height);
 }
 .field textarea {
@@ -312,7 +319,7 @@ small {
   font-size: 10px;
   line-height: 1.6;
   letter-spacing: 0.03em;
-  font-weight: 650;
+  font-weight: 500;
   background: var(--accent-soft);
   color: var(--accent);
 }
@@ -392,16 +399,6 @@ small {
 .brand-copy.compact > span {
   display: none;
 }
-.live-dot,
-.workspace-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 100%;
-  background: var(--accent);
-  flex-shrink: 0;
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -429,21 +426,6 @@ small {
   border: 0;
   background: transparent;
   color: var(--muted);
-}
-.workspace-label {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 22px 24px 13px;
-  font-size: var(--primitive-font-small);
-  color: var(--muted);
-}
-.workspace-tier {
-  margin-left: auto;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-size: 8px;
 }
 .sidebar nav {
   overflow-y: auto;
@@ -499,14 +481,6 @@ small {
   padding: 12px;
   border-top: 1px solid var(--border);
 }
-.system-state {
-  font-size: 10px;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 10px 13px;
-}
 .profile-card {
   display: flex;
   align-items: center;
@@ -546,7 +520,7 @@ small {
   color: var(--accent);
   border: 1px solid var(--border);
   border-radius: 7px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .app-body {
   margin-left: 252px;
@@ -714,10 +688,8 @@ small {
 }
 .sidebar-collapsed .brand-copy,
 .sidebar-collapsed .brand .logo-slot,
-.sidebar-collapsed .workspace-label,
 .sidebar-collapsed .nav-group-label,
 .sidebar-collapsed .nav-item span,
-.sidebar-collapsed .system-state,
 .sidebar-collapsed .profile-card > span:nth-child(2),
 .sidebar-collapsed .profile-card > svg {
   display: none;
@@ -880,7 +852,7 @@ small {
 }
 .google-letter {
   font-size: 19px;
-  font-weight: 750;
+  font-weight: 500;
   line-height: 1;
 }
 .auth-security {
@@ -1137,7 +1109,7 @@ small {
     color: var(--accent);
     font-size: 40px;
     letter-spacing: -2px;
-    font-weight: 800;
+    font-weight: 500;
     margin-bottom: 45px;
   }
   .auth-form-side {

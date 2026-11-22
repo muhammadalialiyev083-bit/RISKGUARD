@@ -12,6 +12,8 @@ from apps.plans.views import StrategyViewSet, ContinuityPlanViewSet
 from apps.simulation.views import ScenarioViewSet, ExerciseViewSet
 from apps.engine.views import PriorityAnalysisView, EvaluateRiskAlgorithmView, EvaluateStrategyView
 from apps.reports.views import OrganizationDashboardReportView
+from apps.reports.evidence import ISOEvidenceView
+from apps.operations.map_views import ContinuityMapView
 
 from apps.operations.views import ProviderViewSet, IncidentViewSet, ImprovementTaskViewSet, SimulationRunViewSet
 
@@ -60,6 +62,8 @@ urlpatterns = [
 
     # Dashboard konsolidatsiyasi (FR-11)
     path('api/v1/reports/organization', OrganizationDashboardReportView.as_view(), name='report-dashboard'),
+    path('api/v1/reports/iso22301', ISOEvidenceView.as_view(), name='iso-evidence'),
+    path('api/v1/continuity-map', ContinuityMapView.as_view(), name='continuity-map'),
 
     # Resurs routerlari
     path('api/v1/', include(router.urls)),

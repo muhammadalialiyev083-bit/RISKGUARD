@@ -102,6 +102,7 @@ async function expectPaused(frame) {
     assert.deepEqual(await page.locator(".morph-value").allTextContents(), values, "morphing must not invent or change values");
     await page.evaluate(() => scrollTo(0, 0));
     await page.screenshot({ path: path.join(artifacts, "dashboard-dark.png"), fullPage: true });
+    await page.locator(".dashboard-intro summary").click();
     await page.getByRole("button", { name: "UzHi qanday ishlaydi?", exact: true }).click();
     await page.getByRole("dialog").waitFor();
     const player = page.frameLocator(".walkthrough-dialog iframe");
@@ -109,6 +110,7 @@ async function expectPaused(frame) {
     await page.getByRole("button", { name: "Ko‘rinishni to‘xtatish", exact: true }).click();
     const iframe = page.frames().find(f => f.url().includes("/effect.html"));
     await iframe.waitForFunction(() => window.__playing === false);
+    assert.ok(await iframe.evaluate(async () => (await document.fonts.load("500 32px Montserrat")).some(face => face.status === "loaded")));
     const stopped = await iframe.evaluate(() => window.__time);
     await iframe.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.equal(await iframe.evaluate(() => window.__time), stopped, "pausing must freeze the scene clock");
@@ -125,6 +127,7 @@ async function expectPaused(frame) {
     await page.getByRole("button", { name: "Interfeys harakatini yoqish", exact: true }).waitFor();
     await page.getByRole("button", { name: "Chiziqli ko‘rinish", exact: true }).click();
     assert.equal(await page.locator(".morph-line").evaluate(n => n.style.strokeDashoffset), "0", "paused motion still updates the final chart immediately");
+    await page.locator(".dashboard-intro summary").click();
     await page.getByRole("button", { name: "UzHi qanday ishlaydi?", exact: true }).click();
     const pausedFrame = page.frames().find(frame => frame.url().includes("/effect.html"));
     await pausedFrame.waitForFunction(() => window.__ready && window.__time === 4.4 && !window.__playing);
@@ -162,6 +165,7 @@ async function expectPaused(frame) {
     await page.locator(".executive-kpi").first().waitFor();
     assert.ok(await page.getByRole("button", { name: "Interfeys harakati kamaytirilgan" }).isDisabled());
     assert.equal(await page.locator(".dependency-pulse").first().evaluate(n => getComputedStyle(n).opacity), "0");
+    await page.locator(".dashboard-intro summary").click();
     await page.getByRole("button", { name: "UzHi qanday ishlaydi?", exact: true }).click();
     const reducedFrame = page.frames().find(f => f.url().includes("/effect.html"));
     await reducedFrame.waitForFunction(() => window.__ready && window.__time === 4.4);

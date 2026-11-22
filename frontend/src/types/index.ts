@@ -97,6 +97,9 @@ export interface DashboardSummary {
   rpo_gap_count: number;
   approved_bias_count: number;
   published_plans_count: number;
+  ready_plans_count?: number;
+  verified_plans_count?: number;
+  plans_needing_review_count?: number;
   completed_exercises_count: number;
 }
 

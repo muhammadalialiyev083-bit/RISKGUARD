@@ -1,4 +1,5 @@
 from decimal import Decimal
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from apps.operations.models import Provider, Incident, ImprovementTask, SimulationRun, IncidentEvent
 
@@ -82,8 +83,8 @@ class ImprovementTaskSerializer(TenantRelationsSerializer):
 
     class Meta:
         model = ImprovementTask
-        fields = ['id', 'organization', 'title', 'description', 'owner', 'owner_name', 'status', 'due_date', 'incident', 'incident_title', 'scenario', 'scenario_title', 'simulation_run', 'process', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'organization', 'created_at', 'updated_at']
+        fields = ['id', 'organization', 'title', 'description', 'owner', 'owner_name', 'status', 'due_date', 'incident', 'incident_title', 'scenario', 'scenario_title', 'simulation_run', 'process', 'plan', 'exercise', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'organization', 'plan', 'exercise', 'created_at', 'updated_at']
 
     def validate(self, data):
         incident = data.get('incident', getattr(self.instance, 'incident', None))
@@ -127,8 +128,18 @@ class TimelineMessageSerializer(serializers.Serializer):
 class ProviderDisruptionSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=255)
     estimated_outage_hours = serializers.DecimalField(max_digits=6, decimal_places=2, min_value=Decimal('0.01'))
+    backup_assets = serializers.DictField(child=serializers.IntegerField(min_value=1), required=False, default=dict)
 
 
 class IncidentEscalationSerializer(serializers.Serializer):
     severity = serializers.ChoiceField(choices=['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
     reason = serializers.CharField(max_length=4000, allow_blank=False)
+
+
+class ExerciseImprovementSerializer(TenantRelationsSerializer):
+    owner = serializers.PrimaryKeyRelatedField(queryset=get_user_model().objects.all())
+    due_date = serializers.DateField()
+
+    class Meta:
+        model = ImprovementTask
+        fields = ['title', 'owner', 'due_date']

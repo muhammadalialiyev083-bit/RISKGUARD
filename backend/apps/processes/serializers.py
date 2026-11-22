@@ -12,7 +12,7 @@ class BusinessProcessSerializer(TenantModelSerializer):
         model = BusinessProcess
         fields = [
             'id', 'organization', 'service', 'service_name', 'name', 'description',
-            'owner', 'owner_name', 'criticality', 'criticality_display',
+            'owner', 'owner_name', 'department', 'criticality', 'criticality_display',
             'status', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'organization', 'created_at', 'updated_at']

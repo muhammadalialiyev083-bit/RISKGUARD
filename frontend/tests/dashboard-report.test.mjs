@@ -15,7 +15,7 @@ const summary = {
   total_processes: 1234, critical_processes: 12, total_assets: 38,
   total_risks: 22, high_risks_count: 3, unplanned_processes_count: 6,
   rpo_gap_count: 2, approved_bias_count: 8, published_plans_count: 14,
-  completed_exercises_count: 0,
+  completed_exercises_count: 0, ready_plans_count: 12, verified_plans_count: 0, plans_needing_review_count: 2,
 };
 const options = {
   data: { organization: 'Sinov tashkiloti', summary },
@@ -34,7 +34,7 @@ test('JSON export preserves API totals, organization, source and snapshot time',
   assert.equal(exported.collectionMethod, 'authenticated-dashboard-api');
   assert.deepEqual(Object.fromEntries(exported.metrics.map(item => [item.key, item.value])), summary);
   assert.ok(exported.metrics.every(item => item.sourceUrl === options.sourceUrl && item.change === null));
-  assert.equal(exported.tables[0].rows.length, 10);
+  assert.equal(exported.tables[0].rows.length, Object.keys(summary).length);
   assert.equal(exported.exports.length, 1);
   assert.deepEqual(exported.exports[0], { format: 'json', filename: file.filename, contentType: file.contentType });
   assert.match(file.filename, /^uzhi-dashboard-[\w-]+\.json$/);

@@ -1,5 +1,6 @@
 from django.db import transaction
-from apps.operations.models import SimulationRun
+from apps.operations.models import ImprovementTask, SimulationRun
+from apps.operations.serializers import ExerciseImprovementSerializer, ImprovementTaskSerializer
 from apps.core.viewsets import AuditedModelViewSet
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
@@ -7,7 +8,7 @@ from rest_framework.response import Response
 from apps.simulation.models import Scenario, Exercise
 from apps.simulation.serializers import ScenarioSerializer, ExerciseSerializer
 from apps.simulation.simulator import ScenarioSimulator
-from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly
+from apps.authentication.permissions import IsTenantMember, IsAuditorReadOnly, IsRiskAnalystOrManager
 from apps.core.audit import record_audit
 
 
@@ -40,6 +41,13 @@ class ScenarioViewSet(AuditedModelViewSet):
         FR-10 va T-06: Nosozlik ssenariysini simulyatsiya qilish va zanjirsimon ta'sirni hisoblash.
         """
         scenario = self.get_object()
+        payload = ScenarioSerializer(scenario, data={
+            name: request.data[name] for name in ('estimated_outage_hours', 'backup_assets')
+            if name in request.data
+        }, partial=True, context={'request': request})
+        payload.is_valid(raise_exception=True)
+        for name, value in payload.validated_data.items():
+            setattr(scenario, name, value)
         result = ScenarioSimulator.simulate(scenario)
 
         # Preserve the historical response fields and add a durable result ID.
@@ -82,3 +90,25 @@ class ExerciseViewSet(AuditedModelViewSet):
             entity_id=ex.id,
             after_state={'plan_id': ex.plan_id, 'outcome': ex.outcome}
         )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsTenantMember, IsRiskAnalystOrManager])
+    @transaction.atomic
+    def improvements(self, request, pk=None):
+        exercise = self.get_object()
+        if not exercise.findings.strip() and exercise.outcome == 'SUCCESS':
+            return Response({'detail': 'Avval mashqda aniqlangan kamchilikni qayd eting.'}, status=400)
+        payload = ExerciseImprovementSerializer(data=request.data, context={'request': request})
+        payload.is_valid(raise_exception=True)
+        task, created = ImprovementTask.objects.get_or_create(
+            organization=exercise.organization, source_key=f'exercise:{exercise.pk}',
+            defaults={
+                **payload.validated_data, 'exercise': exercise, 'plan': exercise.plan,
+                'process': exercise.plan.process, 'scenario': exercise.scenario,
+                'description': exercise.findings,
+            },
+        )
+        data = ImprovementTaskSerializer(task).data
+        if created:
+            record_audit(request=request, action='CREATE', entity='ImprovementTask',
+                         entity_id=task.pk, after_state=data)
+        return Response(data, status=201 if created else 200)

@@ -23,22 +23,39 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
     const exceptions = [],
       apiWrites = [];
     let userId = 41;
+    let failure = false;
+    const maps = new Map();
     page.on("pageerror", (error) => exceptions.push(error.message));
     await page.route("**/api/v1/**", async (route) => {
       if (route.request().method() !== "GET")
         apiWrites.push(route.request().method() + " " + route.request().url());
       const pathname = new URL(route.request().url()).pathname;
+      const organization = userId === 42 ? 8 : 7;
+      let status = 200;
       let data = { results: [], count: 0, next: null, previous: null };
-      if (pathname.endsWith("/auth/me"))
+      if (pathname.endsWith("/auth/csrf")) {
+        data = { csrfToken: "test-token" };
+      } else if (pathname.endsWith("/continuity-map")) {
+        if (route.request().method() === "PUT") {
+          const payload = route.request().postDataJSON();
+          if (failure) {
+            status = 503;
+            data = { detail: "Xarita saqlanmadi." };
+          } else {
+            maps.set(organization, { ...payload, revision: payload.revision + 1 });
+          }
+        }
+        if (status === 200) data = maps.get(organization) || { version: 1, revision: 0, stops: [] };
+      } else if (pathname.endsWith("/auth/me"))
         data = {
           id: userId,
           username: "map-test-" + userId,
           first_name: "Sinov",
           role: "ADMIN",
           role_display: "Administrator",
-          organization: 7,
+          organization,
           organization_detail: {
-            id: 7,
+            id: organization,
             name: "Sinov tashkiloti",
             timezone: "Asia/Tashkent",
           },
@@ -52,7 +69,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
           criticality_distribution: {},
         };
       await route.fulfill({
-        status: 200,
+        status,
         contentType: "application/json",
         body: JSON.stringify(data),
       });
@@ -68,7 +85,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
     assert.equal(await page.locator(".map-demo-note").isVisible(), true);
     assert.match(
       await page.locator(".map-mode-switch").innerText(),
-      /Mening rejam\s*0/,
+      /Tashkilot rejasi\s*0/,
     );
     assert.equal(
       await page
@@ -161,6 +178,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
       await page
         .getByRole("button", { name: "Rejaga qo‘shish", exact: true })
         .click();
+      if (!failure) await page.locator(".map-route-list").getByText(name, { exact: true }).waitFor();
     }
     await add("Toshkent bosh ofisi", 0, "office");
     await add("Samarqand zaxira markazi", 1, "backup");
@@ -175,10 +193,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
         exact: true,
       })
       .click();
-    assert.match(
-      await page.locator(".map-route-list li").first().innerText(),
-      /Samarqand/,
-    );
+    await page.locator(".map-route-list li").first().getByText("Samarqand zaxira markazi", {exact: true}).waitFor();
     await page
       .getByRole("button", {
         name: "Toshkent bosh ofisi: tahrirlash",
@@ -244,6 +259,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
     await page
       .getByRole("button", { name: "Rejani almashtirish", exact: true })
       .click();
+    await page.locator(".map-route-list li").nth(2).waitFor();
     assert.equal(await page.locator(".map-route-list li").count(), 3);
     await page
       .getByRole("button", {
@@ -289,7 +305,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
     await page.locator(".map-demo-note").waitFor();
     assert.match(
       await page.locator(".map-mode-switch").innerText(),
-      /Mening rejam\s*0/,
+      /Tashkilot rejasi\s*0/,
     );
     assert.equal(
       await page
@@ -307,6 +323,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
     await page
       .getByRole("button", { name: "London hamkori: o‘chirish", exact: true })
       .click();
+    await page.locator(".map-route-list").getByText("London hamkori", {exact: true}).waitFor({state: "hidden"});
     assert.equal(await page.locator(".map-route-list li").count(), 2);
     const dateline = structuredClone(exported);
     dateline.features[0].geometry.coordinates = [179, 0];
@@ -321,6 +338,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
     await page
       .getByRole("button", { name: "Rejani almashtirish", exact: true })
       .click();
+    await page.locator(".map-notice").getByText("Xarita rejasi saqlandi.", {exact: true}).waitFor();
     const routePath = await page
       .locator("[data-route-progress]")
       .first()
@@ -330,23 +348,10 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
       "dateline route should clip at both map edges",
     );
     assert.doesNotMatch(routePath, /NaN|Infinity/);
-    await page.evaluate(() => {
-      const original = Storage.prototype.setItem;
-      Storage.prototype.setItem = function (key, value) {
-        if (key.startsWith("uzhi-map-v1:"))
-          throw new DOMException(
-            "Storage disabled in this test",
-            "QuotaExceededError",
-          );
-        return original.call(this, key, value);
-      };
-    });
+    failure = true;
     await add("Saqlanmagan sinov manzili", 0, "office");
-    await page
-      .getByRole("alert")
-      .filter({ hasText: /brauzerda saqlanmadi/ })
-      .waitFor();
-    assert.equal(await page.locator(".map-route-list li").count(), 3);
+    await page.getByRole("alert").filter({ hasText: /Xarita saqlanmadi/ }).waitFor();
+    assert.equal(await page.locator(".map-route-list li").count(), 2);
     await page.reload({ waitUntil: "networkidle" });
     await page.locator(".map-route-list li").last().waitFor();
     assert.equal(
@@ -355,7 +360,7 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
       "failed persistence must not report a saved record",
     );
     assert.deepEqual(exceptions, []);
-    assert.deepEqual(apiWrites, []);
+    assert.ok(apiWrites.length > 0 && apiWrites.every((call) => call.endsWith("/api/v1/continuity-map") && call.startsWith("PUT ")));
     console.log(
       JSON.stringify(
         {
@@ -376,9 +381,9 @@ const base = process.env.MAP_BASE_URL || "http://127.0.0.1:5180";
             "keyboard pins",
             "light/dark/mobile",
             "reduced motion",
-            "account isolation",
-            "storage failure is explicit",
-            "no server mutations or browser exceptions",
+            "organization isolation",
+            "server save failure is explicit",
+            "only the mocked map API was mutated",
           ],
         },
         null,

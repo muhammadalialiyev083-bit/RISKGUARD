@@ -164,6 +164,8 @@ async function request<T>(
 }
 
 export const api = {
+  put: (path: string, data: any) =>
+    request<any>(path, { method: "PUT", body: JSON.stringify(data) }),
   patch: (path: string, data: any) =>
     request<any>(path, { method: "PATCH", body: JSON.stringify(data) }),
   get: (path: string) => request<any>(path),

@@ -148,8 +148,9 @@ let browser;
     .getByRole("heading", { name: /Saqlangan ta’sir tahlili/ })
     .waitFor();
   await page
-    .getByRole("cell", { name: businessProcess.name, exact: true })
+    .getByRole("cell", { name: new RegExp("^" + businessProcess.name) })
     .waitFor();
+  await page.locator(".ops-run-result").getByText("Baholanmagan", { exact: true }).waitFor();
   await page.screenshot({
     path: path.join(artifactDir, "operations-provider-desktop.png"),
     fullPage: true,
