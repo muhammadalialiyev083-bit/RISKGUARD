@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { guides } from "./workflow";
 import type { RecordRow } from "./workflow";
 
@@ -18,7 +18,7 @@ export function SectionGuide({
   return (
     <details className="module-help">
       <summary>
-        <BookOpen size={15} aria-hidden="true" /> Yordam
+        <UzHiIcon name="book" size={15} /> Yordam
       </summary>
       <p>{guide.purpose}</p>
       <ul>

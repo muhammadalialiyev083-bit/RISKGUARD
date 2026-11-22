@@ -1,11 +1,11 @@
-import { ArrowUpRight, MapPinned } from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import "./discovery.css";
 
 export function MapDiscoveryCard({ onOpen }: { onOpen: () => void }) {
   return (
     <section className="map-discovery" aria-labelledby="map-discovery-title">
       <div className="map-discovery-icon" aria-hidden="true">
-        <MapPinned size={28} />
+        <UzHiIcon name="map" size={28} />
       </div>
       <div>
         <p className="map-discovery-kicker">YANGI · HUDUDIY REJALASHTIRISH</p>
@@ -18,7 +18,7 @@ export function MapDiscoveryCard({ onOpen }: { onOpen: () => void }) {
         </p>
       </div>
       <button className="btn btn-primary" onClick={onOpen}>
-        Xaritani ochish <ArrowUpRight size={17} />
+        Xaritani ochish <UzHiIcon name="arrowUpRight" size={17} />
       </button>
     </section>
   );

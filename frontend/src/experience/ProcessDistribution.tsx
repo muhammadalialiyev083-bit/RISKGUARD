@@ -1,5 +1,5 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
-import { ChartColumn, ChartLine } from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { useMotion } from "./MotionEffects";
 import type { RecordRow } from "./workflow";
 
@@ -52,8 +52,8 @@ export function ProcessDistribution({ processes, onNavigate }: { processes: Reco
     <div className="distribution-heading">
       <h3 id={id}>Jarayonlar muhimligi</h3>
       <div className="chart-switch" role="group" aria-label="Diagramma ko‘rinishi">
-        <button aria-label="Ustunli ko‘rinish" aria-pressed={!line} onClick={() => setLine(false)}><ChartColumn size={15} /></button>
-        <button aria-label="Chiziqli ko‘rinish" aria-pressed={line} onClick={() => setLine(true)}><ChartLine size={15} /></button>
+        <button aria-label="Ustunli ko‘rinish" aria-pressed={!line} onClick={() => setLine(false)}><UzHiIcon name="chartBars" size={15} /></button>
+        <button aria-label="Chiziqli ko‘rinish" aria-pressed={line} onClick={() => setLine(true)}><UzHiIcon name="chartLine" size={15} /></button>
       </div>
     </div>
     {processes.length > 0 && <svg ref={svg} viewBox="0 0 380 145" className="morph-chart" role="img" aria-labelledby={id}>

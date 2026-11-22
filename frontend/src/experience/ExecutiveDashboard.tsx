@@ -1,11 +1,5 @@
-import {
-  ArrowRight,
-  Check,
-  ChevronRight,
-  Layers,
-  ShieldCheck,
-  Target,
-} from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
+import { BubbleIcon } from "../components/ui/BubbleIcon";
 import { RiskMatrix, DependencyMap } from "../components/DomainCharts";
 import { startingSteps } from "./workflow";
 import type { RecordRow, WorkspaceData } from "./workflow";
@@ -51,49 +45,60 @@ export function DashboardWelcome({
   const completed = steps.filter((step) => step.complete).length;
   return (
     <section className="dashboard-overview">
-      <h1>Boshqaruv markazi</h1>
-      <div className="dashboard-priorities">
-        <button
-          className="btn"
-          onClick={() =>
-            onNavigate(
-              metricTarget(summary, "critical_readiness_count", "processes"),
-            )
-          }
-        >
-          <strong>{summary?.summary?.critical_readiness_count ?? "—"}</strong>{" "}
-          Amaldagi rejasi yo‘q kritik jarayonlar
-        </button>
-        <button
-          className="btn"
-          onClick={() =>
-            onNavigate(metricTarget(summary, "overdue_tasks_count", "tasks"))
-          }
-        >
-          <strong>{summary?.summary?.overdue_tasks_count ?? "—"}</strong>{" "}
-          Muddati o‘tgan vazifalar
-        </button>
-        <button
-          className="btn btn-primary"
-          onClick={() =>
-            onNavigate(
-              user.role === "AUDITOR" ? "iso22301" : next?.target || "reports",
-            )
-          }
-        >
-          {user.role === "AUDITOR"
-            ? "Audit dalillarini ochish"
-            : next
-              ? "Boshlash: " + next.title
-              : "Hisobotni ochish"}
-          <ArrowRight size={16} />
-        </button>
+      <div className="dashboard-hero-main">
+        <h1>Boshqaruv markazi</h1>
+        <div className="dashboard-priorities">
+          <button
+            className="btn"
+            onClick={() =>
+              onNavigate(
+                metricTarget(summary, "critical_readiness_count", "processes"),
+              )
+            }
+          >
+            <strong>{summary?.summary?.critical_readiness_count ?? "—"}</strong>{" "}
+            Amaldagi rejasi yo‘q kritik jarayonlar
+          </button>
+          <button
+            className="btn"
+            onClick={() =>
+              onNavigate(metricTarget(summary, "overdue_tasks_count", "tasks"))
+            }
+          >
+            <strong>{summary?.summary?.overdue_tasks_count ?? "—"}</strong>{" "}
+            Muddati o‘tgan vazifalar
+          </button>
+        </div>
+        <div className="dashboard-hero-actions">
+          <button
+            className="btn btn-primary dashboard-hero-primary"
+            onClick={() =>
+              onNavigate(
+                user.role === "AUDITOR" ? "iso22301" : next?.target || "reports",
+              )
+            }
+          >
+            {user.role === "AUDITOR"
+              ? "Audit dalillarini ochish"
+              : next
+                ? "Boshlash: " + next.title
+                : "Hisobotni ochish"}
+            <UzHiIcon name="arrowRight" size={16} />
+          </button>
+          <ProductWalkthrough />
+        </div>
       </div>
       <details className="dashboard-intro">
         <summary>
-          Tanishtiruv va dastlabki sozlash · {completed}/{steps.length}
+          <BubbleIcon name="plans" size="lg" variant="active" float />
+          <span className="dashboard-intro-caption">
+            <span>Tanishtiruv va dastlabki sozlash ·</span>{" "}
+            <span className="dashboard-intro-count">
+              <strong>{completed}</strong>/{steps.length}
+            </span>
+          </span>
+          <UzHiIcon name="chevronRight" size={16} className="dashboard-intro-chevron" />
         </summary>
-        <ProductWalkthrough />
         <button
           className="btn"
           onClick={() =>
@@ -102,7 +107,7 @@ export function DashboardWelcome({
               ?.scrollIntoView({ block: "start" })
           }
         >
-          Qadamlarni ko‘rish <ChevronRight size={14} />
+          Qadamlarni ko‘rish <UzHiIcon name="chevronRight" size={14} />
         </button>
       </details>
     </section>
@@ -142,7 +147,7 @@ function Coverage({
         </span>
         <small>{total ? label : "Avval jarayon yarating"}</small>
       </div>
-      <ChevronRight size={16} />
+      <UzHiIcon name="chevronRight" size={16} />
     </button>
   );
 }
@@ -190,18 +195,19 @@ export function ExecutiveDashboard({
       ? summary.summary[key].toLocaleString("uz-UZ")
       : "—";
   const counts = [
-    ["total_processes", "Jarayonlar", "processes", Layers],
-    ["high_risks_count", "Yuqori risklar", "risks", ShieldCheck],
-    ["rpo_gap_count", "RPO tafovutlari", "bia", Target],
-    ["unplanned_processes_count", "Rejasiz jarayonlar", "processes", Layers],
-    ["published_plans_count", "E’lon qilingan rejalar", "plans", ShieldCheck],
-    ["approved_bias_count", "Tasdiqlangan BIA", "bia", Target],
-    ["verified_plans_count", "Mashqda tekshirilgan", "plans", ShieldCheck],
+    ["total_processes", "Jarayonlar", "processes", "processes", "indigo"],
+    ["high_risks_count", "Yuqori risklar", "risks", "highRisk", "danger"],
+    ["rpo_gap_count", "RPO tafovutlari", "bia", "rpo", "indigo"],
+    ["unplanned_processes_count", "Rejasiz jarayonlar", "processes", "unplanned", "danger"],
+    ["published_plans_count", "E’lon qilingan rejalar", "plans", "plans", "lime"],
+    ["approved_bias_count", "Tasdiqlangan BIA", "bia", "approvedBia", "lime"],
+    ["verified_plans_count", "Mashqda tekshirilgan", "plans", "checkCircle", "lime"],
     [
       "plans_needing_review_count",
       "Qayta ko‘rib chiqish kerak",
       "plans",
-      Target,
+      "recovery",
+      "indigo",
     ],
   ] as const;
   const descriptions: Record<string, string> = {
@@ -221,7 +227,7 @@ export function ExecutiveDashboard({
   return (
     <div className="executive-dashboard">
       <div className="executive-kpis stat-grid">
-        {counts.map(([key, label, target, Icon]) => (
+        {counts.map(([key, label, target, icon, variant]) => (
           <MetricFocus
             key={key}
             label={label}
@@ -234,10 +240,10 @@ export function ExecutiveDashboard({
               key={key}
               onClick={() => onNavigate(metricTarget(summary, key, target))}
             >
-              <span>
-                <Icon size={17} />
-                {label}
-                <ChevronRight size={14} />
+              <span className="kpi-card-heading">
+                <BubbleIcon name={icon} size="md" variant={variant} />
+                <span className="kpi-card-label">{label}</span>
+                <UzHiIcon name="chevronRight" size={14} />
               </span>
               <strong>{metric(key)}</strong>
             </button>
@@ -257,7 +263,7 @@ export function ExecutiveDashboard({
               <h2>Tiklanish qamrovi</h2>
               <p>Baholangan va e’lon qilingan rejasi bor jarayonlar.</p>
             </div>
-            <ShieldCheck size={20} />
+            <UzHiIcon name="plans" size={20} />
           </div>
           <Coverage
             title="BIA qamrovi"
@@ -310,13 +316,13 @@ export function ExecutiveDashboard({
                 }
               >
                 <span className="getting-started-number">
-                  {step.complete ? <Check size={17} /> : index + 1}
+                  {step.complete ? <UzHiIcon name="check" size={17} /> : index + 1}
                 </span>
                 <span>
                   <strong>{step.title}</strong>
                   <small>{step.detail}</small>
                 </span>
-                <ChevronRight size={16} />
+                <UzHiIcon name="chevronRight" size={16} />
               </button>
             </li>
           ))}
@@ -340,7 +346,7 @@ export function ExecutiveDashboard({
           className="text-button dashboard-full-map"
           onClick={() => onNavigate("dependencies")}
         >
-          Barcha bog‘liqliklarni ochish <ArrowRight size={14} />
+          Barcha bog‘liqliklarni ochish <UzHiIcon name="arrowRight" size={14} />
         </button>
       )}
     </div>

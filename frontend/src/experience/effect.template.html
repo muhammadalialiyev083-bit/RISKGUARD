@@ -5,32 +5,33 @@
 <meta name="color-scheme" content="dark">
 <title>UzHi — Jarayondan tiklanish rejasigacha</title>
 <style>
+__TOKENS__
 @font-face{font-family:Montserrat;font-weight:500;src:url("data:font/woff2;base64,__FONT__") format("woff2")}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#19172A;color:#F0EBFC;font-family:Montserrat,sans-serif;font-weight:500;font-synthesis:none}
-svg{display:block;width:100%;height:100%;font-family:Montserrat,sans-serif;font-weight:500;font-synthesis:none}text{fill:#F0EBFC}.muted{fill:#B9B1D2}.accent{fill:#B9A6EF}#logo{filter:grayscale(1) sepia(.22) hue-rotate(205deg)}
-.node-shell{fill:#2B2843;stroke:#786D98;stroke-width:2}.node-response{fill:none;stroke:#B9A6EF;stroke-width:3;opacity:0}.connector{fill:none;stroke:#786D98;stroke-width:3}.lit-path{fill:none;stroke:#B9A6EF;stroke-width:3;stroke-linecap:round}.pulse{fill:#CBBBF7}
-#standalone-controls{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:6px;border:1px solid #786D98;border-radius:10px;background:#232138}
-#standalone-controls[hidden]{display:none}#standalone-controls button{min-height:44px;padding:8px 16px;border:1px solid #786D98;border-radius:6px;background:#2B2843;color:#F0EBFC;font:500 14px Montserrat,sans-serif;white-space:nowrap;cursor:pointer}#standalone-controls button:focus-visible{outline:2px solid #B9A6EF;outline-offset:2px}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--color-background);color:var(--color-foreground);font-family:Montserrat,sans-serif;font-weight:500;font-synthesis:none}
+svg{display:block;width:100%;height:100%;font-family:Montserrat,sans-serif;font-weight:500;font-synthesis:none}text{fill:var(--color-foreground)}.muted{fill:var(--color-muted)}.accent{fill:var(--color-primary)}#logo{filter:grayscale(1)}
+.node-shell{fill:var(--color-raised);stroke:var(--color-control-border);stroke-width:2}.node-response{fill:none;stroke:var(--color-primary);stroke-width:3;opacity:0}.connector{fill:none;stroke:var(--color-control-border);stroke-width:3}.lit-path{fill:none;stroke:var(--color-primary);stroke-width:3;stroke-linecap:round}.pulse{fill:var(--color-primary-hover)}
+#standalone-controls{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:6px;border:1px solid var(--color-control-border);border-radius:10px;background:var(--color-surface)}
+#standalone-controls[hidden]{display:none}#standalone-controls button{min-height:44px;padding:8px 16px;border:1px solid var(--color-control-border);border-radius:6px;background:var(--color-raised);color:var(--color-foreground);font:500 14px Montserrat,sans-serif;white-space:nowrap;cursor:pointer}#standalone-controls button:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}
 </style>
 <svg viewBox="0 0 1920 1080" role="img" aria-labelledby="title description">
   <title id="title">UzHi ish jarayoni</title>
   <desc id="description">Jarayon va resurslarni aniqlashdan BIA hamda riskni baholash orqali BCP va DRP tiklanish rejasigacha. Bir kartochka yagona boshqaruv maydoniga ochiladi.</desc>
   <defs>
-    <radialGradient id="ambient"><stop stop-color="#B9A6EF" stop-opacity=".10"/><stop offset="1" stop-color="#19172A" stop-opacity="0"/></radialGradient>
-    <linearGradient id="surface" x2="1" y2="1"><stop stop-color="#232138"/><stop offset="1" stop-color="#19172A"/></linearGradient>
+    <radialGradient id="ambient"><stop stop-color="var(--color-primary)" stop-opacity=".10"/><stop offset="1" stop-color="var(--color-background)" stop-opacity="0"/></radialGradient>
+    <linearGradient id="surface" x2="1" y2="1"><stop stop-color="var(--color-surface)"/><stop offset="1" stop-color="var(--color-background)"/></linearGradient>
     <clipPath id="shell-clip"><rect id="clip" rx="28"/></clipPath>
   </defs>
-  <rect width="1920" height="1080" fill="#19172A"/>
+  <rect width="1920" height="1080" fill="var(--color-background)"/>
   <ellipse cx="1330" cy="560" rx="800" ry="600" fill="url(#ambient)"/>
   <image id="logo" href="data:image/webp;base64,__LOGO__" x="140" y="35" width="210" height="70"/>
   <text x="1780" y="78" text-anchor="end" class="muted" font-size="21" letter-spacing="3">JARAYONDAN TIKLANISHGACHA</text>
-  <rect id="ghost" x="140" y="490" width="560" height="176" rx="28" fill="none" stroke="#B9A6EF" stroke-dasharray="7 9" opacity="0"/>
-  <path id="guides" fill="none" stroke="#B9A6EF" stroke-width="1.5" stroke-dasharray="6 10" opacity="0"/>
-  <rect id="shell" fill="url(#surface)" stroke="#786D98" stroke-width="2" rx="28"/>
+  <rect id="ghost" x="140" y="490" width="560" height="176" rx="28" fill="none" stroke="var(--color-primary)" stroke-dasharray="7 9" opacity="0"/>
+  <path id="guides" fill="none" stroke="var(--color-primary)" stroke-width="1.5" stroke-dasharray="6 10" opacity="0"/>
+  <rect id="shell" fill="url(#surface)" stroke="var(--color-control-border)" stroke-width="2" rx="28"/>
   <g clip-path="url(#shell-clip)">
     <g id="workspace" opacity="0">
-      <path d="M136 234H1784" stroke="#786D98"/>
-      <circle cx="1680" cy="184" r="5" fill="#B9A6EF"/><circle cx="1704" cy="184" r="5" fill="#B9B1D2" opacity=".5"/><circle cx="1728" cy="184" r="5" fill="#B9B1D2" opacity=".3"/>
+      <path d="M136 234H1784" stroke="var(--color-control-border)"/>
+      <circle cx="1680" cy="184" r="5" fill="var(--color-primary)"/><circle cx="1704" cy="184" r="5" fill="var(--color-muted)" opacity=".5"/><circle cx="1728" cy="184" r="5" fill="var(--color-muted)" opacity=".3"/>
       <g id="headline"><text x="208" y="337" font-size="54" font-weight="500">Har bir qadam — yagona tizimda.</text></g>
       <text x="208" y="389" class="muted" font-size="25">Jarayonni aniqlang. Ta’sirni baholang. Tiklanishni rejalang.</text>
       <g id="paths">
@@ -72,13 +73,13 @@ svg{display:block;width:100%;height:100%;font-family:Montserrat,sans-serif;font-
         <text x="1400" y="604" font-size="29" font-weight="500">BCP / DRP rejalari</text>
         <text x="1400" y="643" class="muted" font-size="21">Mas’ullar va qadamlar</text>
       </g>
-      <path d="M208 815H1712" stroke="#786D98"/>
+      <path d="M208 815H1712" stroke="var(--color-control-border)"/>
       <text x="208" y="872" class="muted" font-size="22">Biznesingiz davom etishi uchun.</text>
       <text x="1712" y="872" text-anchor="end" class="accent" font-size="22">UzHi · Uzluksiz Himoya</text>
     </g>
     <text id="shared-title" font-weight="500">Uzluksiz himoya</text>
     <text id="card-subtitle" class="muted" font-size="23">Jarayon. Baholash. Tiklanish.</text>
-    <g id="card-arrow" fill="none" stroke="#B9A6EF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M0 0H32M20-12 32 0 20 12"/></g>
+    <g id="card-arrow" fill="none" stroke="var(--color-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M0 0H32M20-12 32 0 20 12"/></g>
   </g>
   <text x="140" y="1015" class="muted" font-size="21">UZLUKSIZ HIMOYA</text>
   <text x="1780" y="1015" text-anchor="end" class="muted" font-size="21">Aniq jarayonlar. Boshqariladigan tiklanish.</text>

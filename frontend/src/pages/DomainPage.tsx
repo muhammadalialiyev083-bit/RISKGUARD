@@ -1,18 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Plus,
-  Pencil,
-  RefreshCw,
-  Download,
-  ArrowUpRight,
-  ArrowUp,
-  ArrowDown,
-  X,
-  Check,
-  Play,
-  Search,
-  FileText,
-} from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { api } from "../api/client";
 import { DashboardReportExport } from "../reports/DashboardReportExport";
 import { MapDiscoveryCard } from "../maps/MapDiscoveryCard";
@@ -859,7 +846,7 @@ export function DomainPage({
               onClick={load}
               disabled={loading || busy}
             >
-              <RefreshCw size={16} /> Yangilash
+              <UzHiIcon name="refresh" size={16} /> Yangilash
             </button>
             {schema &&
               !["audit", "users"].includes(current) &&
@@ -871,7 +858,7 @@ export function DomainPage({
                   className="btn btn-primary"
                   onClick={() => setEditing(null)}
                 >
-                  <Plus size={16} /> Yangi yozuv
+                  <UzHiIcon name="plus" size={16} /> Yangi yozuv
                 </button>
               )}
           </div>
@@ -906,14 +893,14 @@ export function DomainPage({
       )}
       {notice && (
         <div role="status" className="alert success">
-          <Check size={18} />
+          <UzHiIcon name="check" size={18} />
           {notice}
           <button
             className="btn icon-button"
             aria-label="Xabarni yopish"
             onClick={() => setNotice("")}
           >
-            <X size={16} />
+            <UzHiIcon name="close" size={16} />
           </button>
         </div>
       )}
@@ -932,7 +919,7 @@ export function DomainPage({
       )}
       {loading ? (
         <div className="panel loading" role="status">
-          <RefreshCw className="spin" size={22} /> Ma’lumotlar yuklanmoqda…
+          <UzHiIcon name="refresh" className="spin" size={22} /> Ma’lumotlar yuklanmoqda…
         </div>
       ) : (
         !error && (
@@ -1002,7 +989,7 @@ export function DomainPage({
                             )
                           }
                         >
-                          <Download size={16} /> PDF hisobot
+                          <UzHiIcon name="download" size={16} /> PDF hisobot
                         </button>
                         <button
                           className="btn"
@@ -1015,7 +1002,7 @@ export function DomainPage({
                             )
                           }
                         >
-                          <Download size={16} /> CSV hisobot
+                          <UzHiIcon name="download" size={16} /> CSV hisobot
                         </button>
                       </>
                     )}
@@ -1070,7 +1057,7 @@ export function DomainPage({
                         >
                           <span>
                             {label}
-                            <ArrowUpRight size={15} />
+                            <UzHiIcon name="arrowUpRight" size={15} />
                           </span>
                           <strong>{summary?.summary?.[key] ?? "—"}</strong>
                           <small>Tegishli reestrni ochish</small>
@@ -1190,7 +1177,7 @@ export function DomainPage({
               <section className="panel domain-registry">
                 <div className="domain-toolbar">
                   <label className="domain-search">
-                    <Search size={16} />
+                    <UzHiIcon name="search" size={16} />
                     <input
                       aria-label="Reestrda qidirish"
                       placeholder="Reestrda qidirish…"
@@ -1368,7 +1355,7 @@ export function DomainPage({
                                         aria-label={`${row.name || row.title || row.process_name || row.username} tahrirlash`}
                                         onClick={() => setEditing(row)}
                                       >
-                                        <Pencil size={15} />
+                                        <UzHiIcon name="pencil" size={15} />
                                       </button>
                                     )}
                                   {canEdit &&
@@ -1508,7 +1495,7 @@ export function DomainPage({
                                         )
                                       }
                                     >
-                                      <Download size={16} />
+                                      <UzHiIcon name="download" size={16} />
                                     </button>
                                   )}
                                   {current === "simulation" && !readonly && (
@@ -1528,7 +1515,7 @@ export function DomainPage({
                                         if (response) setResult(response);
                                       }}
                                     >
-                                      <Play size={15} /> Sinash
+                                      <UzHiIcon name="play" size={15} /> Sinash
                                     </button>
                                   )}
                                 </div>
@@ -1654,12 +1641,12 @@ function Empty({
 }) {
   return (
     <div className="domain-empty">
-      <FileText size={30} />
+      <UzHiIcon name="reports" size={30} />
       <h3>{title}</h3>
       <p>{text}</p>
       {action && (
         <button className="btn btn-primary" onClick={action}>
-          <Plus size={16} />
+          <UzHiIcon name="plus" size={16} />
           {label}
         </button>
       )}
@@ -2013,7 +2000,7 @@ function RecordForm({
               disabled={busy}
               onClick={onClose}
             >
-              <X size={20} />
+              <UzHiIcon name="close" size={20} />
             </button>
           </div>
           {error && (
@@ -2283,7 +2270,7 @@ function RecordForm({
                     aria-label="Qadamni olib tashlash"
                     onClick={() => setSteps((s) => s.filter((_, j) => j !== i))}
                   >
-                    <X size={16} />
+                    <UzHiIcon name="close" size={16} />
                   </button>
                   {[-1, 1].map((direction) => (
                     <button
@@ -2308,7 +2295,7 @@ function RecordForm({
                         })
                       }
                     >
-                      {direction < 0 ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+                      {direction < 0 ? <UzHiIcon name="arrowUp" size={16} /> : <UzHiIcon name="arrowDown" size={16} />}
                     </button>
                   ))}
                 </div>
@@ -2329,7 +2316,7 @@ function RecordForm({
                   ])
                 }
               >
-                <Plus size={16} /> Qadam qo‘shish
+                <UzHiIcon name="plus" size={16} /> Qadam qo‘shish
               </button>
             </fieldset>
           )}
@@ -2374,7 +2361,7 @@ function RecordForm({
                       setImpacts((old) => old.filter((_, j) => j !== i))
                     }
                   >
-                    <X size={16} />
+                    <UzHiIcon name="close" size={16} />
                   </button>
                 </div>
               ))}
@@ -2394,7 +2381,7 @@ function RecordForm({
                   ])
                 }
               >
-                <Plus size={16} /> Ta’sir nuqtasi
+                <UzHiIcon name="plus" size={16} /> Ta’sir nuqtasi
               </button>
             </fieldset>
           )}
@@ -2470,7 +2457,7 @@ function ReadinessList({
         </ul>
       )}
       <button className="btn" onClick={() => onNavigate("bia")}>
-        Barcha baholashlar <ArrowUpRight size={15} />
+        Barcha baholashlar <UzHiIcon name="arrowUpRight" size={15} />
       </button>
     </section>
   );

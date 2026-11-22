@@ -2,7 +2,7 @@ import {
   createContext, useContext, useEffect, useLayoutEffect, useRef, useState,
   type ReactNode, type RefObject,
 } from "react";
-import { Pause, Play } from "lucide-react";
+import { BubbleIcon } from "../components/ui/BubbleIcon";
 
 const MotionContext = createContext({ enabled: false, reduced: false, paused: false, toggle: () => {} });
 const easing = "cubic-bezier(.22, 1, .36, 1)";
@@ -120,7 +120,7 @@ export function MotionToggle() {
   const label = reduced ? "Interfeys harakati kamaytirilgan" : enabled ? "Interfeys harakatini to‘xtatish" : "Interfeys harakatini yoqish";
   return <button className="btn btn-icon motion-toggle" aria-label={label} title={label}
     aria-pressed={!enabled} disabled={reduced} onClick={toggle}>
-    {enabled ? <Pause size={17} /> : <Play size={17} />}
+    <BubbleIcon name={enabled ? "pause" : "play"} />
   </button>;
 }
 

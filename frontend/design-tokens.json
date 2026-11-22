@@ -2,60 +2,32 @@
   "primitive": {
     "color": {
       "ink": {
-        "$value": "#19172A",
+        "$value": "#0b0e1e",
         "$description": "ink palette value"
       },
       "panel": {
-        "$value": "#232138",
+        "$value": "#121631",
         "$description": "panel palette value"
       },
       "raised": {
-        "$value": "#2B2843",
+        "$value": "#181d3a",
         "$description": "raised palette value"
       },
-      "indigo-light": {
-        "$value": "#B9A6EF",
-        "$description": "indigo-light palette value"
-      },
-      "indigo": {
-        "$value": "#504082",
-        "$description": "indigo palette value"
-      },
-      "indigo-light-hover": {
-        "$value": "#CBBBF7",
-        "$description": "indigo-light-hover palette value"
-      },
-      "indigo-hover": {
-        "$value": "#40336B",
-        "$description": "indigo-hover palette value"
-      },
       "slate": {
-        "$value": "#B9B1D2",
+        "$value": "#b7c2df",
         "$description": "slate palette value"
-      },
-      "mist": {
-        "$value": "#F0EBFC",
-        "$description": "mist palette value"
       },
       "paper": {
         "$value": "#FFFFFF",
         "$description": "paper palette value"
       },
       "line-dark": {
-        "$value": "#3C3654",
+        "$value": "#1e244d",
         "$description": "line-dark palette value"
       },
-      "line-light": {
-        "$value": "#DDD9EA",
-        "$description": "line-light palette value"
-      },
       "muted-light": {
-        "$value": "#5C5879",
+        "$value": "#495775",
         "$description": "muted-light palette value"
-      },
-      "soft-light": {
-        "$value": "#F7F5FC",
-        "$description": "soft-light palette value"
       },
       "danger-dark": {
         "$value": "#FFA3AC",
@@ -129,7 +101,7 @@
     "font": {
       "family": {
         "$value": "\"Montserrat\", ui-sans-serif, system-ui, sans-serif",
-        "$description": "Self-hosted Latin variable font"
+        "$description": "Self-hosted Montserrat"
       },
       "small": {
         "$value": "12px",
@@ -170,6 +142,60 @@
     }
   },
   "semantic": {
+    "uzhi": {
+      "indigo": {
+        "950": {
+          "$value": "#0f0d2e",
+          "$description": "UzHi indigo 950"
+        },
+        "900": {
+          "$value": "#1e1b4b",
+          "$description": "UzHi indigo 900"
+        },
+        "800": {
+          "$value": "#312e81",
+          "$description": "UzHi indigo 800"
+        },
+        "700": {
+          "$value": "#3730a3",
+          "$description": "UzHi indigo 700"
+        },
+        "600": {
+          "$value": "#4f46e5",
+          "$description": "UzHi indigo 600"
+        },
+        "100": {
+          "$value": "#e0e7ff",
+          "$description": "UzHi indigo 100"
+        },
+        "50": {
+          "$value": "#eef2ff",
+          "$description": "UzHi indigo 50"
+        }
+      },
+      "lime": {
+        "600": {
+          "$value": "#65a30d",
+          "$description": "UzHi lime 600"
+        },
+        "500": {
+          "$value": "#84cc16",
+          "$description": "UzHi lime 500"
+        },
+        "400": {
+          "$value": "#a3e635",
+          "$description": "UzHi lime 400"
+        },
+        "300": {
+          "$value": "#bef264",
+          "$description": "UzHi lime 300"
+        },
+        "100": {
+          "$value": "#ecfccb",
+          "$description": "UzHi lime 100"
+        }
+      }
+    },
     "color": {
       "background": {
         "$value": "var(--primitive-color-ink)",
@@ -184,7 +210,7 @@
         "$description": "Raised controls"
       },
       "foreground": {
-        "$value": "var(--primitive-color-mist)",
+        "$value": "var(--uzhi-indigo-50)",
         "$description": "Primary text"
       },
       "muted": {
@@ -196,15 +222,15 @@
         "$description": "Separators"
       },
       "primary": {
-        "$value": "var(--primitive-color-indigo-light)",
+        "$value": "var(--uzhi-lime-400)",
         "$description": "Primary actions"
       },
       "primary-hover": {
-        "$value": "var(--primitive-color-indigo-light-hover)",
+        "$value": "var(--uzhi-lime-300)",
         "$description": "Primary action hover"
       },
       "on-primary": {
-        "$value": "#22183B",
+        "$value": "var(--uzhi-indigo-950)",
         "$description": "Text on a primary action"
       },
       "danger": {
@@ -216,19 +242,19 @@
         "$description": "Quiet selected surface"
       },
       "sidebar": {
-        "$value": "#1E1B32",
+        "$value": "#0f1329",
         "$description": "Sidebar surface"
       },
       "selected": {
-        "$value": "#392F58",
+        "$value": "linear-gradient(90deg, rgb(79 70 229 / 12%), rgb(163 230 53 / 14%))",
         "$description": "Active navigation surface"
       },
       "on-selected": {
-        "$value": "#F0EBFC",
+        "$value": "var(--uzhi-indigo-50)",
         "$description": "Active navigation text"
       },
       "control-border": {
-        "$value": "#786D98",
+        "$value": "#717da8",
         "$description": "Visible input boundary"
       },
       "success": {
@@ -240,15 +266,15 @@
         "$description": "Needs review or medium risk"
       },
       "info": {
-        "$value": "#BECCF5",
+        "$value": "#a5b4fc",
         "$description": "Informational chart marks"
       },
       "overlay": {
-        "$value": "rgb(14 11 30 / 72%)",
+        "$value": "rgb(11 14 30 / 74%)",
         "$description": "Dialog scrim"
       },
       "feature-gradient": {
-        "$value": "linear-gradient(118deg, #32235F, #594580)",
+        "$value": "radial-gradient(circle at 88% 18%, rgb(163 230 53 / 28%) 0%, transparent 42%), radial-gradient(circle at 12% 110%, rgb(132 204 22 / 16%) 0%, transparent 45%), linear-gradient(125deg, #16133d 0%, #27236b 52%, var(--uzhi-indigo-700) 100%)",
         "$description": "Featured results"
       },
       "on-gradient": {
@@ -258,6 +284,14 @@
       "gradient-line": {
         "$value": "rgb(255 255 255 / 40%)",
         "$description": "Featured surface separators"
+      },
+      "sidebar-border": {
+        "$value": "var(--color-border)",
+        "$description": "Sidebar edge"
+      },
+      "card-hover-border": {
+        "$value": "rgb(132 204 22 / 55%)",
+        "$description": "Interactive card edge on hover"
       }
     },
     "font-family": {
@@ -285,6 +319,10 @@
     "opacity-disabled": {
       "$value": "var(--primitive-opacity-disabled)",
       "$description": "Disabled state"
+    },
+    "focus-halo": {
+      "$value": "0 0 0 3px rgb(132 204 22 / 25%)",
+      "$description": "Focused field halo"
     }
   },
   "component": {
@@ -374,7 +412,7 @@
         "$description": "Brand story supporting copy"
       },
       "accent": {
-        "$value": "var(--color-on-gradient)",
+        "$value": "var(--uzhi-lime-300)",
         "$description": "Continuity path accent"
       },
       "border": {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Download, FileText } from 'lucide-react';
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { api } from '../api/client';
 import { createDashboardReport, downloadDashboardReport } from './dashboard';
 import type { DashboardReportFormat } from './dashboard';
@@ -43,7 +43,7 @@ export function DashboardReportExport({ available, query = '', onNotify }: {
     <section className="panel dashboard-report" aria-labelledby="dashboard-report-title" aria-busy={exporting !== null}>
       <div>
         <h2 id="dashboard-report-title" className="dashboard-report-title">
-          <FileText size={17} aria-hidden="true" /> Dashboard hisoboti
+          <UzHiIcon name="reports" size={17} /> Dashboard hisoboti
         </h2>
         <p id="dashboard-report-description" className="muted">
           {available
@@ -59,7 +59,7 @@ export function DashboardReportExport({ available, query = '', onNotify }: {
           aria-describedby="dashboard-report-description"
           onClick={() => download('markdown')}
         >
-          <Download size={14} aria-hidden="true" />
+          <UzHiIcon name="download" size={14} />
           {exporting === 'markdown' ? 'Tayyorlanmoqda...' : 'Markdown (.md)'}
         </button>
         <button
@@ -69,7 +69,7 @@ export function DashboardReportExport({ available, query = '', onNotify }: {
           aria-describedby="dashboard-report-description"
           onClick={() => download('json')}
         >
-          <Download size={14} aria-hidden="true" />
+          <UzHiIcon name="download" size={14} />
           {exporting === 'json' ? 'Tayyorlanmoqda...' : 'JSON (.json)'}
         </button>
       </div>

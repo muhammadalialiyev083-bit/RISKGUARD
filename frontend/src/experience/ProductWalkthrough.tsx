@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, RotateCcw, X } from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { useMotion } from "./MotionEffects";
 
 export function ProductWalkthrough() {
   const [open, setOpen] = useState(false);
   return <>
-    <button className="btn walkthrough-trigger" onClick={() => setOpen(true)}><Play size={15} /> UzHi qanday ishlaydi?</button>
+    <button className="btn walkthrough-trigger" onClick={() => setOpen(true)}><UzHiIcon name="play" size={15} /> UzHi qanday ishlaydi?</button>
     {open && <WalkthroughDialog onClose={() => setOpen(false)} />}
   </>;
 }
@@ -50,13 +50,13 @@ function WalkthroughDialog({ onClose }: { onClose: () => void }) {
       if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) onClose();
     } }}>
     <div className="walkthrough-heading"><div><p className="eyebrow">UZLUKSIZ HIMOYA</p><h2 id="walkthrough-title">Jarayondan tiklanish rejasigacha</h2></div>
-      <button className="btn btn-icon" aria-label="Ko‘rinishni yopish" onClick={onClose}><X size={20} /></button>
+      <button className="btn btn-icon" aria-label="Ko‘rinishni yopish" onClick={onClose}><UzHiIcon name="close" size={20} /></button>
     </div>
     <iframe ref={player} src={source.current} title="UzHi: jarayon, BIA va riskdan tiklanish rejasigacha" tabIndex={-1} onLoad={() => command(playback.restart > 0)} />
     <div className="walkthrough-controls">
       <p>Jarayonni aniqlang, ta’sir va riskni baholang, tiklanish rejasini tayyorlang.</p>
-      <button className="btn btn-small" aria-label={playing ? "Ko‘rinishni to‘xtatish" : "Ko‘rinishni ijro etish"} onClick={() => playing ? setPlayback(state => ({ ...state, playing: false, manual: false })) : play()}>{playing ? <Pause size={14} /> : <Play size={14} />}{playing ? "To‘xtatish" : "Ijro etish"}</button>
-      <button className="btn btn-small" aria-label="Ko‘rinishni boshidan ko‘rish" onClick={() => play(true)}><RotateCcw size={14} /> Qayta</button>
+      <button className="btn btn-small" aria-label={playing ? "Ko‘rinishni to‘xtatish" : "Ko‘rinishni ijro etish"} onClick={() => playing ? setPlayback(state => ({ ...state, playing: false, manual: false })) : play()}>{playing ? <UzHiIcon name="pause" size={14} /> : <UzHiIcon name="play" size={14} />}{playing ? "To‘xtatish" : "Ijro etish"}</button>
+      <button className="btn btn-small" aria-label="Ko‘rinishni boshidan ko‘rish" onClick={() => play(true)}><UzHiIcon name="restart" size={14} /> Qayta</button>
     </div>
     {!enabled && !playing && <p className="walkthrough-motion-note">Avtomatik ijro o‘chiq. Animatsiyani “Ijro etish” orqali yoqishingiz mumkin.</p>}
   </dialog>;

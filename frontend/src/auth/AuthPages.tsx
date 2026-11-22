@@ -1,13 +1,6 @@
 import { PublicScenario } from "./PublicScenario";
 import { useEffect, useState, type FormEvent } from "react";
-import {
-  ArrowRight,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-  CheckCircle2,
-  KeyRound,
-} from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { api, clearSessionRequests } from "../api/client";
 import { Brand } from "../components/Brand";
 import { ProductWalkthrough } from "../experience/ProductWalkthrough";
@@ -39,7 +32,7 @@ function Password({
           aria-label={visible ? "Parolni yashirish" : "Parolni ko‘rsatish"}
           onClick={() => setVisible(!visible)}
         >
-          {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+          {visible ? <UzHiIcon name="eyeOff" size={18} /> : <UzHiIcon name="eye" size={18} />}
         </button>
       </span>
     </label>
@@ -257,13 +250,13 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
                     : mode === "forgot"
                       ? "Tiklash havolasini yuborish"
                       : "Parolni saqlash"}
-                <ArrowRight size={17} />
+                <UzHiIcon name="arrowRight" size={17} />
               </button>
             </form>
           )}
           {sent || done ? (
             <>
-              <CheckCircle2 size={34} className="success-icon" />
+              <UzHiIcon name="checkCircle" size={34} className="success-icon" />
               <button className="btn btn-wide" onClick={() => change("login")}>
                 Kirish sahifasiga qaytish
               </button>
@@ -296,7 +289,7 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
               className="text-button back-link"
               onClick={() => change("login")}
             >
-              <ArrowLeft size={16} /> Kirish sahifasiga qaytish
+              <UzHiIcon name="arrowLeft" size={16} /> Kirish sahifasiga qaytish
             </button>
           )}
           {mode === "forgot" && config && !config.password_reset_enabled && (
@@ -307,7 +300,7 @@ export function AuthPages({ onLogin }: { onLogin: (user: any) => void }) {
           )}
           <div className="auth-walkthrough"><ProductWalkthrough /></div>
           <div className="auth-security">
-            <KeyRound size={14} /> Xavfsiz sessiya orqali kirish
+            <UzHiIcon name="key" size={14} /> Xavfsiz sessiya orqali kirish
           </div>
         </div>
       </section>

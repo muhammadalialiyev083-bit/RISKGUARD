@@ -1,0 +1,162 @@
+.bubble-icon {
+  --bubble-size: 32px;
+  --bubble-radius: 12px;
+  --bubble-fill: linear-gradient(145deg, var(--uzhi-indigo-50), var(--uzhi-indigo-100));
+  --bubble-edge: rgb(79 70 229 / 22%);
+  --bubble-highlight: rgb(255 255 255 / 75%);
+  --bubble-shadow: rgb(30 27 75 / 13%);
+  --icon-primary: var(--uzhi-indigo-800);
+  --icon-spark: var(--uzhi-lime-500);
+  position: relative;
+  display: inline-grid;
+  width: var(--bubble-size);
+  height: var(--bubble-size);
+  flex: 0 0 auto;
+  place-items: stretch;
+  vertical-align: middle;
+}
+
+.bubble-icon-xs { --bubble-size: 28px; --bubble-radius: 10px; }
+.bubble-icon-md { --bubble-size: 40px; --bubble-radius: 14px; }
+.bubble-icon-lg { --bubble-size: 48px; --bubble-radius: 18px; }
+
+:root:not([data-theme="light"]) .bubble-icon-indigo {
+  --bubble-fill: linear-gradient(145deg, #242d5a, #192143);
+  --bubble-edge: rgb(165 180 252 / 25%);
+  --bubble-highlight: rgb(255 255 255 / 15%);
+  --bubble-shadow: rgb(0 0 0 / 28%);
+  --icon-primary: var(--uzhi-indigo-100);
+}
+
+.bubble-icon-active {
+  --bubble-fill: linear-gradient(135deg, var(--uzhi-indigo-800) 0%, #4338ca 65%, var(--uzhi-lime-600) 100%);
+  --bubble-edge: rgb(190 242 100 / 50%);
+  --bubble-highlight: rgb(255 255 255 / 28%);
+  --icon-primary: white;
+  --icon-spark: var(--uzhi-lime-300);
+}
+
+.bubble-icon-lime {
+  --bubble-fill: linear-gradient(145deg, #f7fee7, var(--uzhi-lime-100));
+  --bubble-edge: rgb(101 163 13 / 36%);
+  --icon-primary: var(--uzhi-indigo-900);
+  --icon-spark: var(--uzhi-lime-600);
+}
+
+:root:not([data-theme="light"]) .bubble-icon-lime {
+  --bubble-fill: linear-gradient(145deg, #293925, #212d28);
+  --bubble-edge: rgb(163 230 53 / 32%);
+  --bubble-highlight: rgb(255 255 255 / 16%);
+  --bubble-shadow: rgb(0 0 0 / 28%);
+  --icon-primary: var(--uzhi-lime-100);
+  --icon-spark: var(--uzhi-lime-400);
+}
+
+.bubble-icon-danger {
+  --bubble-fill: linear-gradient(145deg, #fff3f1, #ffe4e9);
+  --bubble-edge: rgb(159 50 74 / 23%);
+  --icon-primary: #77293f;
+  --icon-accent: rgb(219 62 102 / 18%);
+  --icon-spark: #c53858;
+}
+
+:root:not([data-theme="light"]) .bubble-icon-danger {
+  --bubble-fill: linear-gradient(145deg, #512635, #3b1c26);
+  --bubble-edge: rgb(255 163 172 / 31%);
+  --bubble-highlight: rgb(255 255 255 / 16%);
+  --bubble-shadow: rgb(0 0 0 / 28%);
+  --icon-primary: #ffd9de;
+  --icon-spark: #ff9eae;
+}
+
+.bubble-face {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--bubble-edge);
+  border-radius: var(--bubble-radius);
+  background:
+    radial-gradient(ellipse at 30% 0%, var(--bubble-highlight), transparent 62%),
+    var(--bubble-fill);
+  box-shadow: inset 0 1px 0 var(--bubble-highlight), 0 2px 5px var(--bubble-shadow);
+  transform: translate(var(--bubble-x, 0px), var(--bubble-y, 0px)) scale(var(--bubble-press, 1));
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.bubble-face > svg {
+  transform: translate(calc(var(--bubble-x, 0px) / 2), calc(var(--bubble-y, 0px) / 2));
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:is(button, a, summary):active .bubble-face {
+  --bubble-press: 0.93;
+  transition-duration: 90ms;
+}
+
+.bubble-icon-float .bubble-face {
+  animation: uzhi-bubble-float 4.5s ease-in-out infinite;
+}
+
+@keyframes uzhi-bubble-float {
+  50% { translate: 0 -3px; }
+}
+
+.bubble-feedback {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bubble-feedback::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, var(--uzhi-lime-400));
+  mask-image: radial-gradient(circle, transparent 54%, #000 58% 64%, transparent 69%);
+  animation: uzhi-bubble-ripple 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bubble-feedback > i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  background: var(--uzhi-lime-400);
+  animation: uzhi-bubble-spark 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bubble-feedback > i:nth-child(1) { --spark-x: -16px; --spark-y: -18px; }
+.bubble-feedback > i:nth-child(2) { --spark-x: 19px; --spark-y: -14px; }
+.bubble-feedback > i:nth-child(3) { --spark-x: 16px; --spark-y: 18px; }
+.bubble-feedback > i:nth-child(4) { --spark-x: -19px; --spark-y: 13px; }
+
+@keyframes uzhi-bubble-ripple {
+  from { opacity: 0.88; transform: scale(0.7); }
+  to { opacity: 0; transform: scale(1.68); }
+}
+
+@keyframes uzhi-bubble-spark {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(0.65); }
+  to {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) scale(0.4);
+  }
+}
+
+[data-ui-motion="off"] :is(.bubble-face, .bubble-face > svg) {
+  transform: none;
+  transition: none;
+  animation: none;
+}
+
+[data-ui-motion="off"] .bubble-feedback {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble-face,
+  .bubble-face > svg { transform: none; }
+  .bubble-feedback { display: none; }
+}

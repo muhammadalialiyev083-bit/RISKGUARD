@@ -1,20 +1,6 @@
 import { api } from "../api/client";
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowDown,
-  ArrowUp,
-  Download,
-  MapPin,
-  Globe2,
-  Pause,
-  Pencil,
-  Play,
-  Plus,
-  RotateCcw,
-  Trash2,
-  Upload,
-  X,
-} from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import MapCanvas from "./MapCanvas";
 import { SectionGuide } from "../experience/SectionGuide";
 import {
@@ -269,21 +255,21 @@ export default function ContinuityMapPage({
             disabled={!canSave}
             onClick={() => nameInput.current?.focus()}
           >
-            <Plus size={16} /> Manzil qo‘shish
+            <UzHiIcon name="plus" size={16} /> Manzil qo‘shish
           </button>
           <button
             className="btn"
             disabled={!canSave}
             onClick={() => uploadInput.current?.click()}
           >
-            <Upload size={16} /> Rejani yuklash
+            <UzHiIcon name="upload" size={16} /> Rejani yuklash
           </button>
           <button
             className="btn"
             disabled={mode !== "plan" || !plan.stops.length}
             onClick={download}
           >
-            <Download size={16} /> GeoJSON nusxa
+            <UzHiIcon name="download" size={16} /> GeoJSON nusxa
           </button>
           <input
             ref={uploadInput}
@@ -345,7 +331,7 @@ export default function ContinuityMapPage({
             aria-label="Xarita xabarini yopish"
             onClick={() => setNotice("")}
           >
-            <X size={15} />
+            <UzHiIcon name="close" size={15} />
           </button>
         </div>
       )}
@@ -418,7 +404,7 @@ export default function ContinuityMapPage({
                   seek(duration - 1);
                 }}
               >
-                <Globe2 size={15} /> Umumiy ko‘rinish
+                <UzHiIcon name="globe" size={15} /> Umumiy ko‘rinish
               </button>
             </div>
             {mode === "demo" && (
@@ -455,14 +441,14 @@ export default function ContinuityMapPage({
               )}
               {!stops.length && !picking && (
                 <div className="map-empty">
-                  <MapPin size={26} />
+                  <UzHiIcon name="pin" size={26} />
                   <h2>Birinchi manzilni belgilang</h2>
                   <p>Shaharni tanlang yoki aniq koordinatalarni kiriting.</p>
                   <button
                     className="btn btn-primary"
                     onClick={() => nameInput.current?.focus()}
                   >
-                    <Plus size={16} /> Manzil qo‘shish
+                    <UzHiIcon name="plus" size={16} /> Manzil qo‘shish
                   </button>
                 </div>
               )}
@@ -487,7 +473,7 @@ export default function ContinuityMapPage({
                       : "Animatsiyani boshlash"
                   }
                 >
-                  {playing ? <Pause size={17} /> : <Play size={17} />}{" "}
+                  {playing ? <UzHiIcon name="pause" size={17} /> : <UzHiIcon name="play" size={17} />}{" "}
                   {playing ? "To‘xtatish" : "Ijro etish"}
                 </button>
                 <button
@@ -500,7 +486,7 @@ export default function ContinuityMapPage({
                     setPlaying(true);
                   }}
                 >
-                  <RotateCcw size={17} />
+                  <UzHiIcon name="restart" size={17} />
                 </button>
               </div>
               <label className="map-timeline">
@@ -621,7 +607,7 @@ export default function ContinuityMapPage({
                           disabled={!canSave || index === 0}
                           onClick={() => move(index, -1)}
                         >
-                          <ArrowUp size={15} />
+                          <UzHiIcon name="arrowUp" size={15} />
                         </button>
                         <button
                           className="btn btn-icon"
@@ -629,14 +615,14 @@ export default function ContinuityMapPage({
                           disabled={!canSave || index === stops.length - 1}
                           onClick={() => move(index, 1)}
                         >
-                          <ArrowDown size={15} />
+                          <UzHiIcon name="arrowDown" size={15} />
                         </button>
                         <button
                           className="btn btn-icon"
                           aria-label={`${stop.name}: tahrirlash`}
                           onClick={() => edit(stop)}
                         >
-                          <Pencil size={15} />
+                          <UzHiIcon name="pencil" size={15} />
                         </button>
                         <button
                           className="btn btn-icon"
@@ -649,7 +635,7 @@ export default function ContinuityMapPage({
                             if (editing === stop.id) resetDraft();
                           }}
                         >
-                          <Trash2 size={15} />
+                          <UzHiIcon name="trash" size={15} />
                         </button>
                       </div>
                     )}
@@ -862,7 +848,7 @@ export default function ContinuityMapPage({
                 className="btn btn-primary map-save"
                 type="submit"
               >
-                <Plus size={16} />{" "}
+                <UzHiIcon name="plus" size={16} />{" "}
                 {editing ? "O‘zgarishni saqlash" : "Rejaga qo‘shish"}
               </button>
               {editing && (

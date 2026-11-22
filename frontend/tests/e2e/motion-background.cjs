@@ -70,7 +70,7 @@ const artifacts =
     };
     page.on("request", trackDashboardMedia);
     await page.goto(base + "/dashboard", { waitUntil: "networkidle" });
-    await page.locator(".dashboard-welcome").waitFor();
+    await page.getByRole("heading", { name: "Boshqaruv markazi", exact: true }).waitFor();
     assert.equal(await page.locator(".motion-background, .motion-controls, video").count(), 0);
     assert.deepEqual(dashboardMedia, [], "dashboard should never request decorative background media");
     page.off("request", trackDashboardMedia);

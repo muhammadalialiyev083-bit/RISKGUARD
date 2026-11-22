@@ -1,18 +1,6 @@
 import { SimulationImpact } from "./ContinuityDetails";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import {
-  AlertTriangle,
-  ArrowRight,
-  CheckCircle2,
-  Circle,
-  Clock3,
-  Network,
-  Plus,
-  RefreshCw,
-  Search,
-  Truck,
-  X,
-} from "lucide-react";
+import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { api } from "../api/client";
 import type { User } from "../types";
 import { SectionGuide } from "../experience/SectionGuide";
@@ -196,7 +184,7 @@ function Dialog({
             aria-label="Oynani yopish"
             onClick={onClose}
           >
-            <X size={18} />
+            <UzHiIcon name="close" size={18} />
           </button>
         </div>
         {children}
@@ -670,7 +658,7 @@ export function OperationsPage({
             disabled={loading}
             aria-label="Ma’lumotlarni yangilash"
           >
-            <RefreshCw size={16} className={loading ? "spin" : ""} />
+            <UzHiIcon name="refresh" size={16} className={loading ? "spin" : ""} />
           </button>
           {writable && (
             <button
@@ -678,7 +666,7 @@ export function OperationsPage({
               disabled={loading || !!error}
               onClick={() => openEdit()}
             >
-              <Plus size={16} />
+              <UzHiIcon name="plus" size={16} />
               {module === "providers"
                 ? "Provayder qo‘shish"
                 : module === "incidents"
@@ -705,20 +693,20 @@ export function OperationsPage({
       <div id="module-workspace" />
       {success && (
         <div className="alert ops-success" role="status">
-          <CheckCircle2 size={18} />
+          <UzHiIcon name="checkCircle" size={18} />
           <span>{success}</span>
           <button
             className="btn btn-icon"
             aria-label="Xabarni yopish"
             onClick={() => setSuccess("")}
           >
-            <X size={15} />
+            <UzHiIcon name="close" size={15} />
           </button>
         </div>
       )}
       {error && (
         <div className="alert" role="alert">
-          <AlertTriangle size={18} />
+          <UzHiIcon name="risks" size={18} />
           <span>{error}</span>
           <button className="btn" onClick={() => void load()}>
             Qayta urinish
@@ -727,7 +715,7 @@ export function OperationsPage({
       )}
       {loading ? (
         <div className="panel ops-loading" role="status">
-          <RefreshCw className="spin" size={20} />
+          <UzHiIcon name="refresh" className="spin" size={20} />
           Ma’lumotlar yuklanmoqda…
         </div>
       ) : (
@@ -898,7 +886,7 @@ export function OperationsPage({
             <div className="panel">
               <div className="ops-toolbar">
                 <label className="ops-search">
-                  <Search size={17} />
+                  <UzHiIcon name="search" size={17} />
                   <span className="sr-only">Reestrdan qidirish</span>
                   <input
                     value={query}
@@ -962,7 +950,7 @@ export function OperationsPage({
                               aria-expanded={selected === row.id}
                             >
                               {names(row)}
-                              <ArrowRight size={14} />
+                              <UzHiIcon name="arrowRight" size={14} />
                             </button>
                             {module === "providers" && (
                               <small className="ops-subline">
@@ -1011,7 +999,7 @@ export function OperationsPage({
                 </div>
               ) : (
                 <div className="ops-empty">
-                  <Network size={30} />
+                  <UzHiIcon name="assets" size={30} />
                   <h2>
                     {rows.length
                       ? "Qidiruvga mos yozuv topilmadi"
@@ -1027,7 +1015,7 @@ export function OperationsPage({
                       className="btn btn-primary"
                       onClick={() => openEdit()}
                     >
-                      <Plus size={16} />
+                      <UzHiIcon name="plus" size={16} />
                       Birinchi yozuvni yaratish
                     </button>
                   )}
@@ -1048,7 +1036,7 @@ export function OperationsPage({
                     onClick={() => setSelected(null)}
                     aria-label="Tafsilotlarni yopish"
                   >
-                    <X size={17} />
+                    <UzHiIcon name="close" size={17} />
                   </button>
                 </div>
                 <p className="ops-description">
@@ -1101,7 +1089,7 @@ export function OperationsPage({
                           setDialog("disruption");
                         }}
                       >
-                        <Network size={16} />
+                        <UzHiIcon name="assets" size={16} />
                         Uzilish ta’sirini sinash
                       </button>
                     )}
@@ -1165,7 +1153,7 @@ export function OperationsPage({
                               setDialog("escalation");
                             }}
                           >
-                            <AlertTriangle size={15} />
+                            <UzHiIcon name="risks" size={15} />
                             Eskalatsiya
                           </button>
                         )}
@@ -1187,7 +1175,7 @@ export function OperationsPage({
                               setDialog("incidentTask");
                             }}
                           >
-                            <Plus size={15} />
+                            <UzHiIcon name="plus" size={15} />
                             Chora qo‘shish
                           </button>
                         )}
@@ -1197,9 +1185,9 @@ export function OperationsPage({
                         {selectedTasks.map((task) => (
                           <li key={task.id}>
                             {task.status === "DONE" ? (
-                              <CheckCircle2 size={16} />
+                              <UzHiIcon name="checkCircle" size={16} />
                             ) : (
-                              <Circle size={16} />
+                              <UzHiIcon name="circle" size={16} />
                             )}
                             <span>{task.title}</span>
                             <Badge value={task.status} />
@@ -1235,7 +1223,7 @@ export function OperationsPage({
                       <ol className="ops-timeline">
                         {timeline.map((event) => (
                           <li key={event.id}>
-                            <Clock3 size={15} />
+                            <UzHiIcon name="clock" size={15} />
                             <div>
                               <p>
                                 {event.message ||
@@ -1350,7 +1338,7 @@ export function OperationsPage({
                     aria-label="Natijani yopish"
                     onClick={() => setRun(null)}
                   >
-                    <X size={16} />
+                    <UzHiIcon name="close" size={16} />
                   </button>
                 </div>
                 <RunResults run={run} onNavigate={go} />
@@ -1375,7 +1363,7 @@ export function OperationsPage({
                       setDialog("improvement");
                     }}
                   >
-                    <Plus size={16} />
+                    <UzHiIcon name="plus" size={16} />
                     Natijadan vazifa yaratish
                   </button>
                 )}

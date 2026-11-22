@@ -3,7 +3,7 @@
 Existing application identity, recorded from the source rather than a new visual direction.
 
 - Logo: `frontend/public/brand/uzhi-logo.webp` (the approved mark).
-- Typeface: self-hosted Montserrat Medium (500), `frontend/public/fonts/montserrat-medium.woff2`.
+- Typeface: self-hosted Montserrat Medium (500). The dashboard’s primary action and active navigation item use Montserrat Semibold (600).
 - Language: Uzbek. Product name: UzHi. Repository: RISKGUARD.
 - Main palette and semantic light/dark roles: `frontend/design-tokens.json`.
 - Product purpose: identify processes and resources, assess business impact and risk, and prepare continuity/recovery plans.

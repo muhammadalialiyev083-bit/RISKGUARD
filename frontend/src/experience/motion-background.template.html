@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>UzHi — motion background preview</title>
+  <style>
+    __TOKENS__
+    @font-face {
+      font-family: Montserrat;
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+      src: url("data:font/woff2;base64,__FONT__") format("woff2");
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--color-background);
+      color: var(--color-foreground);
+      font: 500 16px/1.6 Montserrat, sans-serif;
+      font-synthesis: none;
+    }
+    .ambient,
+    .veil {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+    .ambient {
+      background: var(--color-feature-gradient);
+      background-size: 180% 180%;
+      animation: drift 24s ease-in-out infinite;
+    }
+    .veil { background: linear-gradient(110deg, rgb(11 14 30 / 72%), rgb(11 14 30 / 53%)); }
+    main { max-width: 1080px; margin: auto; padding: 60px 28px; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 30px; }
+    img { width: 240px; height: auto; }
+    button, a {
+      font: inherit;
+      border: 1px solid var(--color-control-border);
+      border-radius: 8px;
+      color: var(--color-foreground);
+      background: var(--color-raised);
+      padding: 10px 16px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    :is(button, a):focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
+    article { padding: 48px 0; max-width: 740px; }
+    h1 { font-weight: 500; font-size: 44px; line-height: 1.17; letter-spacing: -1.2px; }
+    p, small { color: var(--color-muted); }
+    .sample {
+      padding: 28px;
+      border: 1px solid var(--color-control-border);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--color-surface) 86%, transparent);
+    }
+    .sample h2 { font-size: 22px; font-weight: 500; margin-top: 0; }
+    button:disabled { opacity: .7; cursor: default; }
+    @keyframes drift {
+      0%, 100% { background-position: 0% 0%, 100% 0%; }
+      50% { background-position: 30% 20%, 70% 35%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ambient { animation: none; }
+    }
+    @media (max-width: 600px) {
+      main { padding: 30px 20px; }
+      header { flex-wrap: wrap; }
+      h1 { font-size: 32px; }
+      img { width: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+  <div class="veil" aria-hidden="true"></div>
+  <main>
+    <header>
+      <img src="data:image/webp;base64,__LOGO__" alt="UzHi — Uzluksiz Himoya">
+      <button id="toggle">Fonni to‘xtatish</button>
+    </header>
+    <article>
+      <h1>Uzluksizlikni bir ko‘rinishda boshqaring.</h1>
+      <p>Xizmatlar, bog‘liqliklar, risklar va tiklanish birgalikda ko‘rinadi. Bu sahifa fon harakati va matn o‘qilishini tekshirish namunasi.</p>
+    </article>
+    <section class="sample">
+      <h2>Avval xizmatni belgilang</h2>
+      <p>So‘ng jarayon va mas’ullarni ulang, BIA chegaralarini aniqlang va tiklanish rejasini sinang.</p>
+      <a href="https://uzhi.netlify.app/dashboard">Boshqaruv panelini ochish</a>
+    </section>
+    <p><small>Motion-background CSS namunasi. Asosiy dashboard foydalanuvchi yuborgan video va shu qatlamning statik fallbackidan foydalanadi.</small></p>
+  </main>
+  <script>
+    const background = document.querySelector(".ambient");
+    const button = document.querySelector("#toggle");
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const value = new URLSearchParams(location.search).get("t");
+    const time = Number(value);
+    const freeze = value !== null && Number.isFinite(time) && time >= 0 ? time : null;
+    let paused = false;
+    let visible = true;
+    if (freeze !== null) background.style.animationDelay = `${-freeze}s`;
+
+    function apply() {
+      const fixed = reducedMotion.matches || freeze !== null;
+      const stop = paused || fixed || document.hidden || !visible;
+      background.style.animationPlayState = stop ? "paused" : "running";
+      button.disabled = fixed;
+      button.textContent = fixed ? "Statik ko‘rinish" : paused ? "Fonni ijro etish" : "Fonni to‘xtatish";
+    }
+
+    button.onclick = () => {
+      paused = !paused;
+      apply();
+    };
+    document.addEventListener("visibilitychange", apply);
+    reducedMotion.addEventListener("change", apply);
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      apply();
+    }).observe(document.querySelector("main"));
+
+    apply();
+    window.__ready = true;
+    window.__backgroundPeriod = 24;
+  </script>
+</body>
+</html>

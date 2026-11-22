@@ -195,13 +195,14 @@
   transition: border-color var(--duration-fast);
 }
 .domain-page .stat-card:hover {
-  border-color: var(--accent);
-  background: var(--panel-2);
+  border-color: var(--color-card-hover-border);
 }
-.domain-page .stat-grid > .stat-card:first-child,
-.domain-page .stat-grid > .kpi-focus-card:first-child > .stat-card {
+.domain-page .stat-grid > .stat-card:first-child {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   background: var(--accent-soft);
+}
+.domain-page .executive-kpi.metric-high_risks_count:not(:hover) {
+  border-top-color: color-mix(in srgb, var(--danger) 56%, var(--border));
 }
 .domain-page .stat-card > span {
   display: flex;

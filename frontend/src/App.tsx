@@ -1,35 +1,6 @@
 import { lazy, Suspense, useEffect, useState, useRef } from "react";
-import {
-  LayoutDashboard,
-  MapPinned,
-  Building2,
-  Layers,
-  Box,
-  Clock,
-  TriangleAlert,
-  Calculator,
-  Route,
-  FileText,
-  FlaskConical,
-  Siren,
-  Handshake,
-  ListChecks,
-  ClipboardList,
-  Settings,
-  Menu,
-  PanelLeftClose,
-  Sun,
-  Moon,
-  LogOut,
-  Search,
-  Bell,
-  Plus,
-  ChevronRight,
-  ArrowUpRight,
-  RefreshCw,
-  CircleHelp,
-  X,
-} from "lucide-react";
+import { UzHiIcon, type UzHiIconName } from "./components/icons/UzHiIcons";
+import { BubbleIcon } from "./components/ui/BubbleIcon";
 import { api, clearSessionRequests } from "./api/client";
 import { Brand } from "./components/Brand";
 import { AuthPages, AccountPage } from "./auth/AuthPages";
@@ -41,48 +12,48 @@ import { MotionNav, MotionToggle } from "./experience/MotionEffects";
 
 const ContinuityMapPage = lazy(() => import("./maps/ContinuityMapPage"));
 
-const groups = [
+const groups: { name: string; items: [key: string, label: string, icon: UzHiIconName][] }[] = [
   {
     name: "Boshqaruv markazi",
     items: [
-      ["dashboard", "Boshqaruv paneli", LayoutDashboard],
-      ["map", "Hududiy xarita", MapPinned],
-      ["reports", "Hisobotlar", FileText],
+      ["dashboard", "Boshqaruv paneli", "dashboard"],
+      ["map", "Hududiy xarita", "map"],
+      ["reports", "Hisobotlar", "reports"],
     ],
   },
   {
     name: "Tashkilot va resurslar",
     items: [
-      ["organizations", "Tashkilot", Building2],
-      ["processes", "Jarayonlar", Layers],
-      ["assets", "Aktivlar va bog‘liqliklar", Box],
-      ["providers", "Provayderlar", Handshake],
+      ["organizations", "Tashkilot", "organization"],
+      ["processes", "Jarayonlar", "processes"],
+      ["assets", "Aktivlar va bog‘liqliklar", "assets"],
+      ["providers", "Provayderlar", "providers"],
     ],
   },
   {
     name: "Tahlil va tayyorgarlik",
     items: [
-      ["bia", "Biznes ta’siri · BIA", Clock],
-      ["risks", "Risklar reestri", TriangleAlert],
-      ["engine", "Hisoblash yadrosi", Calculator],
-      ["strategies", "Tiklash strategiyalari", Route],
-      ["simulation", "Ssenariy sinovlari", FlaskConical],
+      ["bia", "Biznes ta’siri · BIA", "bia"],
+      ["risks", "Risklar reestri", "risks"],
+      ["engine", "Hisoblash yadrosi", "engine"],
+      ["strategies", "Tiklash strategiyalari", "recovery"],
+      ["simulation", "Ssenariy sinovlari", "scenarios"],
     ],
   },
   {
     name: "Hodisalar va tiklanish",
     items: [
-      ["incidents", "Hodisalar markazi", Siren],
-      ["plans", "BCP / DRP rejalari", ClipboardList],
-      ["tasks", "Yaxshilash vazifalari", ListChecks],
+      ["incidents", "Hodisalar markazi", "incidents"],
+      ["plans", "BCP / DRP rejalari", "plans"],
+      ["tasks", "Yaxshilash vazifalari", "tasks"],
     ],
   },
   {
     name: "Nazorat va sozlamalar",
     items: [
-      ["audit", "Audit jurnali", ClipboardList],
-      ["iso22301", "ISO 22301 dalillari", FileText],
-      ["settings", "Profil va xavfsizlik", Settings],
+      ["audit", "Audit jurnali", "audit"],
+      ["iso22301", "ISO 22301 dalillari", "evidence"],
+      ["settings", "Profil va xavfsizlik", "settings"],
     ],
   },
 ];
@@ -378,23 +349,28 @@ export function App() {
             }}
             aria-label="Menyuni yig‘ish"
           >
-            <PanelLeftClose size={17} />
+            <UzHiIcon name="collapse" size={17} />
           </button>
         </div>
         <MotionNav activeKey={`${active}-${collapsed}-${mobile}`} label="Asosiy navigatsiya" className="motion-sidebar-nav">
           {groups.map((g) => (
             <div className="nav-group" key={g.name}>
               <div className="nav-group-label">{g.name}</div>
-              {g.items.map(([key, text, Icon]: any) => (
+              {g.items.map(([key, text, icon]) => (
                 <button
                   key={key}
                   title={text}
+                  aria-label={text}
                   aria-current={active === key ? "page" : undefined}
                   className={`nav-item ${active === key ? "active" : ""}`}
                   onClick={() => navigate(key)}
                 >
-                  <Icon size={18} />
-                  <span>{text}</span>
+                  <BubbleIcon
+                    name={icon}
+                    size="sm"
+                    variant={active === key ? "active" : key === "risks" ? "danger" : "indigo"}
+                  />
+                  <span className="nav-item-label">{text}</span>
                 </button>
               ))}
             </div>
@@ -413,7 +389,7 @@ export function App() {
               <strong>{user.first_name || user.username}</strong>
               <small>{user.role_display || user.role}</small>
             </span>
-            <Settings size={16} />
+            <UzHiIcon name="settings" size={16} />
           </button>
         </div>
       </aside>
@@ -425,17 +401,17 @@ export function App() {
               aria-label="Menyuni ochish"
               onClick={() => setMobile(!mobile)}
             >
-              <Menu size={20} />
+              <UzHiIcon name="menu" size={20} />
             </button>
             <div className="mobile-brand"><Brand onHome={() => navigate("dashboard")} /></div>
             <div className="breadcrumb">
               <span>{group?.name}</span>
-              <ChevronRight size={14} />
+              <UzHiIcon name="chevronRight" size={14} />
               <strong>{label}</strong>
             </div>
             <div className="topbar-actions">
               <div className="global-search">
-                <Search size={17} />
+                <UzHiIcon name="search" size={17} />
                 <input
                   aria-label="Platforma bo‘ylab qidirish"
                   placeholder="Qidirish…"
@@ -456,7 +432,7 @@ export function App() {
                     e.currentTarget.blur();
                   }}
                 >
-                  <X size={16} />
+                  <UzHiIcon name="close" size={16} />
                 </button>
                 {search.length >= 2 && (
                   <div
@@ -487,7 +463,7 @@ export function App() {
                               {r.label} · #{r.id}
                             </small>
                           </span>
-                          <ArrowUpRight size={16} />
+                          <UzHiIcon name="arrowUpRight" size={16} />
                         </button>
                       ))
                     ) : (
@@ -502,7 +478,7 @@ export function App() {
                 aria-label="Temani almashtirish"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               >
-                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                <BubbleIcon name={theme === "dark" ? "sun" : "moon"} />
               </button>
               <div className="notification-wrap">
                 <button
@@ -511,7 +487,7 @@ export function App() {
                   aria-expanded={showNotices}
                   onClick={() => setShowNotices(!showNotices)}
                 >
-                  <Bell size={18} />
+                  <BubbleIcon name="bell" />
                   {notices.length > 0 && <i className="notification-dot" />}
                 </button>
                 {showNotices && (
@@ -528,7 +504,7 @@ export function App() {
                               {n.due_date || "Muddat belgilanmagan"}
                             </small>
                           </span>
-                          <ChevronRight size={16} />
+                          <UzHiIcon name="chevronRight" size={16} />
                         </button>
                       ))
                     ) : (
@@ -543,7 +519,7 @@ export function App() {
                 title="Ishni nimadan boshlayman?"
                 onClick={() => navigate("dashboard?guide=1")}
               >
-                <CircleHelp size={18} />
+                <BubbleIcon name="help" />
               </button>
               <button
                 className="btn btn-icon"
@@ -552,13 +528,13 @@ export function App() {
                 disabled={busy}
                 onClick={logout}
               >
-                <LogOut size={18} />
+                <BubbleIcon name="logout" />
               </button>
             </div>
           </header>
           <div className="context-bar">
             <span>
-              <Building2 size={15} />
+              <UzHiIcon name="organization" size={15} />
               {user.organization_detail?.name || "Tashkilot biriktirilmagan"}
             </span>
             <span className="context-role">
@@ -569,14 +545,14 @@ export function App() {
                 className="btn btn-small"
                 onClick={() => setVersion((v) => v + 1)}
               >
-                <RefreshCw size={14} /> Yangilash
+                <UzHiIcon name="refresh" size={14} /> Yangilash
               </button>
               {user.role !== "AUDITOR" && (
                 <button
                   className="btn btn-small incident-shortcut"
                   onClick={() => navigate("incidents")}
                 >
-                  <Plus size={14} /> Hodisa ochish
+                  <UzHiIcon name="plus" size={14} /> Hodisa ochish
                 </button>
               )}
             </div>
@@ -660,7 +636,7 @@ export function App() {
             aria-label="Xabarni yopish"
             onClick={() => setToast("")}
           >
-            <X size={16} />
+            <UzHiIcon name="close" size={16} />
           </button>
         </div>
       )}
