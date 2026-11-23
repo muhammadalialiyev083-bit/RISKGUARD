@@ -37,16 +37,8 @@ export function DashboardWelcome({
   const steps = startingSteps(workspace, summary, user);
   const next = steps.find((step) => !step.complete);
   const completed = steps.filter((step) => step.complete).length;
-  const organization =
-    workspace.organizations?.[0]?.name ||
-    user.organization_detail?.name ||
-    "UzHi";
   return (
     <section className="dashboard-overview" aria-labelledby="dashboard-hero-title">
-      <div className="dashboard-hero-meta">
-        <span>UZHI / BOSHQARUV MARKAZI</span>
-        <span className="dashboard-organization">{organization}</span>
-      </div>
       <div className="dashboard-editorial-stage">
         <div className="dashboard-hero-main">
           <p className="dashboard-kicker">Bugungi boshqaruv signali</p>
