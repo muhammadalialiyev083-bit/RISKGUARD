@@ -73,7 +73,8 @@ export function App() {
   const shellHeader = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<any>(null),
     [checking, setChecking] = useState(true),
-    [sessionError, setSessionError] = useState("");
+    [sessionError, setSessionError] = useState(""),
+    [startupMessage, setStartupMessage] = useState("Server bilan bog‘lanmoqda…");
   const [page, setPage] = useState(initialPage),
     [version, setVersion] = useState(0),
     [collapsed, setCollapsed] = useState(false),
@@ -152,7 +153,12 @@ export function App() {
   async function check() {
     setChecking(true);
     setSessionError("");
+    setStartupMessage("Server bilan bog‘lanmoqda…");
     try {
+      await api.waitUntilReady(() =>
+        setStartupMessage("Server ishga tushmoqda… Bu bir necha soniya olishi mumkin."),
+      );
+      setStartupMessage("Sessiya xavfsiz tekshirilmoqda…");
       setUser(await api.getMe());
       if (window.location.pathname.includes("google/result")) {
         const status = new URLSearchParams(window.location.search).get(
@@ -304,7 +310,7 @@ export function App() {
       <main className="session-check">
         <Brand />
         <span className="spinner" />
-        <p>Sessiya xavfsiz tekshirilmoqda…</p>
+        <p>{startupMessage}</p>
       </main>
     );
   if (!user)

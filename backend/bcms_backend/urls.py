@@ -13,6 +13,7 @@ from apps.simulation.views import ScenarioViewSet, ExerciseViewSet
 from apps.engine.views import PriorityAnalysisView, EvaluateRiskAlgorithmView, EvaluateStrategyView
 from apps.reports.views import OrganizationDashboardReportView
 from apps.reports.evidence import ISOEvidenceView
+from apps.core.health import health, readiness
 
 from apps.operations.views import ProviderViewSet, IncidentViewSet, ImprovementTaskViewSet, SimulationRunViewSet
 
@@ -47,6 +48,8 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='frontend-home'),
     path('admin/', admin.site.urls),
+    path('api/v1/health', health, name='health'),
+    path('api/v1/readiness', readiness, name='readiness'),
     path('api/v1/auth/', include('apps.authentication.security_urls')),
     # Autentifikatsiya (FR-01)
     path('api/v1/auth/csrf', CSRFTokenView.as_view(), name='auth-csrf'),

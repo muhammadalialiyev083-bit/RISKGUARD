@@ -292,10 +292,8 @@ const summary = {
       await page.locator(".executive-kpi strong").first().innerText(),
       "3",
     );
-    assert.equal(
-      await page.locator(".getting-started .is-complete").count(),
-      8,
-    );
+    assert.equal(await page.locator(".risk-matrix, .dependency-svg, .morph-chart").count(), 0,
+      "dashboard must stay limited to leadership KPIs and actions");
     await page.waitForFunction(() => document.querySelector(".sidebar-brand .uzhi-logo-svg")?.getBBox().width > 450);
     const sidebarLogo = page.locator(".sidebar-brand .uzhi-logo-svg");
     assert.deepEqual(
@@ -395,6 +393,8 @@ const summary = {
     await page.goto(base + "/map", { waitUntil: "networkidle" });
     await page.waitForURL(base + "/dashboard");
     assert.equal(await navigation.getByRole("button", { name: "Hududiy xarita", exact: true }).count(), 0);
+    assert.equal(await page.locator(".dependency-svg").count(), 0);
+    await page.goto(base + "/reports", { waitUntil: "networkidle" });
     await page.locator(".dependency-svg").waitFor();
 
     await page.goto(base + "/organizations?action=edit", { waitUntil: "networkidle" });
@@ -424,6 +424,7 @@ const summary = {
     await page.locator(".sidebar-brand .brand-approved").click();
     await page.locator(".executive-dashboard").waitFor();
     assert.equal(new URL(page.url()).pathname, "/dashboard");
+    await page.goto(base + "/reports", { waitUntil: "networkidle" });
     await page
       .getByRole("button", {
         name: "Ehtimollik 4, ta’sir 5, ball 20, 1 risk",

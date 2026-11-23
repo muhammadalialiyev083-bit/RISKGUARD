@@ -1,4 +1,4 @@
-# Future generated files; already tracked files are retained for preservation.
+# Generated and local-only files.
 node_modules/
 .venv/
 venv/

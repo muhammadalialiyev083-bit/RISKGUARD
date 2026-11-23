@@ -52,6 +52,9 @@ const summary = {
     const json = page.getByRole('button', { name: 'JSON (.json)', exact: true });
     const markdown = page.getByRole('button', { name: 'Markdown (.md)', exact: true });
     await page.goto(base + '/dashboard', { waitUntil: 'networkidle' });
+    assert.equal(await json.count(), 0, 'exports belong to Reports, not Dashboard');
+    assert.equal(await page.locator('.risk-matrix, .dependency-svg, .morph-chart').count(), 0);
+    await page.goto(base + '/reports', { waitUntil: 'networkidle' });
     await json.waitFor({ state: 'visible' });
     const before = requests;
     const [download] = await Promise.all([page.waitForEvent('download'), json.click()]);
@@ -78,7 +81,7 @@ const summary = {
     assert.match(text, /\| Jami jarayonlar \| 4321 \|/);
     assert.match(text, /Jarayon yaratilgan davr: 2026-11-01 — 2026-11-16/);
     assert.match(text, /Xizmat ID: 7/);
-    await page.screenshot({ path: path.join(artifacts, 'dashboard-desktop.png'), fullPage: true });
+    await page.screenshot({ path: path.join(artifacts, 'reports-desktop.png'), fullPage: true });
 
     failure = 503;
     await json.click();
@@ -96,7 +99,7 @@ const summary = {
       const box = await button.boundingBox();
       assert.ok(box.x >= bounds.x && box.x + box.width <= bounds.x + bounds.width);
     }
-    await page.screenshot({ path: path.join(artifacts, 'dashboard-mobile.png'), fullPage: true });
+    await page.screenshot({ path: path.join(artifacts, 'reports-mobile.png'), fullPage: true });
     assert.deepEqual(exceptions, []);
     console.log(JSON.stringify({ passed: true, downloads, checks: [
       'fresh JSON values', 'date/service filters', 'Markdown content', 'no file after a server error',

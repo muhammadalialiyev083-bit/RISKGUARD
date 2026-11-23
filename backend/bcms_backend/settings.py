@@ -5,21 +5,37 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-bcms-designer-secure-key-2026')
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-ALLOWED_HOSTS = ['*']
+def env_list(name, default=''):
+    return [value.strip() for value in os.environ.get(name, default).split(',') if value.strip()]
+
+
+# Production is the safe default. Local development and tests opt in explicitly.
+DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-uzhi-local-development-only' if DEBUG else '',
+)
+ALLOWED_HOSTS = env_list(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1' if DEBUG else '',
+)
 
 # Local Vite origins retained in the shared login-fix diff.
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://uzhi.netlify.app,https://safeguardity.netlify.app,https://adolat-99us.onrender.com').split(',')
-    if origin.strip()
-]
-if DEBUG:
-    CSRF_TRUSTED_ORIGINS += ['http://localhost:5173', 'http://127.0.0.1:5173']
+CSRF_TRUSTED_ORIGINS = env_list(
+    'CSRF_TRUSTED_ORIGINS',
+    '' if not DEBUG else 'http://localhost:5173,http://127.0.0.1:5173',
+)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0' if DEBUG else '31536000'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'same-origin'
+X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
 CSRF_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
@@ -80,10 +96,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'bcms_backend.wsgi.application'
 
 if not DEBUG:
+    required_environment = (
+        'SECRET_KEY', 'DATABASE_URL', 'ALLOWED_HOSTS',
+        'CSRF_TRUSTED_ORIGINS', 'CORS_ALLOWED_ORIGINS', 'FRONTEND_URL',
+    )
+    missing_environment = [name for name in required_environment if not os.environ.get(name, '').strip()]
+    if missing_environment:
+        raise ImproperlyConfigured(
+            'Production requires explicit environment values for: ' + ', '.join(missing_environment)
+        )
     if not os.environ.get('DATABASE_URL', '').startswith(('postgres://', 'postgresql://')):
         raise ImproperlyConfigured('Production requires PostgreSQL DATABASE_URL; SQLite fallback is disabled.')
     if not os.environ.get('SECRET_KEY'):
         raise ImproperlyConfigured('Production requires SECRET_KEY.')
+    if not ALLOWED_HOSTS:
+        raise ImproperlyConfigured('Production requires ALLOWED_HOSTS.')
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -114,11 +141,12 @@ FRONTEND_ASSETS = BASE_DIR.parent / 'frontend' / 'dist' / 'assets'
 STATICFILES_DIRS = [FRONTEND_ASSETS] if FRONTEND_ASSETS.is_dir() else []
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTHENTICATION_CLASSES = ['rest_framework.authentication.SessionAuthentication']
+if DEBUG:
+    AUTHENTICATION_CLASSES.append('rest_framework.authentication.BasicAuthentication')
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': AUTHENTICATION_CLASSES,
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -127,15 +155,14 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG
-CORS_ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get('CORS_ALLOWED_ORIGINS', 'https://uzhi.netlify.app,https://safeguardity.netlify.app').split(',')
-    if origin.strip()
-]
+CORS_ALLOWED_ORIGINS = env_list(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:5173,http://127.0.0.1:5173' if DEBUG else '',
+)
 CORS_ALLOW_CREDENTIALS = True
 
 # UzHi identity and delivery configuration. Values belong in hosting settings.
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173' if DEBUG else '').rstrip('/')
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', '')

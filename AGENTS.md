@@ -1,36 +1,31 @@
-# AGENTS.md — BCMS Designer
+# AGENTS.md — UzHi / RISKGUARD
 
-Modular monolith: `backend/` (Django 3.12 + DRF, Python 3.12) + `frontend/` (React 18 + TS + Vite). DB is SQLite at `backend/db.sqlite3` (`settings.py`); no Postgres needed locally. No git repo, no CI, no lint/typecheck config.
+Production tizim `backend/` dagi Django/DRF va `frontend/` dagi React/Vite ilovasidir. `backend_fastapi/` legacy reference; undan production deploy yoki yangi implementatsiya uchun foydalanmang.
 
-## Entrypoints
+## O‘zgarmas qoidalar
 
-- Backend wiring: `backend/bcms_backend/settings.py`, `backend/bcms_backend/urls.py`. One DRF `DefaultRouter` under `api/v1/` + explicit paths for auth, analyses, dashboard.
-- Domain apps: `backend/apps/{authentication,organizations,processes,bia,risks,engine,plans,simulation,reports,core}`. `core` owns immutable `AuditLog` + `seed_demo_data` command.
-- Frontend is effectively a monolith: `frontend/src/App.tsx` (all tabs), `frontend/src/api/client.ts` (all endpoints), `frontend/src/types/`. Django serves built UI: `TEMPLATES.DIRS` → `frontend/dist`, static → `frontend/dist/assets`.
+- Session authentication + CSRF oqimini saqlang; productionda BasicAuthentication yo‘q.
+- Barcha tenant querylari joriy foydalanuvchi tashkilotiga cheklansin. Cross-tenant obyekt 404 qaytarishi kutiladi.
+- `AuditLog` immutable va API read-only bo‘lib qoladi.
+- Formulalarni o‘zgartirmang: `RTO ≤ MTPD`; risk `likelihood × impact`; priority `0.40/0.25/0.20/0.15`; RPO gap `backup_interval > rpo_minutes`.
+- Production bazaga E2E yozmang. Fixture yoki alohida test bazasidan foydalaning.
+- Sirlarni kod, test logi yoki hujjatga yozmang.
 
-## Commands (run from indicated dir)
+## Buyruqlar
 
-```powershell
+```bash
 cd backend
-python manage.py runserver 127.0.0.1:8000
-python -m pytest                                   # full suite, 19 tests
-python -m pytest tests/test_auth_rbac.py::TestAuthenticationAndAudit::test_login_invalid_credentials_fails -q  # single test
-python manage.py seed_demo_data                    # pilot org + demo users (password: Admin123!)
-python manage.py migrate                           # after model changes; no custom migration workflow
+DEBUG=True python manage.py check
+DEBUG=True python -m pytest
+DEBUG=True python -m pytest --cov=apps --cov=bcms_backend
 
 cd ../frontend
-npm run dev     # Vite :5173, proxies /api -> 127.0.0.1:8000
-npm run build   # REQUIRED after any frontend change — Django serves frontend/dist
+npm ci
+npm test
+npx tsc --noEmit
+npm run build
 ```
 
-Frontend has no test/lint scripts (`dev|build|preview` only). `pytest.ini` sets `DJANGO_SETTINGS_MODULE=bcms_backend.settings`; always run pytest from `backend/`.
+`pytest.ini` test uchun `bcms_backend.settings_test` ni ishlatadi. Router resurslari trailing slash talab qiladi; auth, analyses va report explicit endpointlari talab qilmaydi. Paginated listlarda `results` maydonini o‘qing.
 
-## Gotchas agents miss
-
-- **Trailing-slash split:** auth (`api/v1/auth/login|logout|me`), analyses (`api/v1/analyses/priority|evaluate-risk|evaluate-strategy`), dashboard (`api/v1/reports/organization`) have **no** trailing slash; all router resources (`processes/`, `bia/`, `risks/`, `plans/`, …) **require** it. Custom actions: `bia/{id}/approve/`, `plans/{id}/publish/`, `plans/{id}/export_pdf/`, `scenarios/{id}/simulate/` (all POST except PDF export GET).
-- **Auth is Session + Basic** (`credentials: 'include'` in `api/client.ts`), not token — despite `rest_framework.authtoken` in `INSTALLED_APPS`. Demo logins: `admin` / `bcms_manager` / `director`, password `Admin123!`.
-- **List responses are paginated** (`PAGE_SIZE: 50`): read `response.results`, not the raw array.
-- **Multi-tenant isolation by org-filtered querysets:** cross-org access returns **404**, not 403 — this is correct behavior (see `test_tenant_data_isolation_*`). Never "fix" it to 403 or broaden querysets.
-- **AuditLog is immutable:** `apps/core/models.py:54-60` raises `PermissionDenied` on update/delete; `AuditLogViewSet` is `ReadOnlyModelViewSet`. Tests assert this — do not add update/delete paths.
-- **Enforced domain invariants:** BIA rejects `RTO > MTPD` with 400; risk score = `likelihood × impact` (1–25, thresholds ≤6/7–14/≥15); priority = `0.40·Impact + 0.25·Urgency + 0.20·Risk + 0.15·Dependency`; RPO gap when `backup_interval > rpo_minutes`. Keep these formulas exact.
-- `TIME_ZONE = Asia/Tashkent`, `DEBUG = True`, `ALLOWED_HOSTS = ['*']`, `CORS_ALLOW_ALL_ORIGINS = True` — dev-only posture, do not "harden" without being asked.
+CI `.github/workflows/verify-deployment.yml` orqali frontend unit/type/build/audit/isolated E2E va backend check/migration/coverage/auditni tekshiradi.

@@ -132,6 +132,18 @@ test('network and upstream errors provide readable messages', async t => {
   await assert.rejects(api.getMe(), /Server vaqtincha ishlamayapti/);
 });
 
+test('readiness retries transient cold-start failures with bounded backoff', async t => {
+  let attempts = 0;
+  const retries = [];
+  const { api, calls } = await clientFor(t, () => {
+    attempts += 1;
+    return attempts < 3 ? json({ status: 'unavailable' }, 503) : json({ status: 'ready' });
+  });
+  await api.waitUntilReady((attempt, delay) => retries.push([attempt, delay]), [0, 0, 0]);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every(call => call.url.endsWith('/readiness')));
+});
+
 test('profile loading retains authentication failures for session handling', async t => {
   const { api, ApiError } = await clientFor(t, () => json({ detail: 'Authentication credentials were not provided.' }, 403));
   await assert.rejects(api.getMe(), error => error instanceof ApiError && error.status === 403);

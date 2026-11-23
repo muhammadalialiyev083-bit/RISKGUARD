@@ -2,7 +2,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { api } from "../api/client";
 import { recordSamples, sectorSamples } from "./recordSamples";
-import { DashboardReportExport } from "../reports/DashboardReportExport";
+import { ReportWorkspace } from "./ReportWorkspace";
 import { SectionGuide } from "../experience/SectionGuide";
 import {
   PlanEvidence,
@@ -11,14 +11,12 @@ import {
 } from "./ContinuityDetails";
 import {
   DashboardWelcome,
-  metricTarget,
   ExecutiveDashboard,
 } from "../experience/ExecutiveDashboard";
 import { MotionNav } from "../experience/MotionEffects";
 import {
   RiskMatrix,
   DependencyMap,
-  SummaryCharts,
 } from "../components/DomainCharts";
 import "./domain.css";
 
@@ -633,7 +631,7 @@ export function DomainPage({
           resources.add(f.resource);
       });
     }
-    if (["dashboard", "reports", "engine", "strategies"].includes(current))
+    if (["reports", "engine", "strategies"].includes(current))
       [
         "processes",
         "bia",
@@ -645,11 +643,20 @@ export function DomainPage({
       ].forEach((r) => resources.add(r));
     if (["plans", "simulation", "exercises"].includes(current))
       resources.add("users");
-    if (["dashboard", "reports"].includes(current)) resources.add("services");
     if (current === "dashboard") {
-      resources.add("organizations");
-      resources.add("exercises");
+      [
+        "organizations",
+        "services",
+        "processes",
+        "assets",
+        "dependencies",
+        "bia",
+        "risks",
+        "plans",
+        "exercises",
+      ].forEach((resource) => resources.add(resource));
     }
+    if (current === "reports") resources.add("services");
     if (["assets", "dependencies", "simulation"].includes(current))
       ["processes", "assets", "dependencies"].forEach((r) => resources.add(r));
     try {
@@ -941,212 +948,36 @@ export function DomainPage({
       ) : (
         !error && (
           <>
-            {["dashboard", "reports"].includes(current) && (
+            {current === "dashboard" && (
               <>
-                {current === "dashboard" && (
-                  <DashboardWelcome
-                    user={user}
-                    workspace={workspace}
-                    summary={summary}
-                    onNavigate={navigate}
-                  />
-                )}
-                <details
-                  className="report-filters"
-                  open={filtersOpen}
-                  onToggle={(event) => setFiltersOpen(event.currentTarget.open)}
-                >
-                  <summary>Hisobot filtrlari</summary>
-                  <div className="domain-toolbar">
-                    <label className="field">
-                      Jarayon yaratilgan davr · dan
-                      <input
-                        type="date"
-                        value={period}
-                        onChange={(e) => setPeriod(e.target.value)}
-                      />
-                    </label>
-                    <label className="field">
-                      Davr · gacha
-                      <input
-                        type="date"
-                        value={endPeriod}
-                        min={period || undefined}
-                        onChange={(e) => setEndPeriod(e.target.value)}
-                      />
-                    </label>
-                    <label className="field">
-                      Xizmat
-                      <select
-                        aria-label="Xizmat"
-                        value={serviceFilter}
-                        onChange={(e) => setServiceFilter(e.target.value)}
-                      >
-                        <option value="">Barcha xizmatlar</option>
-                        {(data.services || []).map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <span className="muted">
-                      {summary?.organization || user.organization_detail?.name}
-                    </span>
-                    {current === "reports" && (
-                      <>
-                        <button
-                          className="btn"
-                          disabled={busy}
-                          onClick={() =>
-                            download(
-                              "/reports/organization?export=pdf" +
-                                (reportQuery ? "&" + reportQuery : ""),
-                              "UzHi-hisobot.pdf",
-                            )
-                          }
-                        >
-                          <UzHiIcon name="download" size={16} /> PDF hisobot
-                        </button>
-                        <button
-                          className="btn"
-                          disabled={busy}
-                          onClick={() =>
-                            download(
-                              "/reports/organization?export=csv" +
-                                (reportQuery ? "&" + reportQuery : ""),
-                              "UzHi-hisobot.csv",
-                            )
-                          }
-                        >
-                          <UzHiIcon name="download" size={16} /> CSV hisobot
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </details>
-                {current === "dashboard" && (
-                  <ExecutiveDashboard
-                    data={data}
-                    workspace={workspace}
-                    summary={summary}
-                    user={user}
-                    onNavigate={navigate}
-                  />
-                )}
-                <DashboardReportExport
-                  key={`${current}:${user.id}:${reportQuery}`}
-                  available={Boolean(summary?.summary) && !loading && !busy}
-                  query={reportQuery}
-                  onNotify={(message, type) => {
-                    if (type === "error") setError(message);
-                    else setNotice(message);
-                  }}
+                <DashboardWelcome
+                  user={user}
+                  workspace={workspace}
+                  summary={summary}
+                  onNavigate={navigate}
                 />
-                {current !== "dashboard" && (
-                  <>
-                    <div className="stat-grid">
-                      {[
-                        ["total_processes", "Jarayonlar", "processes"],
-                        ["high_risks_count", "Yuqori risklar", "risks"],
-                        ["rpo_gap_count", "RPO tafovutlari", "bia"],
-                        [
-                          "unplanned_processes_count",
-                          "Rejasiz jarayonlar",
-                          "processes",
-                        ],
-                        [
-                          "published_plans_count",
-                          "E’lon qilingan rejalar",
-                          "plans",
-                        ],
-                        ["approved_bias_count", "Tasdiqlangan BIA", "bia"],
-                      ].map(([key, label, target]) => (
-                        <button
-                          key={key}
-                          className="stat-card"
-                          onClick={() =>
-                            navigate(metricTarget(summary, key, target))
-                          }
-                        >
-                          <span>
-                            {label}
-                            <UzHiIcon name="arrowUpRight" size={15} />
-                          </span>
-                          <strong>{summary?.summary?.[key] ?? "—"}</strong>
-                          <small>Tegishli reestrni ochish</small>
-                        </button>
-                      ))}
-                    </div>
-                    {!!Object.keys(summary?.plan_readiness ?? {}).length && (
-                      <section className="panel">
-                        <h2>Reja dalillari</h2>
-                        <ul className="report-evidence">
-                          {(data.processes || []).map((process) => {
-                            const evidence =
-                              summary?.plan_readiness?.[process.id];
-                            if (!evidence) return null;
-                            return (
-                              <li key={process.id}>
-                                <button
-                                  className="text-button"
-                                  onClick={() =>
-                                    navigate(
-                                      evidence.plan_id
-                                        ? `plans?record=${evidence.plan_id}`
-                                        : `processes?record=${process.id}`,
-                                    )
-                                  }
-                                >
-                                  {process.name}
-                                </button>
-                                <span>{evidence.label}</span>
-                                {!!evidence.missing_evidence.length && (
-                                  <small>
-                                    {evidence.missing_evidence.join(" · ")}
-                                  </small>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </section>
-                    )}
-                    {!(data.processes || []).length ? (
-                      <Empty
-                        title="Birinchi xizmatni bog‘lashdan boshlang"
-                        text="Haqiqiy ko‘rsatkichlar tashkilot ma’lumotlari kiritilgach shakllanadi."
-                        action={() => navigate("organizations")}
-                        label="Tashkilot va xizmatlar"
-                      />
-                    ) : (
-                      <>
-                        <SummaryCharts
-                          processes={data.processes || []}
-                          bias={data.bia || []}
-                          risks={data.risks || []}
-                          onNavigate={navigate}
-                        />
-                        <div className="domain-two">
-                          <RiskMatrix
-                            risks={data.risks || []}
-                            onSelect={() => navigate("risks")}
-                          />
-                          <ReadinessList
-                            bias={data.bia || []}
-                            onNavigate={navigate}
-                          />
-                        </div>
-                        <DependencyMap
-                          processes={data.processes || []}
-                          assets={data.assets || []}
-                          dependencies={data.dependencies || []}
-                        />
-                      </>
-                    )}
-                  </>
-                )}
+                <ExecutiveDashboard summary={summary} onNavigate={navigate} />
               </>
+            )}
+            {current === "reports" && (
+              <ReportWorkspace
+                data={data}
+                summary={summary}
+                reportQuery={reportQuery}
+                filtersOpen={filtersOpen}
+                period={period}
+                endPeriod={endPeriod}
+                serviceFilter={serviceFilter}
+                busy={busy}
+                onFiltersOpen={setFiltersOpen}
+                onPeriod={setPeriod}
+                onEndPeriod={setEndPeriod}
+                onService={setServiceFilter}
+                onNavigate={navigate}
+                onDownload={download}
+                onNotice={setNotice}
+                onError={setError}
+              />
             )}
             {current === "engine" && readonly && !user.is_demo_viewer && (
               <section className="panel">
@@ -2471,46 +2302,6 @@ function RecordForm({
   );
 }
 
-function ReadinessList({
-  bias,
-  onNavigate,
-}: {
-  bias: Row[];
-  onNavigate: (key: string) => void;
-}) {
-  return (
-    <section className="panel">
-      <h2>Diqqat talab qiladigan maqsadlar</h2>
-      {!bias.length ? (
-        <p className="muted">BIA baholashlari kiritilmagan.</p>
-      ) : (
-        <ul className="readiness-list">
-          {bias
-            .filter((b) => b.has_rpo_gap || b.status !== "APPROVED")
-            .slice(0, 6)
-            .map((b) => (
-              <li key={b.id}>
-                <div>
-                  <strong>{b.process_name}</strong>
-                  <small>
-                    {b.has_rpo_gap
-                      ? `Zaxira ${b.backup_interval_minutes} daqiqa > RPO ${b.rpo_minutes} daqiqa`
-                      : "BIA tasdiqlanishi kerak"}
-                  </small>
-                </div>
-                <button className="btn" onClick={() => onNavigate("bia")}>
-                  Ko‘rish
-                </button>
-              </li>
-            ))}
-        </ul>
-      )}
-      <button className="btn" onClick={() => onNavigate("bia")}>
-        Barcha baholashlar <UzHiIcon name="arrowUpRight" size={15} />
-      </button>
-    </section>
-  );
-}
 function SimulationResult({
   result,
   users,

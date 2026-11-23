@@ -37,7 +37,8 @@ def rate_limit(request, scope, limit=5, seconds=3600, identity=''):
 
 def email_enabled():
     backend = getattr(settings, 'EMAIL_BACKEND', '')
-    return bool(getattr(settings, 'EMAIL_HOST', '') and backend == 'django.core.mail.backends.smtp.EmailBackend') or (
+    return bool(getattr(settings, 'EMAIL_HOST', '') and getattr(settings, 'DEFAULT_FROM_EMAIL', '')
+                and backend == 'django.core.mail.backends.smtp.EmailBackend') or (
         settings.DEBUG and backend == 'django.core.mail.backends.locmem.EmailBackend')
 
 

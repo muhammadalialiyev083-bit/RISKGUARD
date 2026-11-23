@@ -342,6 +342,20 @@ export function AccountPage({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
+  const [config, setConfig] = useState<{
+    google_enabled?: boolean;
+    password_reset_enabled?: boolean;
+  } | null>(null);
+  useEffect(() => {
+    let current = true;
+    api
+      .get("/auth/config")
+      .then((value) => current && setConfig(value))
+      .catch(() => current && setConfig({}));
+    return () => {
+      current = false;
+    };
+  }, []);
   async function save(e: FormEvent<HTMLFormElement>, password = false) {
     e.preventDefault();
     setBusy(true);
@@ -487,14 +501,25 @@ export function AccountPage({
           }}
         >
           <h2>Google hisobini bog‘lash</h2>
-          <p className="muted">
-            Mavjud hisobingizni parol bilan qayta tasdiqlang. Google roziligi
-            keyingi sahifada olinadi.
-          </p>
-          <Password name="password" label="Joriy parol" />
-          <button className="btn" disabled={busy}>
-            Google hisobini bog‘lash
-          </button>
+          {config?.google_enabled ? (
+            <>
+              <p className="muted">
+                Mavjud hisobingizni parol bilan qayta tasdiqlang. Google
+                roziligi keyingi sahifada olinadi.
+              </p>
+              <Password name="password" label="Joriy parol" />
+              <button className="btn" disabled={busy || user.google_linked}>
+                {user.google_linked
+                  ? "Google hisobi bog‘langan"
+                  : "Google hisobini bog‘lash"}
+              </button>
+            </>
+          ) : (
+            <div className="alert">
+              Google SSO hali hostingda sozlanmagan. Xizmat yoqilgach bu yerda
+              hisobni bog‘lash mumkin bo‘ladi.
+            </div>
+          )}
         </form>
       </div>
     </section>

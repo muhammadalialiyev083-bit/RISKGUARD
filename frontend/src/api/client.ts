@@ -1,6 +1,7 @@
 import type { User } from "../types";
 
 const API_BASE = "/api/v1";
+const REQUEST_TIMEOUT_MS = 15_000;
 let csrfToken: string | null = null;
 let csrfRequest: Promise<string> | null = null;
 let sessionEpoch = 0;
@@ -39,14 +40,56 @@ function errorMessage(data: unknown, status: number): string {
 async function fetchResponse(
   url: string,
   options: RequestInit,
+  timeoutMs = REQUEST_TIMEOUT_MS,
 ): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, options);
-  } catch {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(
+        "Server javobi kutilmoqda. Xizmat ishga tushayotgan bo‘lishi mumkin.",
+      );
+    }
     throw new Error(
       "Server bilan bog‘lanib bo‘lmadi. Internet aloqasini tekshirib, qayta urinib ko‘ring.",
     );
+  } finally {
+    clearTimeout(timeout);
   }
+}
+
+const pause = (milliseconds: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
+
+async function waitUntilReady(
+  onRetry?: (attempt: number, delay: number) => void,
+  delays = [0, 750, 1_500, 3_000, 5_000],
+) {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < delays.length; attempt += 1) {
+    const delay = delays[attempt];
+    if (delay) {
+      onRetry?.(attempt, delay);
+      await pause(delay);
+    }
+    try {
+      const response = await fetchResponse(
+        `${API_BASE}/readiness`,
+        { credentials: "include", cache: "no-store" },
+        8_000,
+      );
+      if (response.ok) return;
+      if (![502, 503, 504].includes(response.status)) {
+        throw new ApiError(errorMessage(await response.json().catch(() => null), response.status), response.status);
+      }
+      lastError = new Error("Server ishga tushmoqda…");
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error("Server tayyor emas.");
+    }
+  }
+  throw lastError || new Error("Server tayyor emas. Qayta urinib ko‘ring.");
 }
 
 async function readJSON(response: Response): Promise<any> {
@@ -178,6 +221,7 @@ async function startSession(
 }
 
 export const api = {
+  waitUntilReady,
   put: (path: string, data: any) =>
     request<any>(path, { method: "PUT", body: JSON.stringify(data) }),
   patch: (path: string, data: any) =>

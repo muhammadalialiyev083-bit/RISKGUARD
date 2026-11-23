@@ -5,6 +5,7 @@ from urllib.parse import urlparse, parse_qs
 
 import pytest
 from django.core import mail
+from django.core.checks import run_checks
 from django.contrib.auth.tokens import default_token_generator
 from django.test import override_settings
 from django.urls import reverse
@@ -204,6 +205,18 @@ def test_unconfigured_services_are_not_presented_as_working(csrf_client):
     assert csrf_client.get(reverse('auth-config')).data == {'google_enabled': False, 'password_reset_enabled': False}
     assert csrf_client.get(reverse('auth-google-start')).status_code == 503
     assert csrf_post(csrf_client, 'auth-password-reset', {'email': 'test@security.test'}).status_code == 503
+
+
+@override_settings(GOOGLE_CLIENT_ID='partial', GOOGLE_CLIENT_SECRET='', GOOGLE_REDIRECT_URI='',
+                   EMAIL_HOST='smtp.example.test', DEFAULT_FROM_EMAIL='', EMAIL_USE_TLS=True, EMAIL_USE_SSL=True)
+def test_partial_provider_configuration_fails_system_checks():
+    ids = {issue.id for issue in run_checks()}
+    assert {'uzhi.E001', 'uzhi.E003', 'uzhi.E004'} <= ids
+
+
+@override_settings(DEBUG=False, FRONTEND_URL='http://frontend.example.test')
+def test_production_frontend_origin_requires_https():
+    assert 'uzhi.E005' in {issue.id for issue in run_checks()}
 
 
 @pytest.mark.django_db

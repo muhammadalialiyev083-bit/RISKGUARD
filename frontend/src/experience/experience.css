@@ -332,6 +332,15 @@ html {
 .executive-dashboard {
   margin: 24px 0;
 }
+.executive-dashboard-compact {
+  display: grid;
+  gap: 16px;
+}
+.dashboard-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .executive-dashboard .panel {
   background: color-mix(in srgb, var(--panel) 96%, transparent);
 }

@@ -1,9 +1,7 @@
 import { UzHiIcon } from "../components/icons/UzHiIcons";
 import { BubbleIcon } from "../components/ui/BubbleIcon";
-import { RiskMatrix, DependencyMap } from "../components/DomainCharts";
 import { startingSteps } from "./workflow";
 import type { RecordRow, WorkspaceData } from "./workflow";
-import { ProcessDistribution } from "./ProcessDistribution";
 import { ProductWalkthrough } from "./ProductWalkthrough";
 import { MetricFocus } from "./MetricFocus";
 
@@ -20,11 +18,7 @@ const metricIds: Record<string, string> = {
   overdue_tasks_count: "overdue_task_ids",
 };
 
-export function metricTarget(
-  report: RecordRow | null,
-  key: string,
-  target: string,
-) {
+export function metricTarget(report: RecordRow | null, key: string, target: string) {
   const ids = report?.[metricIds[key]];
   return Array.isArray(ids) ? `${target}?ids=${ids.join(",")}` : target;
 }
@@ -50,20 +44,14 @@ export function DashboardWelcome({
         <div className="dashboard-priorities">
           <button
             className="btn"
-            onClick={() =>
-              onNavigate(
-                metricTarget(summary, "critical_readiness_count", "processes"),
-              )
-            }
+            onClick={() => onNavigate(metricTarget(summary, "critical_readiness_count", "processes"))}
           >
             <strong>{summary?.summary?.critical_readiness_count ?? "—"}</strong>{" "}
             Amaldagi rejasi yo‘q kritik jarayonlar
           </button>
           <button
             className="btn"
-            onClick={() =>
-              onNavigate(metricTarget(summary, "overdue_tasks_count", "tasks"))
-            }
+            onClick={() => onNavigate(metricTarget(summary, "overdue_tasks_count", "tasks"))}
           >
             <strong>{summary?.summary?.overdue_tasks_count ?? "—"}</strong>{" "}
             Muddati o‘tgan vazifalar
@@ -72,11 +60,7 @@ export function DashboardWelcome({
         <div className="dashboard-hero-actions">
           <button
             className="btn btn-primary dashboard-hero-primary"
-            onClick={() =>
-              onNavigate(
-                user.role === "AUDITOR" ? "iso22301" : next?.target || "reports",
-              )
-            }
+            onClick={() => onNavigate(user.role === "AUDITOR" ? "iso22301" : next?.target || "reports")}
           >
             {user.role === "AUDITOR"
               ? "Audit dalillarini ochish"
@@ -93,103 +77,26 @@ export function DashboardWelcome({
           <BubbleIcon name="plans" size="lg" variant="active" float />
           <span className="dashboard-intro-caption">
             <span>Tanishtiruv va dastlabki sozlash ·</span>{" "}
-            <span className="dashboard-intro-count">
-              <strong>{completed}</strong>/{steps.length}
-            </span>
+            <span className="dashboard-intro-count"><strong>{completed}</strong>/{steps.length}</span>
           </span>
           <UzHiIcon name="chevronRight" size={16} className="dashboard-intro-chevron" />
         </summary>
-        <button
-          className="btn"
-          onClick={() =>
-            document
-              .getElementById("getting-started")
-              ?.scrollIntoView({ block: "start" })
-          }
-        >
-          Qadamlarni ko‘rish <UzHiIcon name="chevronRight" size={14} />
+        <button className="btn" onClick={() => onNavigate(next?.target || "reports")}>
+          {next ? "Keyingi qadamni ochish" : "Batafsil hisobotni ochish"}
+          <UzHiIcon name="chevronRight" size={14} />
         </button>
       </details>
     </section>
   );
 }
 
-function Coverage({
-  title,
-  complete,
-  total,
-  label,
-  onClick,
-}: {
-  title: string;
-  complete: number;
-  total: number;
-  label: string;
-  onClick: () => void;
-}) {
-  const percent = total ? Math.round((complete / total) * 100) : 0;
-  return (
-    <button
-      className="coverage-widget"
-      onClick={onClick}
-      aria-label={title + " bo‘limini ochish"}
-    >
-      <div
-        className="coverage-ring"
-        style={{ "--coverage": `${percent}%` } as React.CSSProperties}
-      >
-        <span>{total ? percent + "%" : "—"}</span>
-      </div>
-      <div>
-        <strong>{title}</strong>
-        <span>
-          {complete} / {total} jarayon
-        </span>
-        <small>{total ? label : "Avval jarayon yarating"}</small>
-      </div>
-      <UzHiIcon name="chevronRight" size={16} />
-    </button>
-  );
-}
-
 export function ExecutiveDashboard({
-  data,
-  workspace,
   summary,
-  user,
   onNavigate,
 }: {
-  data: WorkspaceData;
-  workspace: WorkspaceData;
   summary: RecordRow | null;
-  user: RecordRow;
   onNavigate: (target: string) => void;
 }) {
-  const processes = data.processes || [],
-    risks = data.risks || [],
-    bias = data.bia || [],
-    plans = data.plans || [];
-  const approved = new Set(
-    bias.filter((row) => row.status === "APPROVED").map((row) => row.process),
-  );
-  const published = new Set(
-    plans
-      .filter(
-        (row) =>
-          row.status === "PUBLISHED" && row.readiness?.needs_review === false,
-      )
-      .map((row) => row.process),
-  );
-  const steps = startingSteps(workspace, summary, user);
-  const visibleProcesses = processes.slice(0, 8),
-    visibleAssets = (data.assets || []).slice(0, 8);
-  const shown = (type: string, id: number) =>
-    (type === "PROCESS" ? visibleProcesses : visibleAssets).some(
-      (row) => Number(row.id) === Number(id),
-    );
-  const visibleDependencies = (data.dependencies || []).filter(
-    (row) => shown(row.from_type, row.from_id) && shown(row.to_type, row.to_id),
-  );
   const metric = (key: string) =>
     typeof summary?.summary?.[key] === "number"
       ? summary.summary[key].toLocaleString("uz-UZ")
@@ -199,45 +106,30 @@ export function ExecutiveDashboard({
     ["high_risks_count", "Yuqori risklar", "risks", "highRisk", "danger"],
     ["rpo_gap_count", "RPO tafovutlari", "bia", "rpo", "indigo"],
     ["unplanned_processes_count", "Rejasiz jarayonlar", "processes", "unplanned", "danger"],
-    ["published_plans_count", "E’lon qilingan rejalar", "plans", "plans", "lime"],
-    ["approved_bias_count", "Tasdiqlangan BIA", "bia", "approvedBia", "lime"],
     ["verified_plans_count", "Mashqda tekshirilgan", "plans", "checkCircle", "lime"],
-    [
-      "plans_needing_review_count",
-      "Qayta ko‘rib chiqish kerak",
-      "plans",
-      "recovery",
-      "indigo",
-    ],
+    ["plans_needing_review_count", "Qayta ko‘rib chiqish kerak", "plans", "recovery", "indigo"],
   ] as const;
   const descriptions: Record<string, string> = {
-    total_processes:
-      "Hisobot doirasidagi biznes jarayonlari. Reestrda ularning muhimligi, mas’uli va bog‘liqliklarini ko‘ring.",
-    high_risks_count:
-      "Yuqori darajali risklar: ehtimollik × ta’sir bo‘yicha 15–25 ball olgan yozuvlar.",
-    rpo_gap_count:
-      "Zaxiralash oralig‘i belgilangan RPO muddatidan oshib ketgan jarayonlar.",
-    unplanned_processes_count:
-      "Amaldagi BIA va tiklanish qadamlari bilan tasdiqlangan rejasi yo‘q jarayonlar.",
-    published_plans_count:
-      "E’lon qilingan BCP / DRP rejalariga ega jarayonlar.",
-    approved_bias_count:
-      "Tasdiqlangan biznes ta’siri baholashlari. BIA reestrida RTO, RPO va MTPD talablarini tekshiring.",
+    total_processes: "Hisobot doirasidagi biznes jarayonlari.",
+    high_risks_count: "15–25 ball olgan yuqori darajali risklar.",
+    rpo_gap_count: "Zaxiralash oralig‘i RPO muddatidan oshgan baholashlar.",
+    unplanned_processes_count: "Amaldagi tiklanish rejasi yo‘q jarayonlar.",
+    verified_plans_count: "Amaldagi mashqda tekshirilgan rejalar.",
+    plans_needing_review_count: "Qayta ko‘rib chiqilishi kerak bo‘lgan rejalar.",
   };
   return (
-    <div className="executive-dashboard">
+    <div className="executive-dashboard executive-dashboard-compact">
       <div className="executive-kpis stat-grid">
         {counts.map(([key, label, target, icon, variant]) => (
           <MetricFocus
             key={key}
             label={label}
             value={metric(key)}
-            description={descriptions[key] || label}
+            description={descriptions[key]}
             onNavigate={() => onNavigate(metricTarget(summary, key, target))}
           >
             <button
               className={`stat-card executive-kpi metric-${key}`}
-              key={key}
               onClick={() => onNavigate(metricTarget(summary, key, target))}
             >
               <span className="kpi-card-heading">
@@ -250,105 +142,11 @@ export function ExecutiveDashboard({
           </MetricFocus>
         ))}
       </div>
-      <div className="executive-charts">
-        <RiskMatrix
-          risks={risks}
-          onSelect={(likelihood, impact) =>
-            onNavigate(`risks?likelihood=${likelihood}&impact=${impact}`)
-          }
-        />
-        <section className="panel coverage-panel">
-          <div className="chart-heading">
-            <div>
-              <h2>Tiklanish qamrovi</h2>
-              <p>Baholangan va e’lon qilingan rejasi bor jarayonlar.</p>
-            </div>
-            <UzHiIcon name="plans" size={20} />
-          </div>
-          <Coverage
-            title="BIA qamrovi"
-            complete={processes.filter((row) => approved.has(row.id)).length}
-            total={processes.length}
-            label="Tasdiqlangan BIA mavjud"
-            onClick={() => onNavigate("bia")}
-          />
-          <Coverage
-            title="Reja qamrovi"
-            complete={processes.filter((row) => published.has(row.id)).length}
-            total={processes.length}
-            label="Amaldagi reja mavjud"
-            onClick={() => onNavigate("plans")}
-          />
-          <ProcessDistribution processes={processes} onNavigate={onNavigate} />
-        </section>
+      <div className="dashboard-quick-actions" aria-label="Tezkor amallar">
+        <button className="btn" onClick={() => onNavigate("incidents")}>Hodisalar markazi</button>
+        <button className="btn" onClick={() => onNavigate("tasks")}>Yaxshilash vazifalari</button>
+        <button className="btn" onClick={() => onNavigate("reports")}>Batafsil hisobotlar</button>
       </div>
-      <section
-        className="panel getting-started"
-        id="getting-started"
-        aria-labelledby="getting-started-title"
-      >
-        <div className="getting-started-heading">
-          <div>
-            <h2 id="getting-started-title">Ishni nimadan boshlayman?</h2>
-            <p>
-              Har bir qadam keyingi bo‘lim uchun kerakli ma’lumotni tayyorlaydi.
-              Belgilar mavjud yozuvlar asosida yangilanadi.
-            </p>
-          </div>
-          <span>
-            {steps.filter((step) => step.complete).length} / {steps.length}{" "}
-            qadam
-          </span>
-        </div>
-        <ol>
-          {steps.map((step, index) => (
-            <li
-              key={step.target}
-              className={step.complete ? "is-complete" : ""}
-            >
-              <button
-                onClick={() =>
-                  onNavigate(
-                    user.role === "AUDITOR"
-                      ? step.target.split("?")[0]
-                      : step.target,
-                  )
-                }
-              >
-                <span className="getting-started-number">
-                  {step.complete ? <UzHiIcon name="check" size={17} /> : index + 1}
-                </span>
-                <span>
-                  <strong>{step.title}</strong>
-                  <small>{step.detail}</small>
-                </span>
-                <UzHiIcon name="chevronRight" size={16} />
-              </button>
-            </li>
-          ))}
-        </ol>
-      </section>
-      <DependencyMap
-        processes={visibleProcesses}
-        assets={visibleAssets}
-        dependencies={visibleDependencies}
-        onSelect={(type, id) => {
-          const row = (type === "PROCESS" ? processes : data.assets || []).find(
-            (row) => Number(row.id) === id,
-          );
-          onNavigate(
-            `${type === "PROCESS" ? "processes" : "assets"}?q=${encodeURIComponent(row?.name || "")}`,
-          );
-        }}
-      />
-      {(processes.length > 8 || (data.assets || []).length > 8) && (
-        <button
-          className="text-button dashboard-full-map"
-          onClick={() => onNavigate("dependencies")}
-        >
-          Barcha bog‘liqliklarni ochish <UzHiIcon name="arrowRight" size={14} />
-        </button>
-      )}
     </div>
   );
 }
