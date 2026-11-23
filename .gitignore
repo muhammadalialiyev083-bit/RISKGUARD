@@ -12,3 +12,6 @@ __pycache__/
 
 # Generated Django static output
 backend/staticfiles/
+
+# Local Netlify folder
+.netlify
