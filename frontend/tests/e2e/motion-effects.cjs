@@ -20,11 +20,18 @@ const mime = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css
 async function builtAssets(page) {
   if (!offline) return;
   // Serve the actual production bundle through the runner; no preview service is required.
+  const headerLines = (await fs.readFile(path.join(dist, "_headers"), "utf8")).split(/\r?\n/).slice(1);
+  const htmlHeaders = {};
+  for (const line of headerLines) {
+    if (!line.trim()) break;
+    const separator = line.indexOf(":");
+    if (separator > 0) htmlHeaders[line.slice(0, separator).trim()] = line.slice(separator + 1).trim();
+  }
   await page.route(origin + "/**", async route => {
     const pathname = decodeURIComponent(new URL(route.request().url()).pathname);
     const file = path.extname(pathname) ? path.join(dist, pathname) : path.join(dist, "index.html");
     assert.ok(file.startsWith(dist + path.sep));
-    try { await route.fulfill({ status: 200, contentType: mime[path.extname(file)] || "application/octet-stream", body: await fs.readFile(file) }); }
+    try { await route.fulfill({ status: 200, contentType: mime[path.extname(file)] || "application/octet-stream", headers: path.extname(file) === ".html" ? htmlHeaders : undefined, body: await fs.readFile(file) }); }
     catch { await route.fulfill({ status: 404, body: "Missing build asset" }); }
   });
 }
@@ -176,7 +183,7 @@ async function expectPaused(frame) {
     assert.ok(await page.getByRole("button", { name: "Interfeys harakati kamaytirilgan" }).isDisabled());
     assert.equal(await page.locator(".dependency-pulse").count(), 0);
     await page.goto(origin + "/reports");
-    await page.locator(".dependency-pulse").first().waitFor();
+    await page.locator(".dependency-pulse").first().waitFor({ state: "attached" });
     assert.equal(await page.locator(".dependency-pulse").first().evaluate(n => getComputedStyle(n).opacity), "0");
     await page.goto(origin + "/dashboard");
     await page.locator(".dashboard-intro").waitFor();
