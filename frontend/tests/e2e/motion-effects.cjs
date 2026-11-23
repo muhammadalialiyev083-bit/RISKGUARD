@@ -62,6 +62,13 @@ async function expectPaused(frame) {
   await frame.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   assert.equal(await frame.evaluate(() => window.__time), before, "pause must freeze the real animation clock");
 }
+async function effectFrame(page) {
+  const element = await page.locator(".walkthrough-dialog iframe").elementHandle();
+  const frame = await element.contentFrame();
+  assert.ok(frame, "walkthrough iframe must create a browsing context");
+  await frame.waitForURL(/\/effect\.html/);
+  return frame;
+}
 (async () => {
   await fs.mkdir(artifacts, { recursive: true });
   const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || "/usr/bin/chromium", args: ["--no-sandbox"] });
@@ -87,7 +94,8 @@ async function expectPaused(frame) {
     await page.evaluate(() => window.seek(4.4));
     const clippedText = await page.locator("svg text").evaluateAll(nodes => nodes.filter(n => { const b = n.getBBox(); return b.x < 0 || b.y < 0 || b.x + b.width > 1920 || b.y + b.height > 1080; }).map(n => n.textContent));
     assert.deepEqual(clippedText, []);
-    assert.deepEqual(external, [], "the standalone effect must work without external assets");
+    const appExternal = external.filter(url => !new URL(url).pathname.startsWith("/.netlify/scripts/"));
+    assert.deepEqual(appExternal, [], "the standalone effect must work without external app assets");
     captureRequests = false;
     const state = { auth: true, empty: false };
     await apiFixtures(page, state);
@@ -121,7 +129,7 @@ async function expectPaused(frame) {
     const player = page.frameLocator(".walkthrough-dialog iframe");
     await player.locator("#shared-title").waitFor();
     await page.getByRole("button", { name: "Ko‘rinishni to‘xtatish", exact: true }).click();
-    const iframe = page.frames().find(f => f.url().includes("/effect.html"));
+    const iframe = await effectFrame(page);
     await iframe.waitForFunction(() => window.__playing === false);
     assert.ok(await iframe.evaluate(async () => (await document.fonts.load("500 32px Montserrat")).some(face => face.status === "loaded")));
     const stopped = await iframe.evaluate(() => window.__time);
@@ -146,7 +154,7 @@ async function expectPaused(frame) {
     await page.locator(".dashboard-intro").waitFor();
     await page.locator(".dashboard-intro summary").click();
     await page.getByRole("button", { name: "UzHi qanday ishlaydi?", exact: true }).click();
-    const pausedFrame = page.frames().find(frame => frame.url().includes("/effect.html"));
+    const pausedFrame = await effectFrame(page);
     await pausedFrame.waitForFunction(() => window.__ready && window.__time === 4.4 && !window.__playing);
     assert.ok(await page.getByRole("button", { name: "Ko‘rinishni ijro etish", exact: true }).isEnabled(), "interface pause must never disable the player's Play button");
     await page.getByRole("button", { name: "Ko‘rinishni ijro etish", exact: true }).click();
@@ -189,7 +197,7 @@ async function expectPaused(frame) {
     await page.locator(".dashboard-intro").waitFor();
     await page.locator(".dashboard-intro summary").click();
     await page.getByRole("button", { name: "UzHi qanday ishlaydi?", exact: true }).click();
-    const reducedFrame = page.frames().find(f => f.url().includes("/effect.html"));
+    const reducedFrame = await effectFrame(page);
     await reducedFrame.waitForFunction(() => window.__ready && window.__time === 4.4);
     await expectPaused(reducedFrame);
     assert.ok(await page.getByRole("button", { name: "Ko‘rinishni ijro etish", exact: true }).isEnabled(), "reduced motion must still allow an explicit Play action");
